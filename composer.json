@@ -1,0 +1,29 @@
+{
+    "name": "left-right/center",
+    "description": "An innovative CMS for Laravel 5",
+    "homepage": "https://github.com/left-right/center",
+    "keywords": ["laravel", "laravel5", "cms"],
+    "license":"GPL-3.0",
+    "type": "library",
+    "authors": [
+        {
+            "name": "Josh Reisner",
+            "email": "josh@left-right.co",
+            "role": "Developer",
+            "homepage": "http://left-right.co"
+        }
+    ],
+    "require": {
+        "php": ">=5.4.0",
+        "illuminate/support": "5.0.*"
+    },
+    "autoload": {
+        "psr-4": {
+            "LeftRight\\Center\\": "src/"
+        }
+    },
+    "minimum-stability": "dev"
+}
+
+
+
