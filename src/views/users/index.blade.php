@@ -1,35 +1,37 @@
-@extends('avalon::template')
+@extends('center::template')
 
 @section('title')
-	@lang('avalon::messages.users')
+	@lang('center::users.plural')
 @endsection
 
 @section('main')
 
 	{!! \LeftRight\Center\Libraries\Breadcrumbs::leave([
-		URL::action('\LeftRight\Center\Controllers\ObjectController@index')=>trans('avalon::messages.objects'),
-		trans('avalon::messages.users'),
+		URL::action('\LeftRight\Center\Controllers\ObjectController@index')=>trans('center::objects.plural'),
+		trans('center::users.plural'),
 		]) !!}
 
 	<div class="btn-group">
-		<a class="btn btn-default" id="create" href="{{ URL::action('UserController@create') }}">
+		<a class="btn btn-default" id="create" href="{{ URL::action('\LeftRight\Center\Controllers\UserController@create') }}">
 			<i class="glyphicon glyphicon-plus"></i> 
-			@lang('avalon::messages.users_create')
+			@lang('center::users.plural_create')
 		</a>
 	</div>
 
-	{{ Table::rows($users)
-		->column('name', 'string', trans('avalon::messages.users_name'))
-		->column('role', 'string', trans('avalon::messages.users_role'))
-		->column('last_login', 'date-relative', trans('avalon::messages.users_last_login'))
+	@include('center::notifications')
+
+	{!! \LeftRight\Center\Libraries\Table::rows($users)
+		->column('name', 'string', trans('center::users.plural_name'))
+		->column('role', 'string', trans('center::users.plural_role'))
+		->column('last_login', 'date-relative', trans('center::users.plural_last_login'))
 		->deletable()
 		->draw()
-		}}
+		!!}
 
 @endsection
 
 @section('side')
-	<p>@lang('avalon::messages.users_help')</p>
+	<p>@lang('center::users.plural_help')</p>
 @endsection
 
 @section('script')

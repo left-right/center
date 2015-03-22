@@ -1,1 +1,1 @@
-@lang('avalon::messages.users_password_reset_email', ['link'=>$link])
+@lang('center::users.plural_password_reset_email', ['link'=>$link])

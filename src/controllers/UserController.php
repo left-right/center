@@ -1,5 +1,16 @@
 <?php namespace LeftRight\Center\Controllers;
 
+use Auth;
+use DateTime;
+use DB;
+use Hash;
+use Mail;
+use Request;
+use Redirect;
+use Illuminate\Support\Str;
+use URL;
+use View;
+
 class UserController extends \App\Http\Controllers\Controller {
 
 	private static $roles = array(
@@ -14,8 +25,8 @@ class UserController extends \App\Http\Controllers\Controller {
 		
 		foreach ($users as &$user) {
 			$user->role = self::$roles[$user->role];
-			$user->link = URL::action('UserController@edit', $user->id);
-			$user->delete = URL::action('UserController@delete', $user->id);
+			$user->link = URL::action('\LeftRight\Center\Controllers\UserController@edit', $user->id);
+			$user->delete = URL::action('\LeftRight\Center\Controllers\UserController@delete', $user->id);
 		}
 
 		return View::make('center::users.index', array(
@@ -37,18 +48,25 @@ class UserController extends \App\Http\Controllers\Controller {
 		$email = Request::input('email');
 		$password = Str::random(12);
 
-		$user_id = DB::table(config('center.db.users'))->insertGetId(array(
-			'name'=>Request::input('name'),
-			'email'=>$email,
-			'password'=>Hash::make($password),
-			'role'=>Request::input('role'),
-			'updated_by'=>Auth::user()->id,
-			'updated_at'=>new DateTime,
-		));
-
-		self::sendWelcome($email, $password);		
-		
-		return Redirect::action('UserController@index')->with('user_id', $user_id);
+		try {
+			$user_id = DB::table(config('center.db.users'))->insertGetId(array(
+				'name'=>Request::input('name'),
+				'email'=>$email,
+				'password'=>Hash::make($password),
+				'role'=>Request::input('role'),
+				'updated_by'=>Auth::user()->id,
+				'updated_at'=>new DateTime,
+			));
+	
+			self::sendWelcome($email, $password);		
+			
+			return Redirect::action('\LeftRight\Center\Controllers\UserController@index')
+				->with('user_id', $user_id)
+				->with('message', trans('center::users.created'));
+		} catch (\Exception $e) {
+			return Redirect::action('\LeftRight\Center\Controllers\UserController@index')
+				->with('error', $e->getMessage());
+		}
 	}
 
 	//show edit screen
@@ -64,14 +82,21 @@ class UserController extends \App\Http\Controllers\Controller {
 
 	//save edit to database
 	public function update($user_id) {
-		DB::table(config('center.db.users'))->where('id', $user_id)->update(array(
-			'name'=>Request::input('name'),
-			'email'=>Request::input('email'),
-			'role'=>Request::input('role'),
-			'updated_by'=>Auth::user()->id,
-			'updated_at'=>new DateTime,
-		));
-		return Redirect::action('UserController@index')->with('user_id', $user_id);
+		try {
+			DB::table(config('center.db.users'))->where('id', $user_id)->update(array(
+				'name'=>Request::input('name'),
+				'email'=>Request::input('email'),
+				'role'=>Request::input('role'),
+				'updated_by'=>Auth::user()->id,
+				'updated_at'=>new DateTime,
+			));
+			return Redirect::action('\LeftRight\Center\Controllers\UserController@index')
+				->with('user_id', $user_id)
+				->with('message', trans('center::users.updated'));
+		} catch (\Exception $e) {
+			return Redirect::action('\LeftRight\Center\Controllers\UserController@index')
+				->with('error', $e->getMessage());
+		}
 	}
 
 	//toggle active flag
@@ -89,7 +114,7 @@ class UserController extends \App\Http\Controllers\Controller {
 	//destroy a never-logged-in user
 	public function destroy($user_id) {
 		DB::table(config('center.db.users'))->whereNull('last_login')->where('id', $user_id)->delete();
-		return Redirect::action('UserController@index');
+		return Redirect::action('\LeftRight\Center\Controllers\UserController@index');
 	}
 
 	/**
@@ -107,7 +132,7 @@ class UserController extends \App\Http\Controllers\Controller {
 
 		self::sendWelcome($email, $password);		
 		
-		return Redirect::action('UserController@index')->with('user_id', $user_id);
+		return Redirect::action('\LeftRight\Center\Controllers\UserController@index')->with('user_id', $user_id);
 	}
 
 	/**
@@ -121,7 +146,7 @@ class UserController extends \App\Http\Controllers\Controller {
 			'link'=>URL::route('home'),
 			), function($message) use ($email) 
 		{
-			$message->to($email)->subject(trans('center::messages.users_welcome_subject'));
+			$message->to($email)->subject(trans('center::users.plural_welcome_subject'));
 		});		
 	}
 }

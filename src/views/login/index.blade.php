@@ -14,7 +14,7 @@
 					<h2 class="modal-title">{{ trans('center::site.welcome') }}</h2>
 				</div>
 				<div class="modal-body">
-					@include('center::login.notifications')
+					@include('center::notifications')
 					<div class="form-group">
 						<label class="col-md-3 control-label" for="email">{{ trans('center::users.email') }}</label>
 						<div class="col-md-9">

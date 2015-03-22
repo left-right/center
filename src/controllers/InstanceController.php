@@ -4,6 +4,8 @@ use Aws\Common\Enum\Region;
 use Aws\Laravel\AwsServiceProvider;
 use Illuminate\Foundation\Application;
 use Maatwebsite\Excel\ExcelServiceProvider;
+use Auth;
+use DateTime;
 use DB;
 use Request;
 use URL;
@@ -587,7 +589,7 @@ class InstanceController extends \App\Http\Controllers\Controller {
 
 		$updated = DB::table($object->name)->where('id', $instance_id)->pluck('updated_at');
 
-		return Dates::relative($updated);
+		return \LeftRight\Center\Libraries\Dates::relative($updated);
 	}
 
 	# Sanitize field values before inserting
@@ -661,7 +663,7 @@ class InstanceController extends \App\Http\Controllers\Controller {
 			foreach ($fields as $field) {
 				$table->column($field->name, $field->type, $field->title, $field->width, $field->height);
 			}
-			$table->column('updated_at', 'updated_at', trans('center::messages.site_updated_at'));
+			$table->column('updated_at', 'updated_at', trans('center::site.updated_at'));
 			if ($object->can_edit) {
 				$table->deletable();
 				if ($object->order_by == 'precedence') $table->draggable(URL::action('\LeftRight\Center\Controllers\InstanceController@reorder', $object->name));

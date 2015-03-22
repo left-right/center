@@ -6,7 +6,7 @@
 
 @section('main')
 	{!! \LeftRight\Center\Libraries\Breadcrumbs::leave([
-		URL::action('\LeftRight\Center\Controllers\ObjectController@index')=>trans('center::messages.objects'),
+		URL::action('\LeftRight\Center\Controllers\ObjectController@index')=>trans('center::objects.plural'),
 		trans('center::messages.import'),
 		]) !!}
 

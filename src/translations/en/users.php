@@ -2,6 +2,7 @@
 
 return [
 	'create'				=> 'Create New User',
+	'created'				=> 'New user created.',
 	'destroy'				=> 'Delete Forever',
 	'edit'					=> 'Edit User',
 	'edit_help'				=> 'Edit a CMS user.',
@@ -22,6 +23,7 @@ return [
 	'role_admin'			=> 'edit any object, administer user accounts',
 	'role_programmer'		=> 'godlike powers',
 	'role_user'				=> 'data entry',
+	'updated'				=> 'User updated.',
 	'welcome_resend'		=> 'Reset Password and Resend Welcome Email',
 	'welcome_subject'		=> 'Avalon CMS Login Information',
 	'welcome_message'		=> 'Welcome, you\'ve been added to the content management system. Click <a href=":link">this link</a> and log in with the following credentials:',

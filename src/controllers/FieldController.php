@@ -6,40 +6,40 @@ class FieldController extends \App\Http\Controllers\Controller {
 	private static function types() {
 
 		return [
-			trans('center::messages.fields_types_cat_dates')=> [
-				'date'			=>trans('center::messages.fields_types_date'),
-				'datetime'		=>trans('center::messages.fields_types_datetime'),
-				'time'			=>trans('center::messages.fields_types_time'),
+			trans('center::fields.types_cat_dates')=> [
+				'date'			=>trans('center::fields.types_date'),
+				'datetime'		=>trans('center::fields.types_datetime'),
+				'time'			=>trans('center::fields.types_time'),
 			],
-			trans('center::messages.fields_types_cat_files')=>[
-				'image'			=>trans('center::messages.fields_types_image'),
-				'images'		=>trans('center::messages.fields_types_images'),
+			trans('center::fields.types_cat_files')=>[
+				'image'			=>trans('center::fields.types_image'),
+				'images'		=>trans('center::fields.types_images'),
 				//'file'		=>'File',
 				//'files'		=>'Files',
 			],
-			trans('center::messages.fields_types_cat_strings')=>[
-				'email'			=>trans('center::messages.fields_types_email'),
-				'html'			=>trans('center::messages.fields_types_html'),
-				'slug'			=>trans('center::messages.fields_types_slug'),
-				'string'		=>trans('center::messages.fields_types_string'),
-				'text'			=>trans('center::messages.fields_types_text'),
-				'url'			=>trans('center::messages.fields_types_url'),
+			trans('center::fields.types_cat_strings')=>[
+				'email'			=>trans('center::fields.types_email'),
+				'html'			=>trans('center::fields.types_html'),
+				'slug'			=>trans('center::fields.types_slug'),
+				'string'		=>trans('center::fields.types_string'),
+				'text'			=>trans('center::fields.types_text'),
+				'url'			=>trans('center::fields.types_url'),
 			],
-			trans('center::messages.fields_types_cat_numbers')=>[
+			trans('center::fields.types_cat_numbers')=>[
 				//'decimal'		=>'Decimal',
-				'integer'		=>trans('center::messages.fields_types_integer'),
-				'money'			=>trans('center::messages.fields_types_money'),
+				'integer'		=>trans('center::fields.types_integer'),
+				'money'			=>trans('center::fields.types_money'),
 			],
-			trans('center::messages.fields_types_cat_relationships')=>[
-				'checkboxes'	=>trans('center::messages.fields_types_checkboxes'),
-				'select'		=>trans('center::messages.fields_types_select'),
+			trans('center::fields.types_cat_relationships')=>[
+				'checkboxes'	=>trans('center::fields.types_checkboxes'),
+				'select'		=>trans('center::fields.types_select'),
 			],
-			trans('center::messages.fields_types_cat_misc')=>[
-				'checkbox'		=>trans('center::messages.fields_types_checkbox'),
-				'color'			=>trans('center::messages.fields_types_color'),
-				'us_state'		=>trans('center::messages.fields_types_us_state'),
-				'user'			=>trans('center::messages.fields_types_user'),
-				'zip'			=>trans('center::messages.fields_types_zip'),
+			trans('center::fields.types_cat_misc')=>[
+				'checkbox'		=>trans('center::fields.types_checkbox'),
+				'color'			=>trans('center::fields.types_color'),
+				'us_state'		=>trans('center::fields.types_us_state'),
+				'user'			=>trans('center::fields.types_user'),
+				'zip'			=>trans('center::fields.types_zip'),
 			],
 		];
 	}
@@ -47,9 +47,9 @@ class FieldController extends \App\Http\Controllers\Controller {
 	//also probably could be a variable
 	private static function visibility() {
 		return [
-			'list'	=>trans('center::messages.fields_visibility_list'),
-			'normal'=>trans('center::messages.fields_visibility_normal'),
-			'hidden'=>trans('center::messages.fields_visibility_hidden'),
+			'list'	=>trans('center::fields.visibility_list'),
+			'normal'=>trans('center::fields.visibility_normal'),
+			'hidden'=>trans('center::fields.visibility_hidden'),
 		];
 	}
 
@@ -59,7 +59,7 @@ class FieldController extends \App\Http\Controllers\Controller {
 		$fields = DB::table(config('center.db.fields'))->where('object_id', $object->id)->orderBy('precedence')->get();
 		foreach ($fields as &$field) {
 			$field->link = URL::action('\LeftRight\Center\Controllers\FieldController@edit', array($object->name, $field->id));
-			$field->type = trans('center::messages.fields_types_' . $field->type);
+			$field->type = trans('center::fields.types_' . $field->type);
 		}
 		return View::make('center::fields.index', [
 			'object'=>$object,

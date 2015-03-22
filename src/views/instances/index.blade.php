@@ -7,7 +7,7 @@
 @section('main')
 
 	{!! \LeftRight\Center\Libraries\Breadcrumbs::leave([
-		URL::action('\LeftRight\Center\Controllers\ObjectController@index')=>trans('center::messages.objects'),
+		URL::action('\LeftRight\Center\Controllers\ObjectController@index')=>trans('center::objects.plural'),
 		$object->title,
 		]) !!}
 
@@ -15,21 +15,21 @@
 		@if (Auth::user()->role < 2)
 			<a class="btn btn-default" href="{{ URL::action('\LeftRight\Center\Controllers\ObjectController@edit', $object->name) }}">
 				<i class="glyphicon glyphicon-cog"></i> 
-				@lang('center::messages.objects_edit', ['title'=>$object->title])
+				@lang('center::objects.edit', ['title'=>$object->title])
 			</a>
 			<a class="btn btn-default" href="{{ URL::action('\LeftRight\Center\Controllers\FieldController@index', $object->name) }}">
 				<i class="glyphicon glyphicon-list"></i>
-				@lang('center::messages.fields')
+				@lang('center::fields.plural')
 			</a>
 		@endif
 		<a class="btn btn-default" id="create" href="{{ URL::action('\LeftRight\Center\Controllers\InstanceController@export', $object->name) }}">
 			<i class="glyphicon glyphicon-circle-arrow-down"></i>
-			@lang('center::messages.instances_export')
+			@lang('center::instances.export')
 		</a>
 		@if ($object->can_create)
 			<a class="btn btn-default" id="create" href="{{ URL::action('\LeftRight\Center\Controllers\InstanceController@create', $object->name) }}">
 				<i class="glyphicon glyphicon-plus"></i>
-				@lang('center::messages.instances_create')
+				@lang('center::instances.create')
 			</a>
 		@endif
 	</div>
@@ -49,9 +49,9 @@
 	@else
 	<div class="alert alert-warning">
 		@if ($searching)
-			@lang('center::messages.instances_search_empty', ['title'=>strtolower($object->title)])
+			@lang('center::instances.search_empty', ['title'=>strtolower($object->title)])
 		@else
-			@lang('center::messages.instances_empty', ['title'=>strtolower($object->title)])
+			@lang('center::instances.empty', ['title'=>strtolower($object->title)])
 		@endif
 	</div>
 	@endif

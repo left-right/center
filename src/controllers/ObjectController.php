@@ -1,8 +1,15 @@
 <?php namespace LeftRight\Center\Controllers;
 
+use App;
 use Auth;
+use DateTime;
 use DB;
+use Illuminate\Support\Str;
+use Redirect;
+use Request;
+use Schema;
 use URL;
+use View;
 
 class ObjectController extends \App\Http\Controllers\Controller {
 
@@ -29,11 +36,11 @@ class ObjectController extends \App\Http\Controllers\Controller {
 	
 	# Display create object form
 	public function create() {
-		$order_by = [trans('center::messages.fields_system')=>[
-			'id'=>trans('center::messages.fields_id'),
-			'precedence'=>trans('center::messages.fields_precedence'),
-			'created_at'=>trans('center::messages.fields_created_at'),
-			'updated_at'=>trans('center::messages.fields_updated_at'),
+		$order_by = [trans('center::fields.system')=>[
+			'id'=>trans('center::fields.id'),
+			'precedence'=>trans('center::fields.precedence'),
+			'created_at'=>trans('center::fields.created_at'),
+			'updated_at'=>trans('center::fields.updated_at'),
 		]];
 
 		return View::make('center::objects.create', [
@@ -73,23 +80,30 @@ class ObjectController extends \App\Http\Controllers\Controller {
 		]);
 		
 		//create title field for table by default
-		DB::table(config('center.db.fields'))->insert([
-			'title'			=> 'Title',
-			'name'			=> 'title',
-			'type'			=> 'string',
-			'visibility'	=> 'list',
-			'required'		=> 1,
-			'object_id'		=> $object_id,
-			'updated_at'	=> new DateTime,
-			'updated_by'	=> Auth::user()->id,
-			'precedence'	=> 1
-		]);
-
-		self::addTable($name, true);
-
-		self::saveSchema();
-		
-		return Redirect::action('InstanceController@index', $name);
+		try {
+			
+			DB::table(config('center.db.fields'))->insert([
+				'title'			=> 'Title',
+				'name'			=> 'title',
+				'type'			=> 'string',
+				'visibility'	=> 'list',
+				'required'		=> 1,
+				'object_id'		=> $object_id,
+				'updated_at'	=> new DateTime,
+				'updated_by'	=> Auth::user()->id,
+				'precedence'	=> 1
+			]);
+	
+			self::addTable($name, true);
+	
+			self::saveSchema();
+			
+			return Redirect::action('InstanceController@index', $name)
+				->with('message', trans('center::objects.created'));
+		} catch (\Exception $e) {
+			return Redirect::action('InstanceController@index', $name)
+				->with('error', $e->getMessage());
+		}
 	}
 	
 	# Edit object settings
@@ -101,14 +115,14 @@ class ObjectController extends \App\Http\Controllers\Controller {
 		$order_by = [];
 		foreach ($fields as $field) $order_by[$field->name] = $field->title;
 		$order_by = [
-			trans('center::messages.fields_system')=>[
-				'id'=>trans('center::messages.fields_id'),
-				'slug'=>trans('center::messages.fields_slug'),
-				'precedence'=>trans('center::messages.fields_precedence'),
-				'created_at'=>trans('center::messages.fields_created_at'),
-				'updated_at'=>trans('center::messages.fields_updated_at'),
+			trans('center::fields.system')=>[
+				'id'=>trans('center::fields.id'),
+				'slug'=>trans('center::fields.slug'),
+				'precedence'=>trans('center::fields.precedence'),
+				'created_at'=>trans('center::fields.created_at'),
+				'updated_at'=>trans('center::fields.updated_at'),
 			],
-			trans('center::messages.fields_user')=>$order_by,
+			trans('center::fields.user')=>$order_by,
 		];
 
 		//related objects are different than dependencies; it's the subset of dependencies that are grouped by this object

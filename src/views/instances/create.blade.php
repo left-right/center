@@ -1,39 +1,39 @@
 @extends('center::template')
 
 @section('title')
-	@lang('center::messages.instances_create')
+	@lang('center::instances.create')
 @endsection
 
 @section('main')
 
 	{!! \LeftRight\Center\Libraries\Breadcrumbs::leave([
-		URL::action('\LeftRight\Center\Controllers\ObjectController@index')=>trans('center::messages.objects'),
+		URL::action('\LeftRight\Center\Controllers\ObjectController@index')=>trans('center::objects.plural'),
 		URL::action('\LeftRight\Center\Controllers\InstanceController@index', $object->name)=>$object->title,
-		trans('center::messages.instances_create'),
+		trans('center::instances.create'),
 		]) !!}
 
-	{{ Form::open(['class'=>'form-horizontal', 'url'=>URL::action('\LeftRight\Center\Controllers\InstanceController@store', [$object->name, $linked_id])]) }}
+	{!! Form::open(['class'=>'form-horizontal', 'url'=>URL::action('\LeftRight\Center\Controllers\InstanceController@store', [$object->name, $linked_id])]) !!}
 	
-	{{ Form::hidden('return_to', $return_to) }}
+	{!! Form::hidden('return_to', $return_to) !!}
 
 	@foreach ($fields as $field)
 		@if ($linked_id && $field->id == $object->group_by_field)
-			{{ Form::hidden($field->name, $linked_id) }}
+			{!! Form::hidden($field->name, $linked_id) !!}
 		@else
 			<div class="form-group field-{{ $field->type }}">
 				<label class="control-label col-sm-2">{{ $field->title }}</label>
 				<div class="col-sm-10">
 					@if ($field->type == 'checkbox')
-						{{ Form::checkbox($field->name) }}
+						{!! Form::checkbox($field->name) !!}
 					@elseif ($field->type == 'checkboxes')
 						@foreach ($field->options as $option_id=>$option_value)
 							<label class="checkbox-inline">
-								{{ Form::checkbox($field->name . '[]', $option_id) }}
+								{!! Form::checkbox($field->name . '[]', $option_id) !!}
 								{{ $option_value }}
 							</label>
 						@endforeach
 					@elseif ($field->type == 'color')
-						{{ Form::text($field->name, $field->required ? '#ffffff' : null, ['class'=>'form-control ' . $field->type . ' {hash:true,caps:false}' . ($field->required ? ' required' : '')]) }}
+						{!! Form::text($field->name, $field->required ? '#ffffff' : null, ['class'=>'form-control ' . $field->type . ' {hash:true,caps:false}' . ($field->required ? ' required' : '')]) !!}
 					@elseif ($field->type == 'date')
 						<div class="input-group date" data-date-format="MM/DD/YYYY">
 							<span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>
@@ -53,44 +53,44 @@
 						   	@endif
 						</div>
 					@elseif ($field->type == 'email')
-						{{ Form::email($field->name, null, ['class'=>'form-control ' . $field->type . ($field->required ? ' required' : '')]) }}
+						{!! Form::email($field->name, null, ['class'=>'form-control ' . $field->type . ($field->required ? ' required' : '')]) !!}
 					@elseif ($field->type == 'html')
-						{{ Form::textarea($field->name, null, ['class'=>'form-control html' . ($field->required ? ' required' : '')]) }}
+						{!! Form::textarea($field->name, null, ['class'=>'form-control html' . ($field->required ? ' required' : '')]) !!}
 					@elseif ($field->type == 'image')
-						{{ Form::hidden($field->name, null) }}
+						{!! Form::hidden($field->name, null) !!}
 						<div class="image new" data-field-id="{{ $field->id }}" style="width:{{ $field->screen_width }}px; height:{{ $field->screen_height }}px; line-height:{{ $field->screen_height }}px;">
 							<span>{{ $field->width or '&infin;' }} &times; {{ $field->height or '&infin;' }}</span>
 						</div>
 					@elseif ($field->type == 'images')
-						{{ Form::hidden($field->name, null) }}
+						{!! Form::hidden($field->name, null) !!}
 						<div class="image new" data-field-id="{{ $field->id }}" style="width:{{ $field->screen_width }}px; height:{{ $field->screen_height }}px; line-height:{{ $field->screen_height }}px;">
 							<span>{{ $field->width or '&infin;' }} &times; {{ $field->height or '&infin;' }}</span>
 						</div>
 					@elseif ($field->type == 'integer')
-						{{ Form::integer($field->name, null, ['class'=>'form-control ' . $field->type . ($field->required ? ' required' : '')]) }}
+						{!! Form::integer($field->name, null, ['class'=>'form-control ' . $field->type . ($field->required ? ' required' : '')]) !!}
 					@elseif ($field->type == 'money')
-						{{ Form::decimal($field->name, null, ['class'=>'form-control ' . $field->type . ($field->required ? ' required' : '')]) }}
+						{!! Form::decimal($field->name, null, ['class'=>'form-control ' . $field->type . ($field->required ? ' required' : '')]) !!}
 					@elseif ($field->type == 'select')
-						{{ Form::select($field->name, $field->options, null, ['class'=>'form-control ' . $field->type . ($field->required ? ' required' : '')]) }}
+						{!! Form::select($field->name, $field->options, null, ['class'=>'form-control ' . $field->type . ($field->required ? ' required' : '')]) !!}
 					@elseif ($field->type == 'slug')
-						{{ Form::text($field->name, null, ['class'=>'form-control ' . $field->type . ($field->required ? ' required' : '')]) }}
+						{!! Form::text($field->name, null, ['class'=>'form-control ' . $field->type . ($field->required ? ' required' : '')]) !!}
 					@elseif ($field->type == 'string')
-						{{ Form::text($field->name, null, ['class'=>'form-control ' . $field->type . ($field->required ? ' required' : '')]) }}
+						{!! Form::text($field->name, null, ['class'=>'form-control ' . $field->type . ($field->required ? ' required' : '')]) !!}
 					@elseif ($field->type == 'text')
-						{{ Form::textarea($field->name, null, ['class'=>'form-control ' . $field->type . ($field->required ? ' required' : '')]) }}
+						{!! Form::textarea($field->name, null, ['class'=>'form-control ' . $field->type . ($field->required ? ' required' : '')]) !!}
 					@elseif ($field->type == 'time')
 						<div class="input-group time" data-date-format="hh:mm A">
 							<span class="input-group-addon"><span class="glyphicon glyphicon-time"></span></span>
-							{{ Form::text($field->name, null, ['class'=>'form-control ' . $field->type . ($field->required ? ' required' : '')]) }}
+							{!! Form::text($field->name, null, ['class'=>'form-control ' . $field->type . ($field->required ? ' required' : '')]) !!}
 						</div>
 					@elseif ($field->type == 'url')
-						{{ Form::url($field->name, null, ['class'=>'form-control ' . $field->type . ($field->required ? ' required' : '')]) }}
+						{!! Form::url($field->name, null, ['class'=>'form-control ' . $field->type . ($field->required ? ' required' : '')]) !!}
 					@elseif ($field->type == 'us_state')
-						{{ Form::select($field->name, $field->options, null, ['class'=>'form-control ' . $field->type . ($field->required ? ' required' : '')]) }}
+						{!! Form::select($field->name, $field->options, null, ['class'=>'form-control ' . $field->type . ($field->required ? ' required' : '')]) !!}
 					@elseif ($field->type == 'user')
-						{{ Form::select($field->name, $field->options, null, ['class'=>'form-control ' . $field->type . ($field->required ? ' required' : '')]) }}
+						{!! Form::select($field->name, $field->options, null, ['class'=>'form-control ' . $field->type . ($field->required ? ' required' : '')]) !!}
 					@elseif ($field->type == 'zip')
-						{{ Form::text($field->name, null, ['class'=>'form-control ' . $field->type . ($field->required ? ' required' : ''), 'maxlength'=>5]) }}
+						{!! Form::text($field->name, null, ['class'=>'form-control ' . $field->type . ($field->required ? ' required' : ''), 'maxlength'=>5]) !!}
 					@endif
 				</div>
 			</div>
@@ -99,12 +99,12 @@
 	
 	<div class="form-group">
 		<div class="col-sm-10 col-sm-offset-2">
-			{{ Form::submit(trans('center::messages.site_save'), ['class'=>'btn btn-primary']) }}
-			{{ HTML::link($return_to, trans('center::messages.site_cancel'), ['class'=>'btn btn-default']) }}
+			{!! Form::submit(trans('center::site.save'), ['class'=>'btn btn-primary']) !!}
+			{!! HTML::link($return_to, trans('center::site.cancel'), ['class'=>'btn btn-default']) !!}
 		</div>
 	</div>
 
-	{{ Form::close() }}
+	{!! Form::close() !!}
 
 @endsection
 
