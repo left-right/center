@@ -15,13 +15,13 @@
 		{{ $html }}
 	@else
 	<div class="alert alert-warning">
-		@lang('center::import.import_table_empty')
+		@lang('center::import.table_empty')
 	</div>
 	@endif
 @endsection
 
 @section('side')
-	<p>@lang('center::import.import_table_help')</p>
-	<p><a href="{{ URL::action('ImportController@drop', $table) }}" class="btn btn-default btn-xs">@lang('center::import.import_table_drop')</a>
+	<p>@lang('center::import.table_help')</p>
+	<p><a href="{{ URL::action('ImportController@drop', $table) }}" class="btn btn-default btn-xs">@lang('center::import.table_drop')</a>
 
 @endsection

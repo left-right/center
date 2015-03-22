@@ -1,6 +1,9 @@
 <?php
 
 return [
+	'css' => [
+		'/vendor/center/css/main.min.css',
+	],
 	'db' => [
 		'files'			=> 'center_files',
 		'fields'		=> 'center_fields',

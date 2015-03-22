@@ -5,12 +5,9 @@
 		<title>@yield('title')</title>
 		<meta charset="UTF-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-		{!! HTML::style('/vendor/center/css/main.min.css') !!}
-		@if (Config::has('center::css'))
-			@foreach (Config::get('center::css') as $stylesheet)
-			{{ HTML::style($stylesheet) }}
-			@endforeach
-		@endif
+		@foreach (config('center.css') as $stylesheet)
+			{!! HTML::style($stylesheet) !!}
+		@endforeach
 	</head>
 	<body>
 		<div class="container">
