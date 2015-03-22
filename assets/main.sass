@@ -1,0 +1,374 @@
+@import "../bower_components/bootstrap-sass/assets/stylesheets/_bootstrap.scss"
+@import "../bower_components/eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.css"
+@import "redactor1009/redactor/redactor.css"
+
+$gray-lightest	: #f5f5f5
+$gray-medium	: #ccc
+
+$margin			: 24px
+$modal-radius	: 14px
+$field-radius	: 4px
+
+body.login
+	background-color: $gray-medium
+	div.modal
+		border-radius: $modal-radius
+		border: 0
+		div.modal-content
+			border-radius: $modal-radius
+			div.modal-header
+				border-radius: $modal-radius $modal-radius 0 0
+			div.modal-body .form-group:last-child
+				margin-bottom: 0
+			div.alert
+				margin: -20px -20px 20px -20px
+				border-radius: 0
+			div.modal-footer
+				margin-top: 0
+				border-radius: 0 0 $modal-radius $modal-radius
+				background-color: $gray-lightest
+
+h1, h2, h3, h4, h5, h6
+	font-family: inherit
+
+.container
+	padding-top: $margin
+
+/*overriding var_dumpling*/
+.string
+	color: inherit
+
+form
+	margin-bottom: $margin
+	
+	.form-group
+	
+
+		input
+			&.color
+				max-width: 100px
+			&.date
+				max-width: 200px
+			&.datetime
+				max-width: 200px
+			&.integer
+				max-width: 200px
+			&.time
+				max-width: 200px
+
+		.checkbox
+			padding-top: 0
+
+		.checkbox-inline
+			margin-left: 0
+			margin-right: 20px
+			width: 152px
+			vertical-align: top
+		
+		.redactor-box
+			border: 1px solid $gray-medium
+			border-radius: $field-radius
+			margin-bottom: 0
+			ul.redactor-toolbar
+				border-bottom: 1px solid $gray-medium
+				background: none
+				background-color: $gray-lightest
+				border-radius: $field-radius $field-radius 0 0
+				li
+					padding-bottom: 0
+					font-size: 20px
+					a.redactor_btn_button1
+						background: url(/vendor/center/img/lorem_ipsum_button.png) no-repeat
+
+			div.redactor-editor
+				border-radius: 0 0 $field-radius $field-radius
+
+			textarea
+				font-family: Droid Sans Mono,Menlo,Monaco,monospace,sans-serif
+				font-size: 14px
+				background-color: #333
+				color: #eee
+				line-height: 1.6
+				padding: 4px 10px
+				border-radius: 0 0 $field-radius $field-radius
+
+		&.field-checkbox
+			input
+				margin-top: 11px
+		
+		&.field-image, &.field-images
+			margin-bottom: 0
+			
+			.image
+				overflow: hidden
+				background-size: cover
+				text-align: center
+				font-size: 40px
+				color: white
+				text-shadow: 0 0 2px $gray
+				float: left 
+				margin: 0 $margin $margin 0
+				&.new
+					background-color: $gray-lightest
+					color: $gray-medium
+					text-shadow: none
+
+		&:last-child
+			margin-bottom: 0
+		&.has-error
+			.help-inline
+				display: none !important
+
+	&.upload
+		position: absolute
+		margin: 0
+		input
+			opacity: 0
+			position: absolute
+			top: 0
+			right: 0
+			bottom: 0
+			left: 0
+			cursor: pointer
+			width: 100%
+		a.remove
+			position: absolute
+			background-color: white
+			line-height: 24px
+			text-align: center
+			border-radius: 12px
+			top: -10px
+			right: -10px
+			width: 24px
+			height: 24px
+			color: black
+			box-shadow: 1px 1px 5px 0px $gray
+			font-size: 22px
+			display: none
+			cursor: pointer
+			&:hover
+				color: $btn-danger-border
+		&:hover
+			a.remove
+				display: block
+		&.new:hover
+			a.remove
+				display: none
+
+	&#search
+		.form-group
+			position: relative
+			i
+				position: absolute
+				right: 10px
+				top: 11px
+				display: none
+			&.has_input
+				i
+					display: block
+					cursor: pointer
+.header
+	margin-bottom: $margin
+	overflow: auto
+	a
+		background-image: url(/vendor/center/img/banner.png)
+		display: block
+		width: 295px
+		max-width: 100%
+		background-size: contain
+		background-repeat: no-repeat
+		height: 92px
+		float: left
+
+.main
+	margin-bottom: $margin
+	overflow-x: scroll
+
+	h1
+		font-weight: normal
+		font-size: $margin
+		line-height: 1.2
+		margin: 0 0 $margin 0
+		i.glyphicon-chevron-right
+			color: $gray-medium
+	
+	.btn-group
+		margin-bottom: $margin
+
+	table, div.nested
+		.draggy
+			color: $gray-medium
+			cursor: url(/vendor/center/img/openhand.cur), default !important
+		.delete a
+			color: inherit
+			i
+				top: 2px
+			&:hover
+				text-decoration: none
+
+		.inactive
+			text-decoration: line-through
+			color: $gray-medium
+			a
+				color: $gray-medium
+
+	div.nested
+		margin-left: -30px
+		.legend
+			font-weight: bold
+			border-bottom: 2px solid #ddd
+			position: relative
+			padding: 0 30px 5px
+			margin-left: 30px
+			div.updated_at
+				position: absolute
+				right: 30px
+				top: 0
+
+		.placeholder
+			background: #eee !important
+			border: 0
+
+		li:last-child > div.nested_row
+			border-bottom-width: 0
+		ul
+			list-style: none
+			padding-left: 30px
+			li
+				div.nested_row
+					position: relative
+					padding: 5px 28px
+					border-top: 1px solid #ddd
+					border-bottom: 1px solid #ddd
+					margin-top: -1px
+					div
+						position: absolute
+						top: 0px
+						width: 24px
+						text-align: center
+						i
+							margin-top: 6px
+						&.updated_at
+							position: absolute
+							right: 30px
+							width: 120px
+							height: 30px
+							line-height: 30px
+							text-align: right
+						&.draggy
+							left: 0px
+						&.delete
+							right: 0px
+
+	div.related
+		border-top: 2px dashed $gray-medium
+	
+	table
+		margin: -6px 0 $margin
+		tbody
+			border-top: 0
+		div.highlight
+			z-index: -10
+			background-color: $gray-lightest
+			position: absolute
+		tr
+			th, td
+				&.draggy, &.delete
+					width: 18px
+					text-align: center
+				&.center
+					text-align: center
+				&.date
+					text-align: right
+					white-space: nowrap
+				&.datetime
+					text-align: left
+					white-space: nowrap
+				&.integer
+					text-align: right
+				&.date-relative
+					text-align: right
+					white-space: nowrap
+					width: 120px
+				&.updated_at
+					text-align: right
+					white-space: nowrap
+					width: 120px
+				&.updated_name
+					text-align: right
+					white-space: nowrap
+					width: 120px
+				&.color 
+					width: 30px
+					a
+						display: block
+						width: 30px
+						height: 30px
+						margin: -5px
+				&.image
+					width: 100px
+					a
+						display: block
+						text-align: center
+						img
+							display: inline
+							max-width: 100px
+							max-height: 100px
+							width: auto
+							height: auto
+				&:first-child
+					text-align: left
+			
+			&.group
+				td
+					padding-top: 34px
+					color: $gray
+					text-transform: uppercase
+					font-weight: bold
+					font-size: 12px
+
+			&.dragging
+				td.draggy
+					cursor: url(/vendor/center/img/closedhand.cur), default !important
+				td
+					border-color: $gray
+					border-bottom-width: 1px
+					border-bottom-style: solid
+					background-color: $gray-lightest
+		&.objects
+			tr
+				td, th
+					&.string
+						width: 200px
+					&.updated_at
+						width: 200px
+					&.integer
+						text-align: center
+
+.side
+	margin-bottom: $margin
+	.inner
+		padding: $margin 0
+		font-size: 1.1em
+		border-top: 2px dashed $gray-medium
+		color: $gray
+		
+		p
+			margin: 0 0 $margin 0
+
+		form
+			margin-bottom: 30px
+
+		.well
+			max-height: 300px
+			overflow: scroll
+			img
+				margin-bottom: 10px
+
+@media (min-width: $screen-md)
+	.side
+		.inner
+			padding: $margin
+			margin-top: 54px
+			border-left: 2px dashed $gray-medium
+			border-top: none
