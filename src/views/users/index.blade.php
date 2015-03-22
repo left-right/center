@@ -14,16 +14,16 @@
 	<div class="btn-group">
 		<a class="btn btn-default" id="create" href="{{ URL::action('\LeftRight\Center\Controllers\UserController@create') }}">
 			<i class="glyphicon glyphicon-plus"></i> 
-			@lang('center::users.plural_create')
+			@lang('center::users.create')
 		</a>
 	</div>
 
 	@include('center::notifications')
 
 	{!! \LeftRight\Center\Libraries\Table::rows($users)
-		->column('name', 'string', trans('center::users.plural_name'))
-		->column('role', 'string', trans('center::users.plural_role'))
-		->column('last_login', 'date-relative', trans('center::users.plural_last_login'))
+		->column('name', 'string', trans('center::users.name'))
+		->column('role', 'string', trans('center::users.role'))
+		->column('last_login', 'date-relative', trans('center::users.last_login'))
 		->deletable()
 		->draw()
 		!!}
@@ -31,7 +31,7 @@
 @endsection
 
 @section('side')
-	<p>@lang('center::users.plural_help')</p>
+	<p>@lang('center::users.help')</p>
 @endsection
 
 @section('script')

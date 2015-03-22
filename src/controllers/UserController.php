@@ -146,7 +146,7 @@ class UserController extends \App\Http\Controllers\Controller {
 			'link'=>URL::route('home'),
 			), function($message) use ($email) 
 		{
-			$message->to($email)->subject(trans('center::users.plural_welcome_subject'));
+			$message->to($email)->subject(trans('center::users.welcome_subject'));
 		});		
 	}
 }

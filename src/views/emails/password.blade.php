@@ -1,1 +1,1 @@
-@lang('center::users.plural_password_reset_email', ['link'=>$link])
+@lang('center::users.password_reset_email', ['link'=>$link])

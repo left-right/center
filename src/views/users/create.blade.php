@@ -1,7 +1,7 @@
 @extends('center::template')
 
 @section('title')
-	@lang('center::users.edit')
+	@lang('center::users.create')
 @endsection
 
 @section('main')
@@ -9,22 +9,22 @@
 	{!! \LeftRight\Center\Libraries\Breadcrumbs::leave([
 		URL::action('\LeftRight\Center\Controllers\ObjectController@index')=>trans('center::objects.plural'),
 		URL::action('\LeftRight\Center\Controllers\UserController@index')=>trans('center::users.plural'),
-		trans('center::users.edit'),
+		trans('center::users.create'),
 		]) !!}
 
-	{!! Form::open(['class'=>'form-horizontal', 'url'=>URL::action('\LeftRight\Center\Controllers\UserController@update', $user->id), 'method'=>'put']) !!}
-
+	{!! Form::open(['class'=>'form-horizontal', 'url'=>URL::action('\LeftRight\Center\Controllers\UserController@store')]) !!}
+	
 	<div class="form-group">
 		{!! Form::label('name', trans('center::users.name'), ['class'=>'control-label col-sm-2']) !!}
 	    <div class="col-sm-10">
-			{!! Form::text('name', $user->name, ['class'=>'form-control required']) !!}
+			{!! Form::text('name', false, ['class'=>'form-control required']) !!}
 	    </div>
 	</div>
-	
+
 	<div class="form-group">
 		{!! Form::label('email', trans('center::users.email'), ['class'=>'control-label col-sm-2']) !!}
 	    <div class="col-sm-10">
-			{!! Form::email('email', $user->email, ['class'=>'form-control required']) !!}
+			{!! Form::email('email', false, ['class'=>'form-control required']) !!}
 	    </div>
 	</div>
 	
@@ -34,7 +34,7 @@
 	    	@foreach ($roles as $role_id=>$role)
 			<div class="radio">
 				<label>
-					{!! Form::radio('role', $role_id, $role_id == $user->role) !!}
+					{!! Form::radio('role', $role_id, $role_id == 3) !!}
 					<strong>{{ $role }}</strong> &middot; {{ trans('center::users.role_' . Illuminate\Support\Str::slug($role)) }}
 				</label>
 			</div>
@@ -54,13 +54,5 @@
 @endsection
 
 @section('side')
-	<p>@lang('center::users.edit_help')</p>
-
-	<p><a href="{{ URL::action('\LeftRight\Center\Controllers\UserController@resendWelcome', $user->id) }}" class="btn btn-default btn-xs">@lang('center::users.welcome_resend')</a></p>
-
-	@if (!$user->last_login)
-	{!! Form::open(['method'=>'delete', 'action'=>['\LeftRight\Center\Controllers\UserController@destroy', $user->id]]) !!}
-	<button type="submit" class="btn btn-default btn-xs">{{ trans('center::users.destroy') }}</button>
-	{!! Form::close() !!}
-	@endif
+	<p>@lang('center::users.form_help')</p>
 @endsection
