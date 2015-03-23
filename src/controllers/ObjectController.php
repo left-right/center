@@ -5,6 +5,7 @@ use Auth;
 use DateTime;
 use DB;
 use Illuminate\Support\Str;
+use Input;
 use Redirect;
 use Request;
 use Schema;
@@ -98,10 +99,10 @@ class ObjectController extends \App\Http\Controllers\Controller {
 	
 			self::saveSchema();
 			
-			return Redirect::action('InstanceController@index', $name)
+			return Redirect::action('\LeftRight\Center\Controllers\InstanceController@index', $name)
 				->with('message', trans('center::objects.created'));
 		} catch (\Exception $e) {
-			return Redirect::action('InstanceController@index', $name)
+			return Redirect::action('\LeftRight\Center\Controllers\InstanceController@index', $name)
 				->with('error', $e->getMessage());
 		}
 	}
@@ -163,11 +164,11 @@ class ObjectController extends \App\Http\Controllers\Controller {
 		if ($order_by == 'precedence') $direction = 'asc';
 
 		//not sure why it's necessary, doesn't like empty value all of a sudden
-		$group_by_field = Input::has('group_by_field') ? Request::input('group_by_field') : null;
+		$group_by_field = Request::has('group_by_field') ? Request::input('group_by_field') : null;
 
 		//linked objects
 		DB::table(config('center.db.object_links'))->where('object_id', $object->id)->delete();
-		if (Input::has('related_objects')) {
+		if (Request::has('related_objects')) {
 			foreach (Request::input('related_objects') as $linked_id) {
 				DB::table(config('center.db.object_links'))->insert([
 					'object_id'=>$object->id,
@@ -184,10 +185,10 @@ class ObjectController extends \App\Http\Controllers\Controller {
 			'url'				=> Request::input('url'),
 			'order_by'			=> $order_by,
 			'direction'			=> $direction,
-			'singleton'			=> Input::has('singleton') ? 1 : 0,
-			'can_see'			=> Input::has('can_see') ? 1 : 0,
-			'can_create'		=> Input::has('can_create') ? 1 : 0,
-			'can_edit'			=> Input::has('can_edit') ? 1 : 0,
+			'singleton'			=> Request::has('singleton') ? 1 : 0,
+			'can_see'			=> Request::has('can_see') ? 1 : 0,
+			'can_create'		=> Request::has('can_create') ? 1 : 0,
+			'can_edit'			=> Request::has('can_edit') ? 1 : 0,
 			'list_grouping'		=> Request::input('list_grouping'),
 			'group_by_field'	=> $group_by_field,
 			'list_help'			=> trim(Request::input('list_help')),
@@ -196,7 +197,7 @@ class ObjectController extends \App\Http\Controllers\Controller {
 
 		self::saveSchema();
 		
-		return Redirect::action('InstanceController@index', $new_name);
+		return Redirect::action('\LeftRight\Center\Controllers\InstanceController@index', $new_name);
 	}
 	
 	//destroy object

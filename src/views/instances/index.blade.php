@@ -55,12 +55,11 @@
 		@endif
 	</div>
 	@endif
-		
 @endsection
 
 @section('side')
 	{!! Form::open(['method'=>'get', 'id'=>'search']) !!}
-	<div class="form-group @if (Input::has('search')) has_input @endif">
+	<div class="form-group @if (\Request::has('search')) has_input @endif">
 	{!! Form::text('search', Request::input('search'), ['class'=>'form-control', 'placeholder'=>'Search']) !!}
 	<i class="glyphicon glyphicon-remove-circle"></i>
 	</div>

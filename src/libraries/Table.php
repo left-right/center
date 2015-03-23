@@ -112,7 +112,7 @@ class Table {
 		$bodies[] = '<tbody>' . implode($rows) . '</tbody>';
 
 		//output
-		return '<table id="foobar" class="table table-condensed' . $class . (self::$draggable ? ' draggable" data-draggable-url="' . self::$draggable : '') . '">' .
+		return '<table id="foobar" class="table table-condensed' . $class . (self::$draggable ? ' draggable" data-draggable-url="' . self::$draggable : '') . '" data-csrf-token="' . \Session::token() . '">' .
 					$head . 
 					implode($bodies) . 
 				'</table>';

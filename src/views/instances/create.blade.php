@@ -58,12 +58,12 @@
 						{!! Form::textarea($field->name, null, ['class'=>'form-control html' . ($field->required ? ' required' : '')]) !!}
 					@elseif ($field->type == 'image')
 						{!! Form::hidden($field->name, null) !!}
-						<div class="image new" data-field-id="{{ $field->id }}" style="width:{{ $field->screen_width }}px; height:{{ $field->screen_height }}px; line-height:{{ $field->screen_height }}px;">
+						<div class="image new" data-field-id="{{ $field->id }}" data-action="{{ action('\LeftRight\Center\Controllers\FileController@image') }}" style="width:{{ $field->screen_width }}px; height:{{ $field->screen_height }}px; line-height:{{ $field->screen_height }}px;">
 							<span>{{ $field->width or '&infin;' }} &times; {{ $field->height or '&infin;' }}</span>
 						</div>
 					@elseif ($field->type == 'images')
 						{!! Form::hidden($field->name, null) !!}
-						<div class="image new" data-field-id="{{ $field->id }}" style="width:{{ $field->screen_width }}px; height:{{ $field->screen_height }}px; line-height:{{ $field->screen_height }}px;">
+						<div class="image new" data-field-id="{{ $field->id }}" data-action="{{ action('\LeftRight\Center\Controllers\FileController@image') }}" style="width:{{ $field->screen_width }}px; height:{{ $field->screen_height }}px; line-height:{{ $field->screen_height }}px;">
 							<span>{{ $field->width or '&infin;' }} &times; {{ $field->height or '&infin;' }}</span>
 						</div>
 					@elseif ($field->type == 'integer')

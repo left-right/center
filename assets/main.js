@@ -40,7 +40,10 @@ $(function() {
 		dragHandle: '.draggy',
 		onDragClass: 'dragging',
 		onDrop: function(table, row) {
-			$.post($(table).attr('data-draggable-url'), { order: $(table).tableDnDSerialize() }, function(data){
+			$.post($(table).attr('data-draggable-url'), { 
+					order: $(table).tableDnDSerialize(),
+					_token: $(table).attr('data-csrf-token')
+				}, function(data){
 				//window.console.log('success with ' + data);
 			}).fail(function() { 
 				//window.console.log('error');
@@ -247,9 +250,11 @@ $(function() {
 			var offset   = $(this).offset();
 			var width    = $(this).width();
 			var height   = $(this).height();
-			var field_id = $(this).attr("data-field-id");
-			var multiple = $(this).closest(".form-group").hasClass("field-images");
-			var isnew    = $(this).hasClass("new");
+			var action	 = $(this).attr('data-action');
+			var field_id = $(this).attr('data-field-id');
+			var multiple = $(this).closest('.form-group').hasClass('field-images');
+			var isnew    = $(this).hasClass('new');
+			var token	 = $(this).closest('form').find('input[name=_token]').val();
 
 			//set form attr
 			$(this).attr("data-form-id", random);
@@ -257,6 +262,7 @@ $(function() {
 			//create form
 			if (multiple) {				
 				$('<form id="' + random + '" class="upload upload_image' + (isnew ? ' new' : '') + '">' + 
+					'<input type="hidden" name="_token" value="' + token + '">' + 
 					'<input type="hidden" name="field_id" value="' + field_id + '">' + 
 					'<input type="file" name="image" multiple>' +
 					'<a class="remove"><i class="glyphicon glyphicon-remove-circle"></i></a>' +
@@ -264,6 +270,7 @@ $(function() {
 					.appendTo("body");
 			} else {
 				$('<form id="' + random + '" class="upload upload_image">' + 
+					'<input type="hidden" name="_token" value="' + token + '">' + 
 					'<input type="hidden" name="field_id" value="' + field_id + '">' + 
 					'<input type="file" name="image">' +
 					'</form>')
@@ -275,7 +282,7 @@ $(function() {
 				
 			//set upload event on form input
 			$("form#" + random + " input[type=file]").fileupload({
-				url: 				"/login/upload/image",
+				url: 				action,
 				type: 				"POST",
 				dataType: 			"json", 
 				acceptFileTypes : 	/(\.|\/)(jpg|gif|png)$/i,

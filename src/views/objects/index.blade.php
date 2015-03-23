@@ -43,7 +43,7 @@
 		@lang('center::objects.empty')
 	</div>
 	@endif
-
+	
 @endsection
 
 @section('side')

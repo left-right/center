@@ -7,6 +7,7 @@ use Maatwebsite\Excel\ExcelServiceProvider;
 use Auth;
 use DateTime;
 use DB;
+use Redirect;
 use Request;
 use URL;
 use View;
@@ -113,7 +114,7 @@ class InstanceController extends \App\Http\Controllers\Controller {
 		
 		# Filter search?
 		foreach ($select_fields as $select) {
-			if (Input::has($select->name)) {
+			if (Request::has($select->name)) {
 				$searching = true;
 				$instances->where($select->name, Request::input($select->name));
 			}
@@ -174,11 +175,11 @@ class InstanceController extends \App\Http\Controllers\Controller {
 		
 		# Add return var to the queue
 		if ($linked_id) {
-			$return_to = action('InstanceController@edit', [self::getRelatedObjectName($object), $linked_id]);
+			$return_to = action('\LeftRight\Center\Controllers\InstanceController@edit', [self::getRelatedObjectName($object), $linked_id]);
 		} elseif (URL::previous()) {
 			$return_to = URL::previous();
 		} else {
-			$return_to = action('InstanceController@index', $object->name);
+			$return_to = action('\LeftRight\Center\Controllers\InstanceController@index', $object->name);
 		}
 
 		foreach ($fields as $field) {
@@ -272,7 +273,7 @@ class InstanceController extends \App\Http\Controllers\Controller {
 				//figure out schema, loop through and save all the checkboxes
 				$object_column = self::getKey($object->name);
 				$remote_column = self::getKey($field->related_object_id);
-				if (Input::has($field->name)) {
+				if (Request::has($field->name)) {
 					foreach (Request::input($field->name) as $related_id) {
 						DB::table($field->name)->insert(array(
 							$object_column=>$instance_id,
@@ -318,11 +319,11 @@ class InstanceController extends \App\Http\Controllers\Controller {
 
 		# Add return var to the queue
 		if ($linked_id) {
-			$return_to = action('InstanceController@edit', [self::getRelatedObjectName($object), $linked_id]);
+			$return_to = action('\LeftRight\Center\Controllers\InstanceController@edit', [self::getRelatedObjectName($object), $linked_id]);
 		} elseif (URL::previous()) {
 			$return_to = URL::previous();
 		} else {
-			$return_to = action('InstanceController@index', $object->name);
+			$return_to = action('\LeftRight\Center\Controllers\InstanceController@index', $object->name);
 		}
 
 		//format instance values for form
@@ -438,7 +439,7 @@ class InstanceController extends \App\Http\Controllers\Controller {
 				DB::table($field->name)->where($object_column, $instance_id)->delete();
 
 				# Loop through and save all the checkboxes
-				if (Input::has($field->name)) {
+				if (Request::has($field->name)) {
 					foreach (Request::input($field->name) as $related_id) {
 						DB::table($field->name)->insert(array(
 							$object_column=>$instance_id,
@@ -547,7 +548,7 @@ class InstanceController extends \App\Http\Controllers\Controller {
 					DB::table($object->name)->where('id', $instance_id)->update(['precedence'=>$precedence++]);
 				}
 			}
-			if (Input::has('id') && Input::has('parent_id')) {
+			if (Request::has('id') && Request::has('parent_id')) {
 				DB::table($object->name)->where('id', Request::input('id'))->update([
 					'parent_id'=>Request::input('parent_id'),
 					//updated_at, updated_by?
@@ -735,7 +736,7 @@ class InstanceController extends \App\Http\Controllers\Controller {
 		$temp_file = 'temp.dat';
 
 		//resize and save - todo learn how to do facades in a package
-		Image::make(Input::file('image_upload')->getRealPath())
+		Image::make(Request::file('image_upload')->getRealPath())
 				->resize(830, null, true)
 				->save($temp_file);
 

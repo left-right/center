@@ -12,4 +12,15 @@ return [
 		'object_user'	=> 'center_object_user',
 		'users'			=> 'center_users',
 	],
+	'img' => [
+		'default' => [
+			'width'		=> 220,
+			'height'	=> 100,
+		],
+		'max' => [
+			'width'		=> 701,
+			'height'	=> 240,
+			'area'		=> 168240, //701 * 240 = 168240
+		],
+	],
 ];

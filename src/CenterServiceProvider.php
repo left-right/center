@@ -17,6 +17,7 @@ class CenterServiceProvider extends ServiceProvider {
 		$this->publishes([
 			__DIR__.'/../assets/public' => public_path('vendor/center'),
 		]);
+		include __DIR__.'/macros.php';
 		include __DIR__.'/routes.php';
 		
 		try {
@@ -103,7 +104,7 @@ class CenterServiceProvider extends ServiceProvider {
 			} elseif ($field->type == 'image') {
 
 				$objects[$field->object_id]['relationships'][] = 'public function ' . substr($field->field_name, 0, -3) . '() {
-					return $this->hasOne(\'AvalonFile\', \'id\', \'' . $field->field_name . '\');
+					return $this->hasOne(\'LeftRight\Center\File\', \'id\', \'' . $field->field_name . '\');
 				}';
 
 			} elseif (in_array($field->type, array('date', 'datetime'))) {
@@ -112,13 +113,16 @@ class CenterServiceProvider extends ServiceProvider {
 		}
 
 		# Provide this class to extend below if needed
-		eval('class AvalonFile extends Eloquent {
+		eval('namespace LeftRight\Center;
+			use Eloquent;
+			class File extends Eloquent {
 				protected $table = \'' . config('center.db.files') . '\';
 			}');
 
 		# Define object models (finally)
 		foreach ($objects as $object) {
-			eval('namespace LeftRight\Center;
+			
+			eval('namespace LeftRight\Center\Models;
 			use Illuminate\Database\Eloquent\SoftDeletes;
 			use Eloquent;
 

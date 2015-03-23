@@ -52,12 +52,12 @@
 					{!! Form::textarea($field->name, $instance->{$field->name}, ['class'=>'form-control ' . $field->type . ($field->required ? ' required' : '')]) !!}
 				@elseif ($field->type == 'image')
 					@if (empty($instance->{$field->name}))
-					<div class="image new" data-field-id="{{ $field->id }}" style="width:{{ $field->screen_width }}px; height:{{ $field->screen_height }}px; line-height:{{ $field->screen_height }}px;">
+					<div class="image new" data-field-id="{{ $field->id }}" data-action="{{ action('\LeftRight\Center\Controllers\FileController@image') }}" style="width:{{ $field->screen_width }}px; height:{{ $field->screen_height }}px; line-height:{{ $field->screen_height }}px;">
 						{{ $field->width or '&infin;' }} &times; {{ $field->height or '&infin;' }}
 					</div>
 					{{ Form::hidden($field->name, null) }}
 					@else
-					<div class="image" data-field-id="{{ $field->id }}" style="width:{{ $field->screen_width }}px; height:{{ $field->screen_height }}px; line-height:{{ $field->screen_height }}px; background-image: url({{ $instance->{$field->name}->url }});">
+					<div class="image" data-field-id="{{ $field->id }}" data-action="{{ action('\LeftRight\Center\Controllers\FileController@image') }}" style="width:{{ $field->screen_width }}px; height:{{ $field->screen_height }}px; line-height:{{ $field->screen_height }}px; background-image: url({{ $instance->{$field->name}->url }});">
 						{{ $field->width }} &times; {{ $field->height }}
 					</div>
 					{!! Form::hidden($field->name, $instance->{$field->name}->id) !!}
@@ -65,13 +65,13 @@
 				@elseif ($field->type == 'images')
 					<?php $ids = []; ?>
 					@foreach ($instance->{$field->name} as $image)
-						<div class="image" data-file-id="{{ $image->id }}" data-field-id="{{ $field->id }}" style="width:{{ $field->screen_width }}px; height:{{ $field->screen_height }}px; line-height:{{ $field->screen_height }}px; background-image: url({{ $image->url }});">
+						<div class="image" data-field-id="{{ $field->id }}" data-file-id="{{ $image->id }}" data-action="{{ action('\LeftRight\Center\Controllers\FileController@image') }}" style="width:{{ $field->screen_width }}px; height:{{ $field->screen_height }}px; line-height:{{ $field->screen_height }}px; background-image: url({{ $image->url }});">
 							{{ $field->width }} &times; {{ $field->height }}
 						</div>
 						<?php $ids[] = $image->id; ?>
 					@endforeach
 					{!! Form::hidden($field->name, implode(',', $ids)) !!}
-					<div class="image new" data-field-id="{{ $field->id }}" style="width:{{ $field->screen_width }}px; height:{{ $field->screen_height }}px; line-height:{{ $field->screen_height }}px;">
+					<div class="image new" data-field-id="{{ $field->id }}" data-action="{{ action('\LeftRight\Center\Controllers\FileController@image') }}" style="width:{{ $field->screen_width }}px; height:{{ $field->screen_height }}px; line-height:{{ $field->screen_height }}px;">
 						{{ $field->width or '&infin;' }} &times; {{ $field->height or '&infin;' }}
 					</div>
 				@elseif ($field->type == 'integer')

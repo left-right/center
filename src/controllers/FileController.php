@@ -1,6 +1,11 @@
 <?php namespace LeftRight\Center\Controllers;
 
+use Auth;
+use DateTime;
+use DB;
+use Illuminate\Support\Str;
 use Intervention\Image\ImageManagerStatic as Image;
+use Request;
 
 class FileController extends \App\Http\Controllers\Controller {
 
@@ -8,16 +13,16 @@ class FileController extends \App\Http\Controllers\Controller {
 	 * handle image upload route
 	 */
 	public function image() {
-		if (Input::hasFile('image') && Input::has('field_id')) {
+		if (Request::hasFile('image') && Request::has('field_id')) {
 			return json_encode(self::saveImage(
 				Request::input('field_id'), 
-				file_get_contents(Input::file('image')),
-				Input::file('image')->getClientOriginalName()
+				file_get_contents(Request::file('image')),
+				Request::file('image')->getClientOriginalName()
 			));
 
-		} elseif (!Input::hasFile('image')) {
+		} elseif (!Request::hasFile('image')) {
 			return 'no image';
-		} elseif (!Input::hasFile('field_id')) {
+		} elseif (!Request::hasFile('field_id')) {
 			return 'no field_id';
 		} else {
 			return 'neither image nor field_id';			
@@ -95,7 +100,7 @@ class FileController extends \App\Http\Controllers\Controller {
 		));
 
 		/*push it over to s3
-		$target = Str::random() . '/' . Input::file('image')->getClientOriginalName();
+		$target = Str::random() . '/' . Request::file('image')->getClientOriginalName();
 		$bucket = 'josh-reisner-dot-com';
 		AWS::get('s3')->putObject(array(
 		    'Bucket' => 		$bucket,
@@ -122,9 +127,9 @@ class FileController extends \App\Http\Controllers\Controller {
 	# Get display size for create and edit views
 	public static function getImageDimensions($width=false, $height=false) {
 
-		$max_width  = Config::get('center::image_max_width');
-		$max_height = Config::get('center::image_max_height');
-		$max_area   = Config::get('center::image_max_area');
+		$max_width  = config('center.img.max.width');
+		$max_height = config('center.img.max.height');
+		$max_area   = config('center.img.max.area');
 
 		//too wide?
 		if ($width && $width > $max_width) {
@@ -139,8 +144,8 @@ class FileController extends \App\Http\Controllers\Controller {
 		}
 
 		//not specified?
-		if (!$width) $width = Config::get('center::image_default_width');
-		if (!$height) $height = Config::get('center::image_default_height');
+		if (!$width) $width = config('center.img.default.width');
+		if (!$height) $height = config('center.img.default.height');
 
 		//too large?
 		$area = $width * $height;

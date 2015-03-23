@@ -1,5 +1,16 @@
 <?php namespace LeftRight\Center\Controllers;
 
+use Auth;
+use DateTime;
+use DB;
+use Illuminate\Support\Str;
+use Input;
+use Redirect;
+use Request;
+use Schema;
+use URL;
+use View;
+
 class FieldController extends \App\Http\Controllers\Controller {
 
 	//this could probably be a variable no?
@@ -93,7 +104,7 @@ class FieldController extends \App\Http\Controllers\Controller {
 	//save form data to fields, add new column to object
 	public function store($object_name) {
 		$type		= Request::input('type');
-		$required	= Input::has('required') ? 1 : 0;
+		$required	= Request::has('required') ? 1 : 0;
 		
 		if ($type == 'checkboxes') {
 			
@@ -125,10 +136,10 @@ class FieldController extends \App\Http\Controllers\Controller {
 			'type'				=>$type,
 			'object_id'			=>$object_id,
 			'visibility'		=>Request::input('visibility'),
-			'width'				=>Input::has('width') ? Request::input('width') : null,
-			'height'			=>Input::has('height') ? Request::input('height') : null,
-			'related_field_id'	=>Input::has('related_field_id') ? Request::input('related_field_id') : null,
-			'related_object_id'	=>Input::has('related_object_id') ? Request::input('related_object_id') : null,
+			'width'				=>Request::has('width') ? Request::input('width') : null,
+			'height'			=>Request::has('height') ? Request::input('height') : null,
+			'related_field_id'	=>Request::has('related_field_id') ? Request::input('related_field_id') : null,
+			'related_object_id'	=>Request::has('related_object_id') ? Request::input('related_object_id') : null,
 			'required'			=>$required,
 			'precedence'		=>DB::table(config('center.db.fields'))->where('object_id', $object_id)->max('precedence') + 1,
 			'updated_by'		=>Auth::user()->id,
@@ -139,7 +150,7 @@ class FieldController extends \App\Http\Controllers\Controller {
 		
 		ObjectController::saveSchema();
 
-		return Redirect::action('FieldController@index', $object_name)->with('field_id', $field_id);
+		return Redirect::action('\LeftRight\Center\Controllers\FieldController@index', $object_name)->with('field_id', $field_id);
 	}
 	
 	//show edit form
@@ -173,7 +184,7 @@ class FieldController extends \App\Http\Controllers\Controller {
 		$field = DB::table(config('center.db.fields'))->where('id', $field_id)->first();
 		$object = DB::table(config('center.db.objects'))->where('name', $object_name)->first();
 		$field_name = Str::slug(Request::input('name'), '_');
-		$required	= Input::has('required') ? 1 : 0;
+		$required	= Request::has('required') ? 1 : 0;
 
 		//rename column if necessary		
 		if ($field->name != $field_name) {
@@ -201,10 +212,10 @@ class FieldController extends \App\Http\Controllers\Controller {
 			'title'				=>Request::input('title'),
 			'name'				=>$field_name,
 			'visibility'		=>Request::input('visibility'),
-			'width'				=>Input::has('width') ? Request::input('width') : null,
-			'height'			=>Input::has('height') ? Request::input('height') : null,
-			'related_field_id'	=>Input::has('related_field_id') ? Request::input('related_field_id') : null,
-			'related_object_id'	=>Input::has('related_object_id') ? Request::input('related_object_id') : null,
+			'width'				=>Request::has('width') ? Request::input('width') : null,
+			'height'			=>Request::has('height') ? Request::input('height') : null,
+			'related_field_id'	=>Request::has('related_field_id') ? Request::input('related_field_id') : null,
+			'related_object_id'	=>Request::has('related_object_id') ? Request::input('related_object_id') : null,
 			'required'			=>$required,
 			'updated_by'		=>Auth::user()->id,
 			'updated_at'		=>new DateTime,
@@ -212,7 +223,7 @@ class FieldController extends \App\Http\Controllers\Controller {
 		
 		ObjectController::saveSchema();
 
-		return Redirect::action('FieldController@index', $object_name)->with('field_id', $field_id);
+		return Redirect::action('\LeftRight\Center\Controllers\FieldController@index', $object_name)->with('field_id', $field_id);
 	}
 	
 	//delete field & remove from database
@@ -239,7 +250,7 @@ class FieldController extends \App\Http\Controllers\Controller {
 
 		ObjectController::saveSchema();
 
-		return Redirect::action('FieldController@index', $object_name);
+		return Redirect::action('\LeftRight\Center\Controllers\FieldController@index', $object_name);
 	}
 	
 	//reorder fields by drag-and-drop

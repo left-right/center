@@ -17,13 +17,13 @@
 	</div>
 
 	@if (count($fields))
-		{{ Table::rows($fields)
+		{!! LeftRight\Center\Libraries\Table::rows($fields)
 			->draggable(URL::action('\LeftRight\Center\Controllers\FieldController@reorder', $object->name))
 			->column('title', 'string', trans('center::fields.title'))
 			->column('type', 'string', trans('center::fields.type'))
 			->column('updated_at', 'updated_at', trans('center::site.updated_at'))
 			->draw('fields')
-			}}
+			!!}
 	@else
 	<div class="alert alert-warning">
 		@lang('center::fields.empty')
@@ -38,11 +38,13 @@
 
 @section('script')
 	<script>
+		/*
 	$(document).keypress(function(e){
 		if (e.which == 99) {
 			location.href = $("a#create").addClass("active").attr("href");
 		}
 	});
+		*/
 
 	@if (Session::has('field_id'))
 		var $el = $("table tr#{{ Session::get('field_id') }}");
