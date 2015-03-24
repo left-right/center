@@ -5,9 +5,9 @@
 @endsection
 
 @section('main')
-	{{ Form::open(['action'=>'LoginController@postChange', 'class'=>'form-horizontal']) }}
-	{{ Form::hidden('token', $token) }}
-	{{ Form::hidden('email', $email) }}
+	{!! Form::open(['action'=>'LoginController@postChange', 'class'=>'form-horizontal']) !!}
+	{!! Form::hidden('token', $token) !!}
+	{!! Form::hidden('email', $email) !!}
 		
 	<div class="modal show">
 		<div class="modal-dialog">
@@ -30,5 +30,5 @@
 		</div>
 	</div>
 		
-	{{ Form::close() }}
+	{!! Form::close() !!}
 @endsection

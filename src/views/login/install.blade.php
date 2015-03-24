@@ -5,7 +5,7 @@
 @endsection
 
 @section('main')
-	{{ Form::open(['action'=>'LoginController@postIndex', 'class'=>'form-horizontal']) }}
+	{!! Form::open(['action'=>'LoginController@postIndex', 'class'=>'form-horizontal']) !!}
 
 	<div class="modal show">
 		<div class="modal-dialog">
@@ -17,24 +17,24 @@
 					<div class="form-group">
 						<label class="col-md-3 control-label" for="name">@lang('center::users.name')</label>
 				    	<div class="col-md-9">
-				    		{{ Form::text('name', null, ['class'=>'form-control required', 'autofocus']) }}
+				    		{!! Form::text('name', null, ['class'=>'form-control required', 'autofocus']) !!}
 				    	</div>
 					</div>
 					<div class="form-group">
 						<label class="col-md-3 control-label" for="email">@lang('center::users.email')</label>
 				    	<div class="col-md-9">
-				    		{{ Form::text('email', null, ['class'=>'form-control required email']) }}
+				    		{!! Form::text('email', null, ['class'=>'form-control required email']) !!}
 				    	</div>
 					</div>
 					<div class="form-group">
 						<label class="col-md-3 control-label" for="password">@lang('center::users.password')</label>
 				    	<div class="col-md-9">
-				    		{{ Form::password('password', ['class'=>'form-control required']) }}
+				    		{!! Form::password('password', ['class'=>'form-control required']) !!}
 				    	</div>
 					</div>
 			    </div>
 			    <div class="modal-footer">
-				    {{ Form::submit(trans('center::site.login'), ['class'=>'btn btn-primary']) }}
+				    {!! Form::submit(trans('center::site.login'), ['class'=>'btn btn-primary']) !!}
 			    </div>
 			</div>
 		</div>

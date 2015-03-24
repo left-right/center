@@ -7,6 +7,7 @@ use Maatwebsite\Excel\ExcelServiceProvider;
 use Auth;
 use DateTime;
 use DB;
+use LeftRight\Center\Libraries\Slug;
 use Redirect;
 use Request;
 use URL;

@@ -68,7 +68,7 @@
 		<div class="col-sm-offset-2 col-sm-10">
 			<div class="checkbox">
 				<label>
-					{{ Form::checkbox('singleton', 'on', $object->singleton) }}
+					{!! Form::checkbox('singleton', 'on', $object->singleton) !!}
 					@lang('center::objects.singleton')
 				</label>
 			</div>

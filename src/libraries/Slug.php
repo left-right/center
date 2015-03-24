@@ -1,4 +1,7 @@
-<?php namespace LeftRight/Center/Libraries;
+<?php namespace LeftRight\Center\Libraries;
+
+use DB;
+use Illuminate\Support\Str;
 
 class Slug {
 
@@ -57,7 +60,7 @@ class Slug {
 	}
 
 	public static function source($object_id) {
-		return DB::table(DB_FIELDS)
+		return DB::table(config('center.db.fields'))
 			->where('object_id', $object_id)
 			->whereIn('type', ['string', 'text'])
 			->orderBy('precedence')
@@ -92,14 +95,14 @@ class Slug {
 	}
 
 	public static function setForObject($object) {
-		$slug_source = Slug::source($object->id);
+		$slug_source = self::source($object->id);
 		$instances = DB::table($object->name)->get();
 		$slugs = [];
 		foreach ($instances as $instance) {
 			if ($slug_source === null) {
-				$slug = Slug::make($instance->created_at->format('Y-m-d'), $slugs);
+				$slug = self::make($instance->created_at->format('Y-m-d'), $slugs);
 			} else {
-				$slug = Slug::make($instance->{$slug_source}, $slugs);
+				$slug = self::make($instance->{$slug_source}, $slugs);
 			}
 			DB::table($object->name)->where('id', $instance->id)->update(['slug'=>$slug]);
 			$slugs[] = $slug;
