@@ -1,22 +1,22 @@
 <?php
 	
-Route::group(['namespace' => 'LeftRight\Center\Controllers'], function(){
+Route::group(['prefix' => config('center.prefix'), 'namespace' => 'LeftRight\Center\Controllers'], function(){
 
-	Route::group(['prefix' => 'login', 'middleware' => 'guest'], function(){
+	# Will return login screen if not logged in
+	Route::get('/', ['as'=>'home', 'uses'=>'ObjectController@index']);
+
+	# Unprotected login routes
+	Route::post('/', 						'LoginController@postIndex');
+	Route::get('/reset',					'LoginController@getReset');
+	Route::post('/reset',					'LoginController@postReset');
+	Route::get('/change/{email}/{token}',	'LoginController@getChange');
+	Route::post('/change',					'LoginController@postChange');
+
 	
-		# Unprotected login routes
-		Route::get('/',							array('as'=>'home', 'uses'=>'LoginController@getIndex'));
-		Route::post('/', 						'LoginController@postIndex');
-		Route::get('/reset',					'LoginController@getReset');
-		Route::post('/reset',					'LoginController@postReset');
-		Route::get('/change/{email}/{token}',	'LoginController@getChange');
-		Route::post('/change',					'LoginController@postChange');
-	});
-	
-	Route::group(['prefix'=>'center', 'middleware' => 'user'], function(){
+	Route::group(['middleware' => 'user'], function(){
 			
 		# Admins only
-		Route::group(array('before'=>'admin', 'prefix'=>'avalon'), function(){
+		Route::group(['before'=>'admin', 'prefix'=>'avalon'], function(){
 			Route::resource('users', 'UserController');
 			Route::get('/users/{user_id}/delete', 'UserController@delete');
 			Route::get('/users/{user_id}/resend-welcome', 'UserController@resendWelcome');
@@ -51,7 +51,6 @@ Route::group(['namespace' => 'LeftRight\Center\Controllers'], function(){
 
 		# All authenticated users
 		Route::group(array('before'=>'user'), function(){
-			Route::get('/', array('as'=>'home', 'uses'=>'ObjectController@index')); 
 			Route::get('/logout', 'LoginController@getLogout');
 			Route::post('/upload/image', 'FileController@image');
 

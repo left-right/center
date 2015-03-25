@@ -21,6 +21,8 @@ class ObjectController extends \App\Http\Controllers\Controller {
 	
 	# Display list for home page
 	public function index() {
+		if (!Auth::check()) return LoginController::getIndex();
+		
 		$objects = DB::table(config('center.db.objects'))
 			->join(config('center.db.users'), config('center.db.users') . '.id', '=', config('center.db.objects') . '.updated_by')
 			->select(config('center.db.objects') . '.*', config('center.db.users') . '.name AS updated_name')

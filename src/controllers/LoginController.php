@@ -3,14 +3,16 @@
 use Auth;
 use DateTime;
 use DB;
+use Mail;
 use Request;
 use Redirect;
+use Illuminate\Support\Str;
 use URL;
 
 class LoginController extends \App\Http\Controllers\Controller {
 
 	//show login page if not logged in
-	public function getIndex() {
+	public static function getIndex() {
 		
 		if (Auth::check()) return ObjectController::index;
 		
@@ -71,9 +73,9 @@ class LoginController extends \App\Http\Controllers\Controller {
 
 		//get user
 		if (!$user = DB::table(config('center.db.users'))->where('role', '<', 4)->whereNull('deleted_at')->where('email', Request::input('email'))->first()) {
-			return Redirect::action('LoginController@getReset')->with(array(
+			return Redirect::action('\LeftRight\Center\Controllers\LoginController@getReset')->with([
 				'error'=>trans('center::users.password_reset_error')
-			));
+			]);
 		}
 
 		//set new token every time
@@ -81,7 +83,7 @@ class LoginController extends \App\Http\Controllers\Controller {
 		DB::table(config('center.db.users'))->where('id', $user->id)->update(array('token'=>$token));
 
 		//reset link
-		$link = URL::action('LoginController@getChange', array('token'=>$token, 'email'=>$user->email));
+		$link = URL::action('\LeftRight\Center\Controllers\LoginController@getChange', array('token'=>$token, 'email'=>$user->email));
 
 		//send reminder email
 		Mail::send('center::emails.password', array('link'=>$link), function($message) use ($user)
@@ -89,14 +91,14 @@ class LoginController extends \App\Http\Controllers\Controller {
 			$message->to($user->email)->subject(trans('center::users.password_reset'));
 		});
 
-		return Redirect::action('LoginController@getReset')->with(array('message'=>trans('center::users.password_reset_sent')));
+		return Redirect::action('\LeftRight\Center\Controllers\LoginController@getReset')->with(array('message'=>trans('center::users.password_reset_sent')));
 	}
 
 	//reset password form
 	public function getChange($email, $token) {
 		//todo check email / token combo
 		if (!$user = DB::table(config('center.db.users'))->whereNull('deleted_at')->where('email', $email)->where('token', $token)->first()) {
-			return Redirect::action('LoginController@getReset')->with(array(
+			return Redirect::action('\LeftRight\Center\Controllers\LoginController@getReset')->with(array(
 				'error'=>trans('center::users.password_change_error')
 			));
 		}
@@ -110,7 +112,7 @@ class LoginController extends \App\Http\Controllers\Controller {
 	//send reset email
 	public function postChange() {
 		if (!$user = DB::table(config('center.db.users'))->whereNull('deleted_at')->where('email', Request::input('email'))->where('token', Request::input('token'))->first()) {
-			return Redirect::action('LoginController@getReset')->with(array(
+			return Redirect::action('\LeftRight\Center\Controllers\LoginController@getReset')->with(array(
 				'error'=>trans('center::users.password_change_error')
 			));
 		}
