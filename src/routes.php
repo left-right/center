@@ -13,7 +13,7 @@ Route::group(['namespace' => 'LeftRight\Center\Controllers'], function(){
 		Route::post('/change',					'LoginController@postChange');
 	});
 	
-	Route::group(['prefix'=>'center', 'middleware' => 'auth'], function(){
+	Route::group(['prefix'=>'center', 'middleware' => 'user'], function(){
 			
 		# Admins only
 		Route::group(array('before'=>'admin', 'prefix'=>'avalon'), function(){

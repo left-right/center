@@ -55,7 +55,7 @@
 					<div class="image new" data-field-id="{{ $field->id }}" data-action="{{ action('\LeftRight\Center\Controllers\FileController@image') }}" style="width:{{ $field->screen_width }}px; height:{{ $field->screen_height }}px; line-height:{{ $field->screen_height }}px;">
 						{{ $field->width or '&infin;' }} &times; {{ $field->height or '&infin;' }}
 					</div>
-					{{ Form::hidden($field->name, null) }}
+					{!! Form::hidden($field->name, null) !!}
 					@else
 					<div class="image" data-field-id="{{ $field->id }}" data-action="{{ action('\LeftRight\Center\Controllers\FileController@image') }}" style="width:{{ $field->screen_width }}px; height:{{ $field->screen_height }}px; line-height:{{ $field->screen_height }}px; background-image: url({{ $instance->{$field->name}->url }});">
 						{{ $field->width }} &times; {{ $field->height }}

@@ -1,6 +1,8 @@
 <?php namespace LeftRight\Center;
 	
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Str;
+use LeftRight\Center\Controllers\InstanceController;
 use DB;
 
 class CenterServiceProvider extends ServiceProvider {
@@ -41,8 +43,13 @@ class CenterServiceProvider extends ServiceProvider {
 						->orderBy('object.name')
 						->get();
 		} catch (\Exception $e) {
-			//database not installed, would love to forward to installer, but 
-			//don't want to interfere with migrations
+			if ($e->getCode() == 2002) {
+				die(trans('center::errors.database.connection'));
+			} elseif ($e->getCode() == '42S02') {
+				//todo run migration?
+				die(trans('center::errors.database.table'));
+			}
+			//dd($e);
 			return false;
 		}
 
@@ -74,14 +81,14 @@ class CenterServiceProvider extends ServiceProvider {
 				//out from this object
 				$objects[$field->object_id]['relationships'][] = '
 				public function ' . $field->related_name . '() {
-					return $this->belongsTo("' . $field->related_model . '", "' . $field->field_name . '");
+					return $this->belongsTo("LeftRight\Center\Models\\' . $field->related_model . '", "' . $field->field_name . '");
 				}
 				';
 
 				//back from the related object
 				$objects[$field->related_id]['relationships'][] = '
 				public function ' . $field->object_name . '() {
-					return $this->hasMany("' . $field->object_model . '", "' . $field->field_name . '");
+					return $this->hasMany("LeftRight\Center\Models\\' . $field->object_model . '", "' . $field->field_name . '");
 				}
 				';
 
@@ -90,14 +97,14 @@ class CenterServiceProvider extends ServiceProvider {
 				//out from this object
 				$objects[$field->object_id]['relationships'][] = '
 				public function ' . $field->related_name . '() {
-					return $this->belongsToMany("' . $field->related_model . '", "' . $field->field_name . '", "' . InstanceController::getKey($field->object_name) . '", "' . InstanceController::getKey($field->related_name) . '")->orderBy("' . $field->related_order_by . '", "' . $field->related_direction . '");
+					return $this->belongsToMany("LeftRight\Center\Models\\' . $field->related_model . '", "' . $field->field_name . '", "' . InstanceController::getKey($field->object_name) . '", "' . InstanceController::getKey($field->related_name) . '")->orderBy("' . $field->related_order_by . '", "' . $field->related_direction . '");
 				}
 				';
 			
 				//back from the related object
 				$objects[$field->related_id]['relationships'][] = '
 				public function ' . $field->object_name . '() {
-					return $this->belongsToMany("' . $field->object_model . '", "' . $field->field_name . '", "' . InstanceController::getKey($field->related_name) . '", "' . InstanceController::getKey($field->object_name) . '")->orderBy("' . $field->object_order_by . '", "' . $field->object_direction . '");
+					return $this->belongsToMany("LeftRight\Center\Models\\' . $field->object_model . '", "' . $field->field_name . '", "' . InstanceController::getKey($field->related_name) . '", "' . InstanceController::getKey($field->object_name) . '")->orderBy("' . $field->object_order_by . '", "' . $field->object_direction . '");
 				}
 				';
 			

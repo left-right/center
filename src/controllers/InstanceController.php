@@ -3,6 +3,7 @@
 use Aws\Common\Enum\Region;
 use Aws\Laravel\AwsServiceProvider;
 use Illuminate\Foundation\Application;
+use Illuminate\Support\Str;
 use Maatwebsite\Excel\ExcelServiceProvider;
 use Auth;
 use DateTime;
