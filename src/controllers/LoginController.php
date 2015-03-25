@@ -3,10 +3,11 @@
 use Auth;
 use DateTime;
 use DB;
+use Hash;
+use Illuminate\Support\Str;
 use Mail;
 use Request;
 use Redirect;
-use Illuminate\Support\Str;
 use URL;
 
 class LoginController extends \App\Http\Controllers\Controller {
@@ -25,6 +26,7 @@ class LoginController extends \App\Http\Controllers\Controller {
 	//handle a post to the login or install form
 	public function postIndex() {
 		//regular login
+		die('hi');
 		if (DB::table(config('center.db.users'))->count()) {
 			//attempt auth
 			if (Auth::attempt(['email'=>Request::input('email'), 'password'=>Request::input('password')], true)) {
@@ -32,9 +34,10 @@ class LoginController extends \App\Http\Controllers\Controller {
 				DB::table(config('center.db.users'))->where('id', Auth::user()->id)->update([
 					'last_login'=>new DateTime
 				]);
-
+				die('valid');
 				return Redirect::intended(URL::route('home'));
 			}
+			die('invalid');
 			return Redirect::route('home')->with('error', trans('center::site.login_invalid'));
 		} 
 		
@@ -112,17 +115,17 @@ class LoginController extends \App\Http\Controllers\Controller {
 	//send reset email
 	public function postChange() {
 		if (!$user = DB::table(config('center.db.users'))->whereNull('deleted_at')->where('email', Request::input('email'))->where('token', Request::input('token'))->first()) {
-			return Redirect::action('\LeftRight\Center\Controllers\LoginController@getReset')->with(array(
+			return Redirect::action('\LeftRight\Center\Controllers\LoginController@getReset')->with([
 				'error'=>trans('center::users.password_change_error')
-			));
+			]);
 		}
 
 		//successfully used reset token, time for it to die
-		DB::table(config('center.db.users'))->where('id', $user->id)->update(array(
+		DB::table(config('center.db.users'))->where('id', $user->id)->update([
 			'token'=>null,
 			'password'=>Hash::make(Request::input('password')),
 			'last_login'=>new DateTime,
-		));
+		]);
 
 		//log you in
 		return Redirect::route('home');

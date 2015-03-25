@@ -5,7 +5,7 @@
 @endsection
 
 @section('main')
-	{!! Form::open(['action'=>'LoginController@postChange', 'class'=>'form-horizontal']) !!}
+	{!! Form::open(['action'=>'\LeftRight\Center\Controllers\LoginController@postChange', 'class'=>'form-horizontal']) !!}
 	{!! Form::hidden('token', $token) !!}
 	{!! Form::hidden('email', $email) !!}
 		
