@@ -11,7 +11,7 @@
 		<div class="modal-dialog">
 			<div class="modal-content">
 				<div class="modal-header">
-					<h2 class="modal-title">{{ trans('center::site.welcome') }}</h2>
+					<h1 class="modal-title">{{ trans('center::site.welcome') }}</h1>
 				</div>
 				<div class="modal-body">
 					@include('center::notifications')

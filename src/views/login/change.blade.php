@@ -13,7 +13,7 @@
 		<div class="modal-dialog">
 		    <div class="modal-content">
 				<div class="modal-header">
-					<h3 class="modal-title">@lang('center::users.password_change')</h3>
+					<h1 class="modal-title">@lang('center::users.password_change')</h1>
 				</div>
 				<div class="modal-body">
 					<div class="form-group">

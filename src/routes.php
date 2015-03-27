@@ -6,7 +6,7 @@ Route::group(['prefix' => config('center.prefix'), 'namespace' => 'LeftRight\Cen
 	Route::get('/', ['as'=>'home', 'uses'=>'ObjectController@index']);
 
 	# Unprotected login routes
-	Route::post('/', 						'LoginController@postIndex');
+	Route::post('/login', 					'LoginController@postIndex');
 	Route::get('/reset',					'LoginController@getReset');
 	Route::post('/reset',					'LoginController@postReset');
 	Route::get('/change/{email}/{token}',	'LoginController@getChange');

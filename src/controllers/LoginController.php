@@ -15,7 +15,7 @@ class LoginController extends \App\Http\Controllers\Controller {
 	//show login page if not logged in
 	public static function getIndex() {
 		
-		if (Auth::check()) return ObjectController::index;
+		//if (Auth::check()) return ObjectController::index;
 		
 		//show install form
 		if (!DB::table(config('center.db.users'))->count()) return view('center::login.install');
@@ -26,7 +26,6 @@ class LoginController extends \App\Http\Controllers\Controller {
 	//handle a post to the login or install form
 	public function postIndex() {
 		//regular login
-		die('hi');
 		if (DB::table(config('center.db.users'))->count()) {
 			//attempt auth
 			if (Auth::attempt(['email'=>Request::input('email'), 'password'=>Request::input('password')], true)) {
@@ -34,10 +33,8 @@ class LoginController extends \App\Http\Controllers\Controller {
 				DB::table(config('center.db.users'))->where('id', Auth::user()->id)->update([
 					'last_login'=>new DateTime
 				]);
-				die('valid');
 				return Redirect::intended(URL::route('home'));
 			}
-			die('invalid');
 			return Redirect::route('home')->with('error', trans('center::site.login_invalid'));
 		} 
 		
