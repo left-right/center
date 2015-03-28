@@ -1,7 +1,10 @@
 <?php namespace LeftRight\Center\Controllers;
 
 use DB;
+use URL;
 use View;
+use LeftRight\Center\Controllers\ObjectController;
+use LeftRight\Center\Libraries\Table;
 
 class ImportController extends \App\Http\Controllers\Controller {
 
@@ -11,7 +14,7 @@ class ImportController extends \App\Http\Controllers\Controller {
 			foreach ($tables as &$table) $table = '\'' . $table . '\'';
 			$tables = DB::select('SHOW TABLE STATUS WHERE Name IN (' . implode(',', $tables) . ')');
 			foreach ($tables as &$table) {
-				$table->link = URL::action('ImportController@show', $table->Name);
+				$table->link = URL::action('\LeftRight\Center\Controllers\ImportController@show', $table->Name);
 				$table->Data_length = self::formatBytes($table->Data_length);
 			}
 		}

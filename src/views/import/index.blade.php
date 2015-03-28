@@ -11,12 +11,12 @@
 		]) !!}
 
 	@if (count($tables))
-		{{ Table::rows($tables)
+		{!! \LeftRight\Center\Libraries\Table::rows($tables)
 		->column('Name', 'string', trans('center::import.table'))
 		->column('Rows', 'integer', trans('center::import.rows'))
 		->column('Data_length', 'integer', trans('center::import.size'))
 		->draw('tables')
-		}}
+		!!}
 	@else
 	<div class="alert alert-warning">
 		@lang('center::import.empty')
