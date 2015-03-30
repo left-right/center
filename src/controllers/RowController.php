@@ -14,31 +14,29 @@ use Request;
 use URL;
 use View;
 
-class InstanceController extends \App\Http\Controllers\Controller {
+class RowController extends \App\Http\Controllers\Controller {
 
 	# Show list of instances for an object
 	# $group_by_id is for when coming from a linked object
-	public function index($object_name, $linked_id=false) {
+	public function index($table, $linked_id=false) {
 
 		# Get info about the object
-		$object = DB::table(config('center.db.objects'))->where('name', $object_name)->first();
-		$fields = DB::table(config('center.db.fields'))
-			->where('object_id', $object->id)
-			->orWhere('id', $object->group_by_field)
-			->orderBy('precedence')
-			->get();
+		$table_properties = config('center.tables.' . $table);
 
 		# Start query
-		$instances = DB::table($object->name);
+		$instances = DB::table($table);
 
 		# Empty arrays mainly for search
 		$text_fields = $select_fields = $date_fields = $columns = [];
 		$date_fields = ['created_at'=>'Created', 'updated_at'=>'Updated'];
 
 		# Build select statement
-		$instances->select([$object->name . '.id', $object->name . '.updated_at', $object->name . '.deleted_at']);
-		foreach ($fields as $field) {
-			if ($field->visibility == 'list' || $field->id == $object->group_by_field) {
+		$instances->select([$table . '.id', $table . '.updated_at', $table . '.deleted_at']);
+		foreach ($table_properties->list as $field) {
+			dd($table_properties->list);
+			$field = $table_properties->fields->{$field};
+			dd($field);
+			if ($field_properties->visibility == 'list'/* || $field_properties->id == $field_properties->group_by_field*/) {
 				
 				if ($field->type == 'checkboxes') {
 					$related_object = self::getRelatedObject($field->related_object_id);

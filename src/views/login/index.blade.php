@@ -11,20 +11,30 @@
 		<div class="modal-dialog">
 			<div class="modal-content">
 				<div class="modal-header">
-					<h1 class="modal-title">{{ trans('center::site.welcome') }}</h1>
+					<h1 class="modal-title">@lang('center::site.welcome')</h1>
 				</div>
 				<div class="modal-body">
 					@include('center::notifications')
 					<div class="form-group">
-						<label class="col-md-3 control-label" for="email">{{ trans('center::users.email') }}</label>
+						<label class="col-md-3 control-label" for="email">@lang('center::users.email')</label>
 						<div class="col-md-9">
-							<input type="text" name="email" class="form-control required email" autofocus="autofocus">
+							{!! Form::email('email', null, ['class'=>'form-control required email', 'autofocus']) !!}
 						</div>
 					</div>
 					<div class="form-group">
-						<label class="col-md-3 control-label" for="password">{{ trans('center::users.password') }}</label>
+						<label class="col-md-3 control-label" for="password">@lang('center::users.password')</label>
 						<div class="col-md-9">
-							<input type="password" name="password" class="form-control required">
+							{!! Form::password('password', ['class'=>'form-control required']) !!}
+						</div>
+					</div>
+					<div class="form-group">
+						<div class="col-md-9 col-md-offset-3">
+							<div class="checkbox">
+								<label>
+									{!! Form::checkbox('remember_me', null, true) !!}
+									@lang('center::site.remember_me')
+								</label>
+							</div>
 						</div>
 					</div>
 				</div>

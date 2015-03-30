@@ -13,7 +13,7 @@
 		<div class="container">
 			<div class="row">
 				<div class="col-md-12 header">
-					<a href="{{ URL::action('\LeftRight\Center\Controllers\ObjectController@index') }}"></a>
+					<a href="{{ URL::action('\LeftRight\Center\Controllers\TableController@index') }}"></a>
 				</div>
 			</div>
 			<div class="row">

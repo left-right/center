@@ -4,6 +4,7 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use LeftRight\Center\Controllers\InstanceController;
 use DB;
+use Config;
 
 class CenterServiceProvider extends ServiceProvider {
 	
@@ -21,38 +22,27 @@ class CenterServiceProvider extends ServiceProvider {
 		]);
 		include __DIR__.'/macros.php';
 		include __DIR__.'/routes.php';
-		
-		try {
-			$fields  = DB::table(config('center.db.fields'))
-						->join(config('center.db.objects') . ' as object', config('center.db.fields') . '.object_id', '=', 'object.id')
-						->leftJoin(config('center.db.objects') . ' as related', config('center.db.fields') . '.related_object_id', '=', 'related.id')
-						->select(
-							config('center.db.fields') . '.object_id',
-							config('center.db.fields') . '.related_object_id as related_id',
-							config('center.db.fields') . '.type as type',
-							config('center.db.fields') . '.name as field_name',
-							'object.name as object_name', 
-							'object.model as object_model', 
-							'object.order_by as object_order_by',
-							'object.direction as object_direction',
-							'related.name as related_name', 
-							'related.model as related_model', 
-							'related.order_by as related_order_by',
-							'related.direction as related_direction'
-						)
-						->orderBy('object.name')
-						->get();
-		} catch (\Exception $e) {
-			if ($e->getCode() == 2002) {
-				die(trans('center::errors.database.connection'));
-			} elseif ($e->getCode() == '42S02') {
-				//todo run migration?
-				die(trans('center::errors.database.table'));
+	
+		//expand table schema from config with default values
+		//todo: consider caching this
+		$expanded_tables = [];
+		$tables = config('center.tables');
+		foreach ($tables as $table=>$table_properties) {
+			$table_properties = self::promoteNumericKeyToTrue($table_properties);
+			$expanded_fields = [];
+			foreach ($table_properties['fields'] as $field=>$field_properties) {
+				if (is_string($field_properties)) $field_properties = ['type'=>$field_properties];
+				$field_properties = self::promoteNumericKeyToTrue($field_properties);
+				if (!isset($field_properties['required'])) $field_properties['required'] = in_array($field_properties['type'], ['id', 'created_at', 'updated_at', 'tinyint']);
+				if (!isset($field_properties['hidden'])) $field_properties['hidden'] = in_array($field_properties['type'], ['id', 'created_at', 'updated_at', 'deleted_at', 'created_by', 'updated_by', 'deleted_by', 'password']);
+				$expanded_fields[$field] = (object) $field_properties;
 			}
-			//dd($e);
-			return false;
+			$table_properties['fields'] = $expanded_fields;
+			if (!isset($table_properties['hidden'])) $table_properties['hidden'] = false;
+			$expanded_tables[$table] = (object) $table_properties;
 		}
-
+		Config::set('center.tables', $expanded_tables);
+		/*
 		# Loop through and process the $fields into $objects for model methods below
 		$objects = [];
 		foreach ($fields as $field) {
@@ -163,7 +153,17 @@ class CenterServiceProvider extends ServiceProvider {
 				' . implode(' ', $object['relationships']) . '
 			}');
 		}
-
+		*/
+	}
+	
+	private static function promoteNumericKeyToTrue($array) {
+		foreach ($array as $key=>$value) {
+			if (is_int($key)) {
+				$array[$value] = true;
+				unset($array[$key]);
+			}
+		}
+		return $array;
 	}
 	
 }

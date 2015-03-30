@@ -12,16 +12,6 @@
 		]) !!}
 
 	<div class="btn-group">
-		@if (Auth::user()->role < 2)
-			<a class="btn btn-default" href="{{ URL::action('\LeftRight\Center\Controllers\ObjectController@edit', $object->name) }}">
-				<i class="glyphicon glyphicon-cog"></i> 
-				@lang('center::objects.edit', ['title'=>$object->title])
-			</a>
-			<a class="btn btn-default" href="{{ URL::action('\LeftRight\Center\Controllers\FieldController@index', $object->name) }}">
-				<i class="glyphicon glyphicon-list"></i>
-				@lang('center::fields.plural')
-			</a>
-		@endif
 		<a class="btn btn-default" id="create" href="{{ URL::action('\LeftRight\Center\Controllers\InstanceController@export', $object->name) }}">
 			<i class="glyphicon glyphicon-circle-arrow-down"></i>
 			@lang('center::instances.export')
