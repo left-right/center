@@ -25,41 +25,41 @@ class RowController extends \App\Http\Controllers\Controller {
 		//dd($table);
 
 		# Start query
-		$instances = DB::table($table->name);
+		$rows = DB::table($table->name);
 
 		# Empty arrays mainly for search
 		$text_fields = $select_fields = $date_fields = $columns = [];
 		$date_fields = ['created_at'=>'Created', 'updated_at'=>'Updated'];
 
 		# Build select statement
-		$instances->select([$table->name . '.id', $table->name . '.updated_at', $table->name . '.deleted_at']);
+		$rows->select([$table->name . '.id', $table->name . '.updated_at', $table->name . '.deleted_at']);
 		foreach ($table->list as $field) {
 			$field = $table->fields->{$field};
 				
 			if ($field->type == 'checkboxes') {
 				$related_object = self::getRelatedObject($field->related_object_id);
-				$instances->addSelect(DB::raw('(SELECT GROUP_CONCAT(' . $related_object->name . '.' . $related_object->field->name . ' SEPARATOR ", ") 
+				$rows->addSelect(DB::raw('(SELECT GROUP_CONCAT(' . $related_object->name . '.' . $related_object->field->name . ' SEPARATOR ", ") 
 					FROM ' . $related_object->name . ' 
 					JOIN ' . $field->name . ' ON ' . $related_object->name . '.id = ' . $field->name . '.' . self::getKey($related_object->name) . '
 					WHERE ' . $field->name . '.' . self::getKey($table->name) . ' = ' . $table->name . '.id 
 					ORDER BY ' . $related_object->name . '.' . $related_object->field->name . ') AS ' . $field->name));
 			} elseif ($field->type == 'image') {
-				$instances
+				$rows
 					->leftJoin(config('center.db.files'), $table->name . '.' . $field->name, '=', config('center.db.files') . '.id')
 					->addSelect(config('center.db.files') . '.url AS ' . $field->name . '_url');
 			} elseif ($field->type == 'select') {
 				$related_object = self::getRelatedObject($field->related_object_id);
-				$instances
+				$rows
 					->leftJoin($related_object->name, $table->name . '.' . $field->name, '=', $related_object->name . '.id')
 					->addSelect($related_object->name . '.' . $related_object->field->name . ' AS ' . $field->name);
 				$text_fields[] = $related_object->name . '.' . $related_object->field->name;
 			} elseif ($field->type == 'user') {
-				$instances
+				$rows
 					->leftJoin(config('center.db.users'), $table->name . '.' . $field->name, '=', config('center.db.users') . '.id')
 					->addSelect(config('center.db.users') . '.name AS ' . $field->name);
 			} else {
 				//normal, selectable field
-				$instances->addSelect($table->name . '.' . $field->name);
+				$rows->addSelect($table->name . '.' . $field->name);
 			}
 			
 			//add to table columns
@@ -85,19 +85,19 @@ class RowController extends \App\Http\Controllers\Controller {
 				$object->nested = true;
 			} else {
 				# Include group_by_field in resultset
-				$instances
+				$rows
 					->orderBy($grouped_object->name . '.' . $grouped_object->order_by, $grouped_object->direction)
 					->addSelect($grouped_object->name . '.' . $grouped_object->field->name . ' as group');
 	
 				# If $linked_id, limit scope to just $linked_id
 				if ($linked_id) {
-					$instances->where($grouped_field->name, $linked_id);
+					$rows->where($grouped_field->name, $linked_id);
 				}
 			}
 		}
 
 		# Set the order and direction
-		$instances->orderBy($table->name . '.' . $table->order_by);
+		$rows->orderBy($table->name . '.' . $table->order_by);
 
 		$searching = false;
 
@@ -105,7 +105,7 @@ class RowController extends \App\Http\Controllers\Controller {
 		if (Request::has('search')) {
 			$searching = true;
 			foreach ($text_fields as $field) {
-				$instances->orWhere($field->name, 'LIKE', '%' . Request::input('search') . '%');
+				$rows->orWhere($field->name, 'LIKE', '%' . Request::input('search') . '%');
 			}
 		}
 		
@@ -113,16 +113,16 @@ class RowController extends \App\Http\Controllers\Controller {
 		foreach ($select_fields as $select) {
 			if (Request::has($select->name)) {
 				$searching = true;
-				$instances->where($select->name, Request::input($select->name));
+				$rows->where($select->name, Request::input($select->name));
 			}
 		}
 
 		# Run query and save it to a variable
-		$instances = $instances->get();
+		$rows = $rows->get();
 
 		# Set URLs on each instance
 		if ($table->user_can_edit) {
-			foreach ($instances as &$instance) {
+			foreach ($rows as &$instance) {
 				$instance->link = action('\LeftRight\Center\Controllers\RowController@edit', [$table->name, $instance->id, $linked_id]);
 				$instance->delete = action('\LeftRight\Center\Controllers\RowController@delete', [$table->name, $instance->id]);
 			}
@@ -131,7 +131,7 @@ class RowController extends \App\Http\Controllers\Controller {
 		# If it's a nested object, nest-ify the resultset
 		if ($table->nested) {
 			$list = array();
-			foreach ($instances as &$instance) {
+			foreach ($rows as &$instance) {
 				$instance->children = array();
 				if (empty($instance->{$grouped_field->name})) { //$grouped_field->name is for ex parent_id
 					$list[] = $instance;
@@ -141,7 +141,7 @@ class RowController extends \App\Http\Controllers\Controller {
 					//an error occurred; a parent should exist but is not yet present
 				}
 			}
-			$instances = $list;
+			$rows = $list;
 		}
 
 		# Search filters for the sidebar
@@ -152,7 +152,7 @@ class RowController extends \App\Http\Controllers\Controller {
 			$filters[$select->name] = [''=>$select->title] + $options;
 		}
 		
-		$return = compact('table', 'columns', 'instances', 'filters', 'searching');
+		$return = compact('table', 'columns', 'rows', 'filters', 'searching');
 
 		# Return array to edit()
 		if ($linked_id) {
@@ -242,9 +242,9 @@ class RowController extends \App\Http\Controllers\Controller {
 			}
 			if ($field->name == 'created_at') $inserts['created_at'] = new DateTime;
 			if ($field->name == 'updated_at') $inserts['updated_at'] = new DateTime;
-			if ($field->name == 'created_by') Auth::user()->id;
-			if ($field->name == 'updated_by') Auth::user()->id;
-			if ($field->name == 'precedence') DB::table($table->name)->max('precedence') + 1;
+			if ($field->name == 'created_by') $inserts['updated_at'] = Auth::user()->id;
+			if ($field->name == 'updated_by') $inserts['updated_at'] = Auth::user()->id;
+			if ($field->name == 'precedence') $inserts['updated_at'] = DB::table($table->name)->max('precedence') + 1;
 		}
 
 		//validate
@@ -273,7 +273,7 @@ class RowController extends \App\Http\Controllers\Controller {
 		}
 
 		//run insert
-		$instance_id = DB::table($table->name)->insertGetId($inserts);
+		$row_id = DB::table($table->name)->insertGetId($inserts);
 		
 		//handle any checkboxes, had to wait for instance_id
 		foreach ($table->fields as $field) {
@@ -284,19 +284,19 @@ class RowController extends \App\Http\Controllers\Controller {
 				if (Request::has($field->name)) {
 					foreach (Request::input($field->name) as $related_id) {
 						DB::table($field->name)->insert(array(
-							$object_column=>$instance_id,
+							$object_column=>$row_id,
 							$remote_column=>$related_id,
 						));
 					}
 				}
 			} elseif ($field->type == 'image') {
-				DB::table(config('center.db.files'))->where('id', Request::input($field->name))->update(['instance_id'=>$instance_id]);
+				DB::table(config('center.db.files'))->where('id', Request::input($field->name))->update(['instance_id'=>$row_id]);
 			} elseif ($field->type == 'images') {
 				$file_ids = explode(',', Request::input($field->name));
 				$precedence = 0;
 				foreach ($file_ids as $file_id) {
 					DB::table(config('center.db.files'))->where('id', $file_id)->update([
-						'instance_id'=>$instance_id,
+						'instance_id'=>$row_id,
 						'precedence'=>++$precedence,
 					]);
 				}
@@ -311,18 +311,18 @@ class RowController extends \App\Http\Controllers\Controller {
 		]);*/
 
 		//clean up any abandoned files
-		FileController::cleanup();
+		//FileController::cleanup();
 
 		//return to target		
 		return Redirect::to(Request::input('return_to'));
 	}
 	
 	//show edit form
-	public function edit($table, $instance_id, $linked_id=false) {
+	public function edit($table, $row_id, $linked_id=false) {
 
 		# Get object / field / whatever infoz
 		$table = config('center.tables.' . $table);
-		$instance = DB::table($table->name)->where('id', $instance_id)->first();
+		$instance = DB::table($table->name)->where('id', $row_id)->first();
 
 		# Add return var to the queue
 		if ($linked_id) {
@@ -418,25 +418,25 @@ class RowController extends \App\Http\Controllers\Controller {
 				->join(config('center.db.objects'), config('center.db.object_links') . '.linked_id', '=', config('center.db.objects') . '.id')
 				->lists(config('center.db.objects') . '.name');
 		foreach ($links as &$link) {
-			$link = self::index($link, $instance_id, $linked_id);
+			$link = self::index($link, $row_id, $linked_id);
 		}*/
 
 		return view('center::rows.edit', compact('table', 'instance', 'links', 'linked_id', 'return_to'));
 	}
 	
 	//save edits to database
-	public function update($object_name, $instance_id, $linked_id=false) {
-		$object = DB::table(config('center.db.objects'))->where('name', $object_name)->first();
-		$fields = DB::table(config('center.db.fields'))->where('object_id', $object->id)->where('visibility', '<>', 'hidden')->get();
+	public function update($table, $row_id, $linked_id=false) {
+		$table = config('center.tables.' . $table);
 		
 		//metadata
-		$updates = array(
+		$updates = [
 			'updated_at'=>new DateTime,
 			'updated_by'=>Auth::user()->id,
-		);
+		];
 		
 		//run loop through the fields
-		foreach ($fields as $field) {
+		foreach ($table->fields as $field) {
+			if ($field->hidden) continue;
 			if ($field->type == 'checkboxes') {
 				
 				# Figure out schema
@@ -444,13 +444,13 @@ class RowController extends \App\Http\Controllers\Controller {
 				$remote_column = self::getKey($field->related_object_id);
 
 				# Clear old values
-				DB::table($field->name)->where($object_column, $instance_id)->delete();
+				DB::table($field->name)->where($object_column, $row_id)->delete();
 
 				# Loop through and save all the checkboxes
 				if (Request::has($field->name)) {
 					foreach (Request::input($field->name) as $related_id) {
 						DB::table($field->name)->insert(array(
-							$object_column=>$instance_id,
+							$object_column=>$row_id,
 							$remote_column=>$related_id,
 						));
 					}
@@ -460,7 +460,7 @@ class RowController extends \App\Http\Controllers\Controller {
 				# Unset any old file associations (will get cleaned up after this loop)
 				DB::table(config('center.db.files'))
 					->where('field_id', $field->id)
-					->where('instance_id', $instance_id)
+					->where('instance_id', $row_id)
 					->update(array('instance_id'=>null));
 
 				# Create new associations
@@ -470,7 +470,7 @@ class RowController extends \App\Http\Controllers\Controller {
 					DB::table(config('center.db.files'))
 						->where('id', $file_id)
 						->update(array(
-							'instance_id'=>$instance_id,
+							'instance_id'=>$row_id,
 							'precedence'=>++$precedence,
 						));
 				}
@@ -481,14 +481,14 @@ class RowController extends \App\Http\Controllers\Controller {
 					# Unset any old file associations (will get cleaned up after this loop)
 					DB::table(config('center.db.files'))
 						->where('field_id', $field->id)
-						->where('instance_id', $instance_id)
+						->where('instance_id', $row_id)
 						->update(array('instance_id'=>null));
 
 
 					# Capture the uploaded file by setting the reverse-lookup
 					DB::table(config('center.db.files'))
 						->where('id', Request::input($field->name))
-						->update(array('instance_id'=>$instance_id));
+						->update(array('instance_id'=>$row_id));
 
 				}
 
@@ -497,47 +497,45 @@ class RowController extends \App\Http\Controllers\Controller {
 		}
 
 		//slug
+		/*
 		if (!empty($object->url)) {
-			$uniques = DB::table($table->name)->where('id', '<>', $instance_id)->lists('slug');
+			$uniques = DB::table($table->name)->where('id', '<>', $row_id)->lists('slug');
 			$updates['slug'] = Slug::make(Request::input('slug'), $uniques);
 		}
+		*/
+		
 		/* //todo manage a redirect table if client demand warrants it
-		$old_slug = DB::table($table->name)->find($instance_id)->pluck('slug');
+		$old_slug = DB::table($table->name)->find($row_id)->pluck('slug');
 		if ($updates['slug'] != $old_slug) {
 		}*/
-		
+				
 		//run update
-		DB::table($table->name)->where('id', $instance_id)->update($updates);
+		DB::table($table->name)->where('id', $row_id)->update($updates);
 		
 		//clean up abandoned files
-		FileController::cleanup();
+		//FileController::cleanup();
 
-		//update object meta
+		/*update object meta
 		DB::table(config('center.db.objects'))->where('id', $object->id)->update([
 			'count'=>DB::table($table->name)->whereNull('deleted_at')->count(),
 			'updated_at'=>new DateTime,
 			'updated_by'=>Auth::user()->id
-		]);
+		]);*/
 		
 		return Redirect::to(Request::input('return_to'));
 	}
 	
 	# Remove object from db - todo check key/constraints
-	public function destroy($object_name, $instance_id) {
-		$object = DB::table(config('center.db.objects'))->where('name', $object_name)->first();
-		DB::table($table->name)->where('id', $instance_id)->delete();
-
-		//update object meta
-		DB::table(config('center.db.objects'))->where('id', $object->id)->update([
-			'count'=>DB::table($table->name)->whereNull('deleted_at')->count(),
-		]);
+	public function destroy($table, $row_id) {
+		$table = config('center.tables.' . $table);
+		DB::table($table->name)->where('id', $row_id)->delete();
 
 		return Redirect::to(Request::input('return_to'));
 	}
 	
 	# Reorder fields by drag-and-drop
-	public function reorder($object_name) {
-		$object = DB::table(config('center.db.objects'))->where('name', $object_name)->first();
+	public function reorder($table) {
+		$object = DB::table(config('center.db.objects'))->where('name', $table)->first();
 
 		//determine whether nested
 		$object->nested = false;
@@ -549,11 +547,11 @@ class RowController extends \App\Http\Controllers\Controller {
 		}
 
 		if ($object->nested) {
-			$instance_ids = explode(',', Request::input('list'));
+			$row_ids = explode(',', Request::input('list'));
 			$precedence = 1;
-			foreach ($instance_ids as $instance_id) {
-				if (!empty($instance_id)) {
-					DB::table($table->name)->where('id', $instance_id)->update(['precedence'=>$precedence++]);
+			foreach ($row_ids as $row_id) {
+				if (!empty($row_id)) {
+					DB::table($table->name)->where('id', $row_id)->update(['precedence'=>$precedence++]);
 				}
 			}
 			if (Request::has('id') && Request::has('parent_id')) {
@@ -564,12 +562,12 @@ class RowController extends \App\Http\Controllers\Controller {
 			}
 			return 'done reordering nested';
 		} else {
-			$instances = explode('&', Request::input('order'));
+			$rows = explode('&', Request::input('order'));
 			$precedence = 1;
-			foreach ($instances as $instance) {
-				list($garbage, $instance_id) = explode('=', $instance);
-				if (!empty($instance_id)) {
-					DB::table($table->name)->where('id', $instance_id)->update(['precedence'=>$precedence++]);
+			foreach ($rows as $instance) {
+				list($garbage, $row_id) = explode('=', $instance);
+				if (!empty($row_id)) {
+					DB::table($table->name)->where('id', $row_id)->update(['precedence'=>$precedence++]);
 				}
 			}
 			return 'done reordering ' . Request::input('order')  . ' instances, linear';
@@ -577,13 +575,13 @@ class RowController extends \App\Http\Controllers\Controller {
 	}
 	
 	# Soft delete
-	public function delete($object_name, $instance_id) {
-		$object = DB::table(config('center.db.objects'))->where('name', $object_name)->first();
+	public function delete($table, $row_id) {
+		$object = DB::table(config('center.db.objects'))->where('name', $table)->first();
 		
 		//toggle instance with active or inactive
 		$deleted_at = (Request::input('active') == 1) ? null : new DateTime;
 
-		DB::table($table->name)->where('id', $instance_id)->update(array(
+		DB::table($table->name)->where('id', $row_id)->update(array(
 			'deleted_at'=>$deleted_at,
 			'updated_at'=>new DateTime,
 			'updated_by'=>Auth::user()->id,
@@ -596,7 +594,7 @@ class RowController extends \App\Http\Controllers\Controller {
 			'updated_by'=>Auth::user()->id,
 		));
 
-		$updated = DB::table($table->name)->where('id', $instance_id)->pluck('updated_at');
+		$updated = DB::table($table->name)->where('id', $row_id)->pluck('updated_at');
 
 		return \LeftRight\Center\Libraries\Dates::relative($updated);
 	}
@@ -670,10 +668,10 @@ class RowController extends \App\Http\Controllers\Controller {
 	}
 
 	# Draw an instance table, used both by index and by edit > linked
-	public static function table($table, $columns, $instances) {
-		if (count($instances)) {
-			$return = new \LeftRight\Center\Libraries\Table('happy');
-			$return->rows($instances);
+	public static function table($table, $columns, $rows) {
+		if (count($rows)) {
+			$return = new \LeftRight\Center\Libraries\Table;
+			$return->rows($rows);
 			foreach ($columns as $column) {
 				$return->column($column->name, $column->type, $column->title);
 			}
@@ -682,14 +680,14 @@ class RowController extends \App\Http\Controllers\Controller {
 				if ($table->order_by == 'precedence') $return->draggable(action('\LeftRight\Center\Controllers\RowController@reorder', $table));
 			}
 			if (!empty($table->group_by_field)) $return->groupBy('group');
-			return $return->draw();
+			return $return->draw($table->name);
 		}
 	}
 
 	//export instances
-	public function export($object_name) {
+	public function export($table) {
 
-		$object = DB::table(config('center.db.objects'))->where('name', $object_name)->first();
+		$object = DB::table(config('center.db.objects'))->where('name', $table)->first();
 
 		App::make('excel')->create($object->title, function($excel) use ($object) {
 
@@ -743,7 +741,7 @@ class RowController extends \App\Http\Controllers\Controller {
 		$url = urlencode("$S3_URL$S3_BUCKET$objectName?AWSAccessKeyId=$S3_KEY&Expires=$expires&Signature=$sig");
 	}
 
-	public static function upload_image($object_id, $instance_id) {
+	public static function upload_image($object_id, $row_id) {
 
 		$temp_file = 'temp.dat';
 

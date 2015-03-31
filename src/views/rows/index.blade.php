@@ -24,17 +24,17 @@
 		@endif
 	</div>
 
-	@if (count($instances))
+	@if (count($rows))
 		@if ($table->nested)
 			<div class="nested" data-draggable-url="{{ action('\LeftRight\Center\Controllers\RowController@reorder', $table->name) }}">
 				<div class="legend">
 					Title
 					<div class="updated_at">Updated</div>
 				</div>
-				@include('center::rows.nested', ['instances'=>$instances])
+				@include('center::rows.nested', ['instances'=>$rows])
 			</div>
 		@else
-			{!! \LeftRight\Center\Controllers\RowController::table($table, $columns, $instances) !!}
+			{!! \LeftRight\Center\Controllers\RowController::table($table, $columns, $rows) !!}
 		@endif
 	@else
 	<div class="alert alert-warning">

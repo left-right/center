@@ -24,9 +24,9 @@
 	@if (count($objects))
 		{!! \LeftRight\Center\Libraries\Table::rows($objects)
 			->column('title', 'string', trans('center::tables.singular'))
-			//->column('count', 'integer', trans('center::tables.count'))
-			//->column('updated_name', 'updated_name', trans('center::site.updated_name'))
-			//->column('updated_at', 'updated_at', trans('tables::site.updated_at'))
+			->column('count', 'integer', trans('center::tables.count'))
+			->column('updated_name', 'updated_name', trans('center::site.updated_name'))
+			->column('updated_at', 'updated_at', trans('center::site.updated_at'))
 			//->groupBy('list_grouping')
 			->draw('tables')
 			!!}

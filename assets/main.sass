@@ -273,39 +273,37 @@ form
 			position: absolute
 		tr
 			th, td
-				&.draggy, &.delete
+				&.type-draggy, &.type-delete
 					width: 18px
 					text-align: center
-				&.center
-					text-align: center
-				&.date
+				&.type-date
 					text-align: right
 					white-space: nowrap
-				&.datetime
-					text-align: left
-					white-space: nowrap
-				&.integer
-					text-align: right
-				&.date-relative
+				&.type-datetime
 					text-align: right
 					white-space: nowrap
-					width: 120px
-				&.updated_at
+				&.type-integer
+					text-align: right
+				&.type-date-relative
 					text-align: right
 					white-space: nowrap
 					width: 120px
-				&.updated_name
+				&.type-updated_at
 					text-align: right
 					white-space: nowrap
 					width: 120px
-				&.color 
+				&.type-updated_name
+					text-align: right
+					white-space: nowrap
+					width: 120px
+				&.type-color 
 					width: 30px
 					a
 						display: block
 						width: 30px
 						height: 30px
 						margin: -5px
-				&.image
+				&.type-image
 					width: 100px
 					a
 						display: block
@@ -335,14 +333,14 @@ form
 					border-bottom-width: 1px
 					border-bottom-style: solid
 					background-color: $gray-lightest
-		&.objects
+		&#tables
 			tr
 				td, th
-					&.string
+					&.name
 						width: 200px
 					&.updated_at
 						width: 200px
-					&.integer
+					&.count
 						text-align: center
 
 .side

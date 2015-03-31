@@ -6,5 +6,6 @@ return [
 		'last_login' => 'Last Login',
 		'email' => 'Email',
 		'admin' => 'Admin?',
+		'updated_at' => 'Updated',
 	]	
 ];

@@ -2,6 +2,9 @@
 	
 return [
 	'cancel'				=> 'Cancel',
+	'email'					=> 'Email',
+	'password'				=> 'Password',
+	'password_reset'		=> 'Reset Password',
 	'install'				=> 'Install',
 	'login'					=> 'Log In',
 	'login_invalid'			=> 'That email / password combination was not found.',

@@ -1,15 +1,22 @@
 <?php
 
 return [
+	//you may add or replace the default bootstrap css
 	'css' => [
 		'/vendor/center/css/main.min.css',
 	],
+	
+	//the url prefix of the cms
 	'prefix' => 'center',
-	'system_tables' => [
+	
+	//system tables
+	'db' => [
 		'files' => 'files',
 		'permissions' => 'permissions',
 		'users' => 'users',
 	],
+	
+	//default objects to start
 	'tables' => [
 		'files' => [
 			'hidden',
@@ -46,7 +53,7 @@ return [
 			],
 		],
 		'users' => [
-			'list'=> ['name', 'last_login'],
+			'list'=> ['name', 'last_login', 'updated_at'],
 			'order_by' => 'name',
 			'fields' => [
 				'id' => 'id',

@@ -4,21 +4,16 @@ use Illuminate\Support\Str;
 
 class Table {
 
-	private static $name		= false;
 	private static $rows		= [];
 	private static $columns		= [];
 	private static $deletable	= false;
 	private static $draggable	= false;
 	private static $grouped		= false;
 
-	public function __construct($name='foobar') {
-		self::$name = $name;
-	}
-
 	//add a column.  $trans is translation file key
-	public function column($key, $type, $head=false, $width=false, $height=false) {
-		if ($head === false) $head = $key;
-		self::$columns[] = ['key'=>$key, 'type'=>$type, 'head'=>$head, 'width'=>$width, 'height'=>$height];
+	public function column($name, $type, $label=false, $width=false, $height=false) {
+		if ($label === false) $label = $name;
+		self::$columns[] = compact('name', 'type', 'label', 'width', 'height');
 		return $this;
 	}
 
@@ -38,13 +33,11 @@ class Table {
 
 
 	//draw the table
-	public function draw($class=false) {
-
-		if ($class) $class = ' ' . $class;
+	public function draw($id='untitled') {
 		
 		//start up
-		if (self::$draggable) array_unshift(self::$columns, ['head'=>'', 'type'=>'draggy']);
-		if (self::$deletable) self::$columns[] = ['head'=>'', 'type'=>'delete'];
+		if (self::$draggable) array_unshift(self::$columns, ['label'=>'', 'type'=>'draggy']);
+		if (self::$deletable) self::column('delete', 'delete', '');
 		if (self::$grouped) $last_group = '';
 		$colspan = count(self::$columns);
 		$rowspan = count(self::$rows);
@@ -52,8 +45,8 @@ class Table {
 		//build <thead>
 		$columns = self::$columns;
 		foreach ($columns as &$column) {
-			if ($column['type'] == 'color') $column['head'] = '&nbsp;';
-			$column = '<th class="' . self::column_class($column['type']) . '">' . $column['head'] . '</th>';
+			if ($column['type'] == 'color') $column['label'] = '&nbsp;';
+			$column = '<th class="type-' . $column['type'] . ' ' . $column['name'] . '">' . $column['label'] . '</th>';
 		}
 		$columns = implode($columns);
 		$head = '<thead><tr>' . $columns . '</tr></thead>';
@@ -79,9 +72,9 @@ class Table {
 				} elseif ($column['type'] == 'delete') {
 					$value = '<a href="' . $row->delete . '">' . (!$row->deleted_at ? '<i class="glyphicon glyphicon-ok-circle"></i>' : '<i class="glyphicon glyphicon-remove-circle"></i>') . '</a>';
 				} elseif ($column['type'] == 'image') {
-					$value = '<a href="' . $row->link . '"><img src="' . $row->{$column['key'] . '_url'} . '" width="' . $column['width'] . '" height="' . $column['height'] . '"></a>';
+					$value = '<a href="' . $row->link . '"><img src="' . $row->{$column['name'] . '_url'} . '" width="' . $column['width'] . '" height="' . $column['height'] . '"></a>';
 				} else {
-					$value = Str::limit(strip_tags($row->{$column['key']}));
+					$value = Str::limit(strip_tags($row->{$column['name']}));
 					if ($column['type'] == 'updated_at') {
 						$value = Dates::relative($value);
 					} elseif ($column['type'] == 'time') {
@@ -106,7 +99,7 @@ class Table {
 				}
 
 				//create cell
-				$columns[] = '<td class="' . self::column_class($column['type']) . '">' . $value . '</td>';
+				$columns[] = '<td class="type-' . $column['type'] . ' ' . $column['name'] . '">' . $value . '</td>';
 			}
 
 			//create row
@@ -116,7 +109,7 @@ class Table {
 		$bodies[] = '<tbody>' . implode($rows) . '</tbody>';
 
 		//output
-		return '<table id="' . self::$name . '" class="table table-condensed' . $class . (self::$draggable ? ' draggable" data-draggable-url="' . self::$draggable : '') . '" data-csrf-token="' . \Session::token() . '">' .
+		return '<table id="' . $id . '" class="table table-condensed' . (!self::$draggable ?: ' draggable" data-draggable-url="' . self::$draggable) . '" data-csrf-token="' . \Session::token() . '">' .
 					$head . 
 					implode($bodies) . 
 				'</table>';
@@ -127,12 +120,6 @@ class Table {
 	public function groupBy($key) {
 		self::$grouped = $key;
 		return $this;
-	}
-
-	//class
-	private static function column_class($type) {
-		if ($type == 'updated_at') return $type . ' hidden-xs';
-		return $type;
 	}
 
 	//always comes first.  $rows must be an object, eg a Laravel Query Builder resultset

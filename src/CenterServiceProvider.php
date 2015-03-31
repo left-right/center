@@ -17,7 +17,7 @@ class CenterServiceProvider extends ServiceProvider {
 		$this->loadTranslationsFrom(__DIR__.'/translations', 'center');
 		$this->publishes([
 			__DIR__.'/../assets/public' => public_path('vendor/center'),
-		]);
+		], 'public');
 		include __DIR__.'/macros.php';
 		include __DIR__.'/routes.php';
 	
