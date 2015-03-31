@@ -12,7 +12,7 @@ use LeftRight\Center\Libraries\Slug;
 use Redirect;
 use Request;
 use URL;
-use View;
+use Validator;
 
 class RowController extends \App\Http\Controllers\Controller {
 
@@ -21,56 +21,53 @@ class RowController extends \App\Http\Controllers\Controller {
 	public function index($table, $linked_id=false) {
 
 		# Get info about the object
-		$table_properties = config('center.tables.' . $table);
+		$table = config('center.tables.' . $table);
+		//dd($table);
 
 		# Start query
-		$instances = DB::table($table);
+		$instances = DB::table($table->name);
 
 		# Empty arrays mainly for search
 		$text_fields = $select_fields = $date_fields = $columns = [];
 		$date_fields = ['created_at'=>'Created', 'updated_at'=>'Updated'];
 
 		# Build select statement
-		$instances->select([$table . '.id', $table . '.updated_at', $table . '.deleted_at']);
-		foreach ($table_properties->list as $field) {
-			dd($table_properties->list);
-			$field = $table_properties->fields->{$field};
-			dd($field);
-			if ($field_properties->visibility == 'list'/* || $field_properties->id == $field_properties->group_by_field*/) {
+		$instances->select([$table->name . '.id', $table->name . '.updated_at', $table->name . '.deleted_at']);
+		foreach ($table->list as $field) {
+			$field = $table->fields->{$field};
 				
-				if ($field->type == 'checkboxes') {
-					$related_object = self::getRelatedObject($field->related_object_id);
-					$instances->addSelect(DB::raw('(SELECT GROUP_CONCAT(' . $related_object->name . '.' . $related_object->field->name . ' SEPARATOR ", ") 
-						FROM ' . $related_object->name . ' 
-						JOIN ' . $field->name . ' ON ' . $related_object->name . '.id = ' . $field->name . '.' . self::getKey($related_object->name) . '
-						WHERE ' . $field->name . '.' . self::getKey($object->name) . ' = ' . $object->name . '.id 
-						ORDER BY ' . $related_object->name . '.' . $related_object->field->name . ') AS ' . $field->name));
-				} elseif ($field->type == 'image') {
-					$instances
-						->leftJoin(config('center.db.files'), $object->name . '.' . $field->name, '=', config('center.db.files') . '.id')
-						->addSelect(config('center.db.files') . '.url AS ' . $field->name . '_url');
-				} elseif ($field->type == 'select') {
-					$related_object = self::getRelatedObject($field->related_object_id);
-					$instances
-						->leftJoin($related_object->name, $object->name . '.' . $field->name, '=', $related_object->name . '.id')
-						->addSelect($related_object->name . '.' . $related_object->field->name . ' AS ' . $field->name);
-					$text_fields[] = $related_object->name . '.' . $related_object->field->name;
-				} elseif ($field->type == 'user') {
-					$instances
-						->leftJoin(config('center.db.users'), $object->name . '.' . $field->name, '=', config('center.db.users') . '.id')
-						->addSelect(config('center.db.users') . '.name AS ' . $field->name);
-				} else {
-					//normal, selectable field
-					$instances->addSelect($object->name . '.' . $field->name);
-				}
-				
-				//add to table columns
-				if ($field->visibility == 'list') $columns[] = $field;
+			if ($field->type == 'checkboxes') {
+				$related_object = self::getRelatedObject($field->related_object_id);
+				$instances->addSelect(DB::raw('(SELECT GROUP_CONCAT(' . $related_object->name . '.' . $related_object->field->name . ' SEPARATOR ", ") 
+					FROM ' . $related_object->name . ' 
+					JOIN ' . $field->name . ' ON ' . $related_object->name . '.id = ' . $field->name . '.' . self::getKey($related_object->name) . '
+					WHERE ' . $field->name . '.' . self::getKey($table->name) . ' = ' . $table->name . '.id 
+					ORDER BY ' . $related_object->name . '.' . $related_object->field->name . ') AS ' . $field->name));
+			} elseif ($field->type == 'image') {
+				$instances
+					->leftJoin(config('center.db.files'), $table->name . '.' . $field->name, '=', config('center.db.files') . '.id')
+					->addSelect(config('center.db.files') . '.url AS ' . $field->name . '_url');
+			} elseif ($field->type == 'select') {
+				$related_object = self::getRelatedObject($field->related_object_id);
+				$instances
+					->leftJoin($related_object->name, $table->name . '.' . $field->name, '=', $related_object->name . '.id')
+					->addSelect($related_object->name . '.' . $related_object->field->name . ' AS ' . $field->name);
+				$text_fields[] = $related_object->name . '.' . $related_object->field->name;
+			} elseif ($field->type == 'user') {
+				$instances
+					->leftJoin(config('center.db.users'), $table->name . '.' . $field->name, '=', config('center.db.users') . '.id')
+					->addSelect(config('center.db.users') . '.name AS ' . $field->name);
+			} else {
+				//normal, selectable field
+				$instances->addSelect($table->name . '.' . $field->name);
 			}
+			
+			//add to table columns
+			$columns[] = $field;
 
 			//search
 			if (in_array($field->type, ['string', 'text', 'html'])) {
-				$text_fields[] = $object->name . '.' . $field->name;
+				$text_fields[] = $table->name . '.' . $field->name;
 			} elseif (in_array($field->type, ['select'])) {
 				$select_fields[] = $field;
 			} elseif (in_array($field->type, ['date', 'datetime'])) {
@@ -79,8 +76,8 @@ class RowController extends \App\Http\Controllers\Controller {
 		}
 
 		# Handle group-by fields
-		$object->nested = false;
-		if (!empty($object->group_by_field)) {
+		$table->nested = false;
+		if (!empty($table->group_by_field)) {
 			$grouped_field = DB::table(config('center.db.fields'))->where('id', $object->group_by_field)->first();
 			$grouped_object = self::getRelatedObject($grouped_field->related_object_id);
 			if ($grouped_object->id == $object->id) {
@@ -100,7 +97,7 @@ class RowController extends \App\Http\Controllers\Controller {
 		}
 
 		# Set the order and direction
-		$instances->orderBy($object->name . '.' . $object->order_by, $object->direction);
+		$instances->orderBy($table->name . '.' . $table->order_by);
 
 		$searching = false;
 
@@ -108,7 +105,7 @@ class RowController extends \App\Http\Controllers\Controller {
 		if (Request::has('search')) {
 			$searching = true;
 			foreach ($text_fields as $field) {
-				$instances->orWhere($field, 'LIKE', '%' . Request::input('search') . '%');
+				$instances->orWhere($field->name, 'LIKE', '%' . Request::input('search') . '%');
 			}
 		}
 		
@@ -122,17 +119,17 @@ class RowController extends \App\Http\Controllers\Controller {
 
 		# Run query and save it to a variable
 		$instances = $instances->get();
-		
-		# Set Avalon URLs on each instance
-		if ($object->can_edit) {
+
+		# Set URLs on each instance
+		if ($table->user_can_edit) {
 			foreach ($instances as &$instance) {
-				$instance->link = URL::action('\LeftRight\Center\Controllers\InstanceController@edit', array($object->name, $instance->id, $linked_id));
-				$instance->delete = URL::action('\LeftRight\Center\Controllers\InstanceController@delete', array($object->name, $instance->id));
+				$instance->link = action('\LeftRight\Center\Controllers\RowController@edit', [$table->name, $instance->id, $linked_id]);
+				$instance->delete = action('\LeftRight\Center\Controllers\RowController@delete', [$table->name, $instance->id]);
 			}
 		}
 
 		# If it's a nested object, nest-ify the resultset
-		if ($object->nested) {
+		if ($table->nested) {
 			$list = array();
 			foreach ($instances as &$instance) {
 				$instance->children = array();
@@ -155,7 +152,7 @@ class RowController extends \App\Http\Controllers\Controller {
 			$filters[$select->name] = [''=>$select->title] + $options;
 		}
 		
-		$return = compact('object', 'columns', 'instances', 'filters', 'searching');
+		$return = compact('table', 'columns', 'instances', 'filters', 'searching');
 
 		# Return array to edit()
 		if ($linked_id) {
@@ -164,14 +161,13 @@ class RowController extends \App\Http\Controllers\Controller {
 		}
 
 		# Return HTML view
-		return View::make('center::instances.index', $return);
+		return view('center::rows.index', $return);
 	}
 
 	//show create form for an object instance
-	public function create($object_name, $linked_id=false) {
-		$object = DB::table(config('center.db.objects'))->where('name', $object_name)->first();
-		$fields = DB::table(config('center.db.fields'))->where('object_id', $object->id)->where('visibility', '<>', 'hidden')->orderBy('precedence')->get();
-		$options = array();
+	public function create($table, $linked_id=false) {
+		$table = config('center.tables.' . $table);
+		$options = [];
 		
 		# Add return var to the queue
 		if ($linked_id) {
@@ -179,10 +175,10 @@ class RowController extends \App\Http\Controllers\Controller {
 		} elseif (URL::previous()) {
 			$return_to = URL::previous();
 		} else {
-			$return_to = action('\LeftRight\Center\Controllers\InstanceController@index', $object->name);
+			$return_to = action('\LeftRight\Center\Controllers\InstanceController@index', $table->name);
 		}
 
-		foreach ($fields as $field) {
+		foreach ($table->fields as $field) {
 			if (($field->type == 'checkboxes') || ($field->type == 'select')) {
 
 				//load options for checkboxes or selects
@@ -227,51 +223,63 @@ class RowController extends \App\Http\Controllers\Controller {
 			}
 		}
 
-		return View::make('center::instances.create', compact('object', 'fields', 'linked_id', 'return_to'));
+		return view('center::rows.create', compact('table', 'linked_id', 'return_to'));
 	}
 
 	//save a new object instance to the database
-	public function store($object_name, $linked_id=false) {
-		$object = DB::table(config('center.db.objects'))->where('name', $object_name)->first();
-		$fields = DB::table(config('center.db.fields'))->where('object_id', $object->id)->where('visibility', '<>', 'hidden')->orderBy('precedence')->get();
+	public function store($table, $linked_id=false) {
+		$table = config('center.tables.' . $table);
 		
 		//metadata
-		$inserts = array(
-			'created_at'=>new DateTime,
-			'updated_at'=>new DateTime,
-			'created_by'=>Auth::user()->id,
-			'updated_by'=>Auth::user()->id,
-			'precedence'=>DB::table($object->name)->max('precedence') + 1
-		);
-		
+		$inserts = [];
+
 		//run various cleanup processes on the fields
-		foreach ($fields as $field) {
-			if (!in_array($field->type, array('checkboxes', 'images'))) {
+		foreach ($table->fields as $field) {
+			if (Request::has($field->name)) {
 				$inserts[$field->name] = self::sanitize($field);
+			} elseif ($field->type == 'checkbox') {
+				$inserts[$field->name] = 0;
 			}
+			if ($field->name == 'created_at') $inserts['created_at'] = new DateTime;
+			if ($field->name == 'updated_at') $inserts['updated_at'] = new DateTime;
+			if ($field->name == 'created_by') Auth::user()->id;
+			if ($field->name == 'updated_by') Auth::user()->id;
+			if ($field->name == 'precedence') DB::table($table->name)->max('precedence') + 1;
 		}
 
-		//determine where slug is coming from
-		if ($slug_source = Slug::source($object->id)) {
-			$slug_source = Request::input($slug_source);
-		} else {
-			$slug_source = date('Y-m-d');
+		//validate
+		$v = Validator::make(Request::all(), [
+		    'email' => 'required|unique:users|max:255',
+		]);
+		
+		if ($v->fails()) {
+		    return redirect()->back()->withInput()->withErrors($v->errors());
 		}
 
-		//get other values to check uniqueness
-		$uniques = DB::table($object->name)->lists('slug');
-
-		//add unique, formatted slug to the insert batch
-		$inserts['slug'] = Slug::make($slug_source, $uniques);
+		//slug
+		if (property_exists($table->fields, 'slug')) {
+			//determine where slug is coming from
+			if ($slug_source = Slug::source($object->id)) {
+				$slug_source = Request::input($slug_source);
+			} else {
+				$slug_source = date('Y-m-d');
+			}
+	
+			//get other values to check uniqueness
+			$uniques = DB::table($table->name)->lists('slug');
+	
+			//add unique, formatted slug to the insert batch
+			$inserts['slug'] = Slug::make($slug_source, $uniques);
+		}
 
 		//run insert
-		$instance_id = DB::table($object->name)->insertGetId($inserts);
+		$instance_id = DB::table($table->name)->insertGetId($inserts);
 		
 		//handle any checkboxes, had to wait for instance_id
-		foreach ($fields as $field) {
+		foreach ($table->fields as $field) {
 			if ($field->type == 'checkboxes') {
 				//figure out schema, loop through and save all the checkboxes
-				$object_column = self::getKey($object->name);
+				$object_column = self::getKey($table->name);
 				$remote_column = self::getKey($field->related_object_id);
 				if (Request::has($field->name)) {
 					foreach (Request::input($field->name) as $related_id) {
@@ -282,25 +290,25 @@ class RowController extends \App\Http\Controllers\Controller {
 					}
 				}
 			} elseif ($field->type == 'image') {
-				DB::table(config('center.db.files'))->where('id', Request::input($field->name))->update(array('instance_id'=>$instance_id));
+				DB::table(config('center.db.files'))->where('id', Request::input($field->name))->update(['instance_id'=>$instance_id]);
 			} elseif ($field->type == 'images') {
 				$file_ids = explode(',', Request::input($field->name));
 				$precedence = 0;
 				foreach ($file_ids as $file_id) {
-					DB::table(config('center.db.files'))->where('id', $file_id)->update(array(
+					DB::table(config('center.db.files'))->where('id', $file_id)->update([
 						'instance_id'=>$instance_id,
 						'precedence'=>++$precedence,
-					));
+					]);
 				}
 			}
 		}
 
-		//update objects table with latest counts
-		DB::table(config('center.db.objects'))->where('id', $object->id)->update(array(
-			'count'=>DB::table($object->name)->whereNull('deleted_at')->count(),
+		/*update objects table with latest counts
+		DB::table(config('center.db.objects'))->where('id', $object->id)->update([
+			'count'=>DB::table($table->name)->whereNull('deleted_at')->count(),
 			'updated_at'=>new DateTime,
 			'updated_by'=>Auth::user()->id
-		));
+		]);*/
 
 		//clean up any abandoned files
 		FileController::cleanup();
@@ -310,12 +318,11 @@ class RowController extends \App\Http\Controllers\Controller {
 	}
 	
 	//show edit form
-	public function edit($object_name, $instance_id, $linked_id=false) {
+	public function edit($table, $instance_id, $linked_id=false) {
 
 		# Get object / field / whatever infoz
-		$object = DB::table(config('center.db.objects'))->where('name', $object_name)->first();
-		$fields = DB::table(config('center.db.fields'))->where('object_id', $object->id)->where('visibility', '<>', 'hidden')->orderBy('precedence')->get();
-		$instance = DB::table($object->name)->where('id', $instance_id)->first();
+		$table = config('center.tables.' . $table);
+		$instance = DB::table($table->name)->where('id', $instance_id)->first();
 
 		# Add return var to the queue
 		if ($linked_id) {
@@ -323,11 +330,11 @@ class RowController extends \App\Http\Controllers\Controller {
 		} elseif (URL::previous()) {
 			$return_to = URL::previous();
 		} else {
-			$return_to = action('\LeftRight\Center\Controllers\InstanceController@index', $object->name);
+			$return_to = action('\LeftRight\Center\Controllers\InstanceController@index', $table->name);
 		}
 
 		//format instance values for form
-		foreach ($fields as &$field) {
+		foreach ($table->fields as $field) {
 			if ($field->type == 'datetime') {
 				if (!empty($instance->{$field->name})) $instance->{$field->name} = date('m/d/Y h:i A', strtotime($instance->{$field->name}));
 			} elseif (($field->type == 'checkboxes') || ($field->type == 'select')) {
@@ -366,7 +373,7 @@ class RowController extends \App\Http\Controllers\Controller {
 
 				//get checkbox values todo make a function for consistently getting these checkbox column names
 				if ($field->type == 'checkboxes') {
-					$table_key = Str::singular($object->name) . '_id';
+					$table_key = Str::singular($table->name) . '_id';
 					$foreign_key = Str::singular($related_object->name) . '_id';
 					$instance->{$field->name} = DB::table($field->name)->where($table_key, $instance->id)->lists($foreign_key);
 				}
@@ -404,16 +411,17 @@ class RowController extends \App\Http\Controllers\Controller {
 			}
 		}
 
-		# Get linked objects
+		$links = [];
+		/* Get linked objects
 		$links = DB::table(config('center.db.object_links'))
-				->where('object_id', $object->id)
+				->where('object_id', $table->id)
 				->join(config('center.db.objects'), config('center.db.object_links') . '.linked_id', '=', config('center.db.objects') . '.id')
 				->lists(config('center.db.objects') . '.name');
 		foreach ($links as &$link) {
 			$link = self::index($link, $instance_id, $linked_id);
-		}
+		}*/
 
-		return View::make('center::instances.edit', compact('object', 'fields', 'instance', 'links', 'linked_id', 'return_to'));
+		return view('center::rows.edit', compact('table', 'instance', 'links', 'linked_id', 'return_to'));
 	}
 	
 	//save edits to database
@@ -432,7 +440,7 @@ class RowController extends \App\Http\Controllers\Controller {
 			if ($field->type == 'checkboxes') {
 				
 				# Figure out schema
-				$object_column = self::getKey($object->name);
+				$object_column = self::getKey($table->name);
 				$remote_column = self::getKey($field->related_object_id);
 
 				# Clear old values
@@ -490,23 +498,23 @@ class RowController extends \App\Http\Controllers\Controller {
 
 		//slug
 		if (!empty($object->url)) {
-			$uniques = DB::table($object->name)->where('id', '<>', $instance_id)->lists('slug');
+			$uniques = DB::table($table->name)->where('id', '<>', $instance_id)->lists('slug');
 			$updates['slug'] = Slug::make(Request::input('slug'), $uniques);
 		}
 		/* //todo manage a redirect table if client demand warrants it
-		$old_slug = DB::table($object->name)->find($instance_id)->pluck('slug');
+		$old_slug = DB::table($table->name)->find($instance_id)->pluck('slug');
 		if ($updates['slug'] != $old_slug) {
 		}*/
 		
 		//run update
-		DB::table($object->name)->where('id', $instance_id)->update($updates);
+		DB::table($table->name)->where('id', $instance_id)->update($updates);
 		
 		//clean up abandoned files
 		FileController::cleanup();
 
 		//update object meta
 		DB::table(config('center.db.objects'))->where('id', $object->id)->update([
-			'count'=>DB::table($object->name)->whereNull('deleted_at')->count(),
+			'count'=>DB::table($table->name)->whereNull('deleted_at')->count(),
 			'updated_at'=>new DateTime,
 			'updated_by'=>Auth::user()->id
 		]);
@@ -517,11 +525,11 @@ class RowController extends \App\Http\Controllers\Controller {
 	# Remove object from db - todo check key/constraints
 	public function destroy($object_name, $instance_id) {
 		$object = DB::table(config('center.db.objects'))->where('name', $object_name)->first();
-		DB::table($object->name)->where('id', $instance_id)->delete();
+		DB::table($table->name)->where('id', $instance_id)->delete();
 
 		//update object meta
 		DB::table(config('center.db.objects'))->where('id', $object->id)->update([
-			'count'=>DB::table($object->name)->whereNull('deleted_at')->count(),
+			'count'=>DB::table($table->name)->whereNull('deleted_at')->count(),
 		]);
 
 		return Redirect::to(Request::input('return_to'));
@@ -545,11 +553,11 @@ class RowController extends \App\Http\Controllers\Controller {
 			$precedence = 1;
 			foreach ($instance_ids as $instance_id) {
 				if (!empty($instance_id)) {
-					DB::table($object->name)->where('id', $instance_id)->update(['precedence'=>$precedence++]);
+					DB::table($table->name)->where('id', $instance_id)->update(['precedence'=>$precedence++]);
 				}
 			}
 			if (Request::has('id') && Request::has('parent_id')) {
-				DB::table($object->name)->where('id', Request::input('id'))->update([
+				DB::table($table->name)->where('id', Request::input('id'))->update([
 					'parent_id'=>Request::input('parent_id'),
 					//updated_at, updated_by?
 				]);
@@ -561,7 +569,7 @@ class RowController extends \App\Http\Controllers\Controller {
 			foreach ($instances as $instance) {
 				list($garbage, $instance_id) = explode('=', $instance);
 				if (!empty($instance_id)) {
-					DB::table($object->name)->where('id', $instance_id)->update(['precedence'=>$precedence++]);
+					DB::table($table->name)->where('id', $instance_id)->update(['precedence'=>$precedence++]);
 				}
 			}
 			return 'done reordering ' . Request::input('order')  . ' instances, linear';
@@ -575,7 +583,7 @@ class RowController extends \App\Http\Controllers\Controller {
 		//toggle instance with active or inactive
 		$deleted_at = (Request::input('active') == 1) ? null : new DateTime;
 
-		DB::table($object->name)->where('id', $instance_id)->update(array(
+		DB::table($table->name)->where('id', $instance_id)->update(array(
 			'deleted_at'=>$deleted_at,
 			'updated_at'=>new DateTime,
 			'updated_by'=>Auth::user()->id,
@@ -583,24 +591,29 @@ class RowController extends \App\Http\Controllers\Controller {
 
 		//update object meta
 		DB::table(config('center.db.objects'))->where('id', $object->id)->update(array(
-			'count'=>DB::table($object->name)->whereNull('deleted_at')->count(),
+			'count'=>DB::table($table->name)->whereNull('deleted_at')->count(),
 			'updated_at'=>new DateTime,
 			'updated_by'=>Auth::user()->id,
 		));
 
-		$updated = DB::table($object->name)->where('id', $instance_id)->pluck('updated_at');
+		$updated = DB::table($table->name)->where('id', $instance_id)->pluck('updated_at');
 
 		return \LeftRight\Center\Libraries\Dates::relative($updated);
 	}
 
 	# Sanitize field values before inserting
 	private function sanitize($field) {
+		
+		//foreign key situation, exit
+		if (in_array($field->type, ['checkboxes', 'images'])) return;
+
+		//trim whitespace
 		$value = trim(Request::input($field->name));
 
 		//add each field if not present
 		if ($field->type == 'checkbox') {
 			
-			$value = !empty($value); //1 or 0, never null
+			$value = !empty($value); //true or false, never null
 		
 		} elseif (empty($value) && ($value !== '0') && !$field->required) {
 		
@@ -657,20 +670,19 @@ class RowController extends \App\Http\Controllers\Controller {
 	}
 
 	# Draw an instance table, used both by index and by edit > linked
-	public static function table($object, $fields, $instances) {
+	public static function table($table, $columns, $instances) {
 		if (count($instances)) {
-			$table = new \LeftRight\Center\Libraries\Table;
-			$table->rows($instances);
-			foreach ($fields as $field) {
-				$table->column($field->name, $field->type, $field->title, $field->width, $field->height);
+			$return = new \LeftRight\Center\Libraries\Table('happy');
+			$return->rows($instances);
+			foreach ($columns as $column) {
+				$return->column($column->name, $column->type, $column->title);
 			}
-			$table->column('updated_at', 'updated_at', trans('center::site.updated_at'));
-			if ($object->can_edit) {
-				$table->deletable();
-				if ($object->order_by == 'precedence') $table->draggable(URL::action('\LeftRight\Center\Controllers\InstanceController@reorder', $object->name));
+			if ($table->user_can_edit) {
+				$return->deletable();
+				if ($table->order_by == 'precedence') $return->draggable(action('\LeftRight\Center\Controllers\RowController@reorder', $table));
 			}
-			if (!empty($object->group_by_field)) $table->groupBy('group');
-			return $table->draw();
+			if (!empty($table->group_by_field)) $return->groupBy('group');
+			return $return->draw();
 		}
 	}
 
@@ -684,7 +696,7 @@ class RowController extends \App\Http\Controllers\Controller {
 		    $excel->setTitle($object->title)->sheet($object->title, function($sheet) use ($object) {
 		
 					$fields = DB::table(config('center.db.fields'))->whereNotIn('type', ['html', 'checkboxes', 'text'])->where('object_id', $object->id)->get();
-					$results = DB::table($object->name)->get();
+					$results = DB::table($table->name)->get();
 					$rows = [];
 					
 					foreach ($results as $result) {

@@ -8,13 +8,11 @@ use Config;
 
 class CenterServiceProvider extends ServiceProvider {
 	
-	public function register()
-	{
+	public function register() {
 		$this->mergeConfigFrom(__DIR__.'/config.php', 'center');
 	}
 
-	public function boot()
-	{
+	public function boot() {
 		$this->loadViewsFrom(__DIR__.'/views', 'center');
 		$this->loadTranslationsFrom(__DIR__.'/translations', 'center');
 		$this->publishes([
@@ -29,19 +27,35 @@ class CenterServiceProvider extends ServiceProvider {
 		$tables = config('center.tables');
 		foreach ($tables as $table=>$table_properties) {
 			$table_properties = self::promoteNumericKeyToTrue($table_properties);
+			$table_properties['name'] = $table;
+			$table_properties['title'] = trans('center::tables.' . $table . '.title');
+			$table_properties['user_can_create'] = true;
+			$table_properties['user_can_edit'] = true;
 			$expanded_fields = [];
 			foreach ($table_properties['fields'] as $field=>$field_properties) {
+				
+				//resolve shorthand, eg 'updated_at'
+				if (is_int($field)) $field = $field_properties;
 				if (is_string($field_properties)) $field_properties = ['type'=>$field_properties];
 				$field_properties = self::promoteNumericKeyToTrue($field_properties);
-				if (!isset($field_properties['required'])) $field_properties['required'] = in_array($field_properties['type'], ['id', 'created_at', 'updated_at', 'tinyint']);
-				if (!isset($field_properties['hidden'])) $field_properties['hidden'] = in_array($field_properties['type'], ['id', 'created_at', 'updated_at', 'deleted_at', 'created_by', 'updated_by', 'deleted_by', 'password']);
+				
+				//set types on reserved system fields
+				if (in_array($field, ['created_at', 'updated_at', 'deleted_at'])) $field_properties['type'] = 'datetime';
+				if (in_array($field, ['id', 'created_by', 'updated_by', 'deleted_by', 'precedence'])) $field_properties['type'] = 'int';
+
+				//set other field attributes
+				$field_properties['name'] = $field;
+				$field_properties['title'] = trans('center::fields.' . $table . '.' . $field);
+				if (!isset($field_properties['required'])) $field_properties['required'] = in_array($field, ['id', 'created_at', 'updated_at', 'tinyint']);
+				if (!isset($field_properties['hidden'])) $field_properties['hidden'] = in_array($field, ['id', 'created_at', 'updated_at', 'deleted_at', 'created_by', 'updated_by', 'deleted_by', 'password']);
 				$expanded_fields[$field] = (object) $field_properties;
 			}
-			$table_properties['fields'] = $expanded_fields;
+			$table_properties['fields'] = (object) $expanded_fields;
 			if (!isset($table_properties['hidden'])) $table_properties['hidden'] = false;
 			$expanded_tables[$table] = (object) $table_properties;
 		}
 		Config::set('center.tables', $expanded_tables);
+		
 		/*
 		# Loop through and process the $fields into $objects for model methods below
 		$objects = [];

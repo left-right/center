@@ -1,47 +1,47 @@
 @extends('center::template')
 
 @section('title')
-	{{ $object->title }}
+	{{ $table->title }}
 @endsection
 
 @section('main')
 
 	{!! \LeftRight\Center\Libraries\Breadcrumbs::leave([
-		URL::action('\LeftRight\Center\Controllers\ObjectController@index')=>trans('center::objects.plural'),
-		$object->title,
+		action('\LeftRight\Center\Controllers\TableController@index')=>trans('center::tables.plural'),
+		$table->title,
 		]) !!}
 
 	<div class="btn-group">
-		<a class="btn btn-default" id="create" href="{{ URL::action('\LeftRight\Center\Controllers\InstanceController@export', $object->name) }}">
+		<a class="btn btn-default" id="create" href="{{ action('\LeftRight\Center\Controllers\RowController@export', $table->name) }}">
 			<i class="glyphicon glyphicon-circle-arrow-down"></i>
-			@lang('center::instances.export')
+			@lang('center::rows.export')
 		</a>
-		@if ($object->can_create)
-			<a class="btn btn-default" id="create" href="{{ URL::action('\LeftRight\Center\Controllers\InstanceController@create', $object->name) }}">
+		@if ($table->user_can_create)
+			<a class="btn btn-default" id="create" href="{{ action('\LeftRight\Center\Controllers\RowController@create', $table->name) }}">
 				<i class="glyphicon glyphicon-plus"></i>
-				@lang('center::instances.create')
+				@lang('center::rows.create')
 			</a>
 		@endif
 	</div>
 
 	@if (count($instances))
-		@if ($object->nested)
-			<div class="nested" data-draggable-url="{{ URL::action('\LeftRight\Center\Controllers\InstanceController@reorder', $object->name) }}">
+		@if ($table->nested)
+			<div class="nested" data-draggable-url="{{ action('\LeftRight\Center\Controllers\RowController@reorder', $table->name) }}">
 				<div class="legend">
 					Title
 					<div class="updated_at">Updated</div>
 				</div>
-				@include('center::instances.nested', ['instances'=>$instances])
+				@include('center::rows.nested', ['instances'=>$instances])
 			</div>
 		@else
-			{!! \LeftRight\Center\Controllers\InstanceController::table($object, $columns, $instances) !!}
+			{!! \LeftRight\Center\Controllers\RowController::table($table, $columns, $instances) !!}
 		@endif
 	@else
 	<div class="alert alert-warning">
 		@if ($searching)
-			@lang('center::instances.search_empty', ['title'=>strtolower($object->title)])
+			@lang('center::instances.search_empty', ['title'=>strtolower($table->title)])
 		@else
-			@lang('center::instances.empty', ['title'=>strtolower($object->title)])
+			@lang('center::instances.empty', ['title'=>strtolower($table->title)])
 		@endif
 	</div>
 	@endif
@@ -59,7 +59,7 @@
 	</div>
 	@endforeach
 	{!! Form::close() !!}
-	<p>{{ nl2br($object->list_help) }}</p>
+	<p>{{ nl2br(trans('center::tables.' . $table->name . '.help')) }}</p>
 @endsection
 
 @section('script')

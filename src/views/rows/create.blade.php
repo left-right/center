@@ -1,26 +1,28 @@
 @extends('center::template')
 
 @section('title')
-	@lang('center::instances.create')
+	@lang('center::rows.create')
 @endsection
 
 @section('main')
 
 	{!! \LeftRight\Center\Libraries\Breadcrumbs::leave([
-		URL::action('\LeftRight\Center\Controllers\ObjectController@index')=>trans('center::objects.plural'),
-		URL::action('\LeftRight\Center\Controllers\InstanceController@index', $object->name)=>$object->title,
-		trans('center::instances.create'),
+		URL::action('\LeftRight\Center\Controllers\TableController@index')=>trans('center::tables.plural'),
+		URL::action('\LeftRight\Center\Controllers\RowController@index', $table->name)=>$table->title,
+		trans('center::rows.create'),
 		]) !!}
 
-	{!! Form::open(['class'=>'form-horizontal', 'url'=>URL::action('\LeftRight\Center\Controllers\InstanceController@store', [$object->name, $linked_id])]) !!}
+	@include('center::notifications')
+
+	{!! Form::open(['class'=>'form-horizontal', 'url'=>URL::action('\LeftRight\Center\Controllers\RowController@store', [$table->name, $linked_id])]) !!}
 	
 	{!! Form::hidden('return_to', $return_to) !!}
 
-	@foreach ($fields as $field)
-		@if ($linked_id && $field->id == $object->group_by_field)
+	@foreach ($table->fields as $field)
+		@if ($linked_id && $field->id == $table->group_by_field)
 			{!! Form::hidden($field->name, $linked_id) !!}
-		@else
-			<div class="form-group field-{{ $field->type }}">
+		@elseif (!$field->hidden)
+			<div class="form-group field-{{ $field->type }} @if ($errors->has($field->name)) has-error @endif">
 				<label class="control-label col-sm-2">{{ $field->title }}</label>
 				<div class="col-sm-10">
 					@if ($field->type == 'checkbox')
@@ -33,7 +35,7 @@
 							</label>
 						@endforeach
 					@elseif ($field->type == 'color')
-						{!! Form::text($field->name, $field->required ? '#ffffff' : null, ['class'=>'form-control ' . $field->type . ' {hash:true,caps:false}' . ($field->required ? ' required' : '')]) !!}
+						{!! Form::text($field->name, $field->required ? '#ffffff' : null, ['class'=>'form-control ' . $field->type . ' {hash:true,caps:false}' . (!$field->required ?: ' required')]) !!}
 					@elseif ($field->type == 'date')
 						<div class="input-group date" data-date-format="MM/DD/YYYY">
 							<span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>
@@ -53,11 +55,11 @@
 						   	@endif
 						</div>
 					@elseif ($field->type == 'email')
-						{!! Form::email($field->name, null, ['class'=>'form-control ' . $field->type . ($field->required ? ' required' : '')]) !!}
+						{!! Form::email($field->name, Request::get($field->name), ['class'=>'form-control ' . $field->type . (!$field->required ?: ' required')]) !!}
 					@elseif ($field->type == 'html')
-						{!! Form::textarea($field->name, null, ['class'=>'form-control html' . ($field->required ? ' required' : '')]) !!}
+						{!! Form::textarea($field->name, Request::get($field->name), ['class'=>'form-control html' . (!$field->required ?: ' required')]) !!}
 					@elseif ($field->type == 'image')
-						{!! Form::hidden($field->name, null) !!}
+						{!! Form::hidden($field->name, Request::get($field->name)) !!}
 						<div class="image new" data-field-id="{{ $field->id }}" data-action="{{ action('\LeftRight\Center\Controllers\FileController@image') }}" style="width:{{ $field->screen_width }}px; height:{{ $field->screen_height }}px; line-height:{{ $field->screen_height }}px;">
 							<span>{{ $field->width or '&infin;' }} &times; {{ $field->height or '&infin;' }}</span>
 						</div>
@@ -109,7 +111,7 @@
 @endsection
 
 @section('side')
-	@if (!empty($object->form_help))
-		<p>{{ nl2br($object->form_help) }}</p>
+	@if (!empty($table->form_help))
+		<p>{{ nl2br($table->form_help) }}</p>
 	@endif
 @endsection

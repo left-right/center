@@ -9,13 +9,13 @@ class TableController extends Controller {
 		if (!Auth::check()) return LoginController::getIndex();
 
 		$tables = array_where(config('center.tables'), function($key, $value) {
-		    return $value['visibility'] != 'hidden';
+		    return !$value->hidden;
 		});
 		$objects = [];
-		foreach ($tables as $table=>$properties) {
+		foreach ($tables as $table) {
 			$objects[] = (object) [
-				'title' => trans('center::tables.names.' . $table),
-				'link' => action('\LeftRight\Center\Controllers\RowController@index', $table),
+				'title' => $table->title,
+				'link' => action('\LeftRight\Center\Controllers\RowController@index', $table->name),
 			];
 		}
 		return view('center::tables.index', compact('objects'));

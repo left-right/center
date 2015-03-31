@@ -1,27 +1,28 @@
 @extends('center::template')
 
 @section('title')
-	@lang('center::instances.edit')
+	@lang('center::rows.edit')
 @endsection
 
 @section('main')
 
 	{!! \LeftRight\Center\Libraries\Breadcrumbs::leave([
-		URL::action('\LeftRight\Center\Controllers\ObjectController@index')=>trans('center::objects.plural'),
-		URL::action('\LeftRight\Center\Controllers\InstanceController@index', $object->name)=>$object->title,
-		trans('center::instances.edit'),
+		action('\LeftRight\Center\Controllers\TableController@index')=>trans('center::tables.plural'),
+		action('\LeftRight\Center\Controllers\RowController@index', $table->name)=>$table->title,
+		trans('center::rows.edit'),
 		]) !!}
 
-	{!! Form::open(['class'=>'form-horizontal ' . $object->name, 'url'=>URL::action('\LeftRight\Center\Controllers\InstanceController@update', [$object->name, $instance->id, $linked_id]), 'method'=>'put']) !!}
+	{!! Form::open(['class'=>'form-horizontal ' . $table->name, 'url'=>action('\LeftRight\Center\Controllers\RowController@update', [$table->name, $instance->id, $linked_id]), 'method'=>'put']) !!}
 	
 		{!! Form::hidden('return_to', $return_to) !!}
 
-	@foreach ($fields as $field)
+	@foreach ($table->fields as $field)
 		{{--
 		@if ($linked_id && $field->id == $object->group_by_field)
 			{!! Form::hidden($field->name, $linked_id) !!}
 		@else
 		--}}
+		@if (!$field->hidden)
 		<div class="form-group field-{{ $field->type }}">
 			<label class="control-label col-sm-2">{{ $field->title }}</label>
 			<div class="col-sm-10">
@@ -102,6 +103,7 @@
 				@endif
 			</div>
 		</div>
+		@endif
 	@endforeach
 	
 	@if (!empty($object->url))
@@ -132,13 +134,13 @@
 		<h3>{{ $link['object']->title }}</h3>
 
 		<div class="btn-group">
-			<a class="btn btn-default" id="create" href="{{ URL::action('\LeftRight\Center\Controllers\InstanceController@create', [$link['object']->name, $instance->id]) }}">
+			<a class="btn btn-default" id="create" href="{{ action('\LeftRight\Center\Controllers\RowController@create', [$link['object']->name, $instance->id]) }}">
 				<i class="glyphicon glyphicon-plus"></i> 
-				@lang('center::instances.create')
+				@lang('center::rows.create')
 			</a>
 		</div>
 		
-		{!! LeftRight\Center\Controllers\InstanceController::table($link['object'], $link['columns'], $link['instances']) !!}
+		{!! LeftRight\Center\Controllers\RowController::table($link['object'], $link['columns'], $link['instances']) !!}
 	</div>
 	
 	@endforeach
@@ -150,9 +152,9 @@
 		<p>{{ nl2br($object->form_help) }}</p>
 	@endif
 
-	{!! Form::open(['method'=>'delete', 'action'=>['\LeftRight\Center\Controllers\InstanceController@destroy', $object->name, $instance->id]]) !!}
+	{!! Form::open(['method'=>'delete', 'action'=>['\LeftRight\Center\Controllers\RowController@destroy', $table->name, $instance->id]]) !!}
 		{!! Form::hidden('return_to', $return_to) !!}
-		{!! Form::submit(trans('center::instances.destroy'), ['class'=>'btn btn-default btn-xs']) !!}
+		{!! Form::submit(trans('center::rows.destroy'), ['class'=>'btn btn-default btn-xs']) !!}
 	{!! Form::close() !!}
 
 @endsection

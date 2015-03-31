@@ -4,12 +4,16 @@ use Illuminate\Support\Str;
 
 class Table {
 
+	private static $name		= false;
 	private static $rows		= [];
 	private static $columns		= [];
 	private static $deletable	= false;
 	private static $draggable	= false;
 	private static $grouped		= false;
 
+	public function __construct($name='foobar') {
+		self::$name = $name;
+	}
 
 	//add a column.  $trans is translation file key
 	public function column($key, $type, $head=false, $width=false, $height=false) {
@@ -112,7 +116,7 @@ class Table {
 		$bodies[] = '<tbody>' . implode($rows) . '</tbody>';
 
 		//output
-		return '<table id="foobar" class="table table-condensed' . $class . (self::$draggable ? ' draggable" data-draggable-url="' . self::$draggable : '') . '" data-csrf-token="' . \Session::token() . '">' .
+		return '<table id="' . self::$name . '" class="table table-condensed' . $class . (self::$draggable ? ' draggable" data-draggable-url="' . self::$draggable : '') . '" data-csrf-token="' . \Session::token() . '">' .
 					$head . 
 					implode($bodies) . 
 				'</table>';
