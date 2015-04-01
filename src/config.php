@@ -9,7 +9,7 @@ return [
 	//the url prefix of the cms
 	'prefix' => 'center',
 	
-	//system tables
+	//system tables (keys fixed, values must match system_tables keys)
 	'db' => [
 		'files' => 'files',
 		'metadata' => 'metadata',
@@ -27,7 +27,10 @@ return [
 				'host' => 'string',
 				'path' => 'string',
 				'name' => 'string',
-				'extension' => 'string',
+				'extension' => [
+					'type' => 'string',
+					'required',
+				],
 				'width' => 'integer',
 				'height' => 'integer',
 				'created_at',

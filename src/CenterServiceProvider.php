@@ -72,7 +72,9 @@ class CenterServiceProvider extends ServiceProvider {
 				if (in_array($field, ['id', 'created_by', 'updated_by', 'deleted_by', 'precedence'])) $field_properties['type'] = 'integer';
 
 				//check
-				if (!in_array($field_properties['type'], self::$field_types)) die('field ' . $table . '.' . $field . ' is of type ' . $field_properties['type'] . ' which is not supported.');
+				if (!in_array($field_properties['type'], self::$field_types)) {
+					throw new Exception('field ' . $table . '.' . $field . ' is of type ' . $field_properties['type'] . ' which is not supported.');
+				}
 
 				//set other field attributes
 				$field_properties['name'] = $field;

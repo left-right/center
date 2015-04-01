@@ -2,6 +2,8 @@
 
 use Auth;
 use DB;
+use Exception;
+use Schema;
 
 class TableController extends Controller {
 
@@ -34,10 +36,99 @@ class TableController extends Controller {
 	public function refresh() {
 	
 		$tables = config('center.tables');
-		dd($tables);
+		//dd($tables);
 		
+		foreach ($tables as $table) {
+			
+			//create if doesn't exist, every table gets an id
+			if (!Schema::hasTable($table->name)) {
+				Schema::create($table->name, function($t) {
+				    $t->increments('id');
+				});
+			}
+			
+			foreach ($table->fields as $field) {
+				Schema::table($table->name, function($t) use($table, $field) {
+					
+					//set type
+					switch ($field->type) {
+						case 'checkbox':
+							eval('$t->boolean($field->name)' . 
+								($field->required ? '' : '->nullable()') .
+								(!Schema::hasColumn($table->name, $field->name) ? '' : '->change()') .
+								'; ');
+							break;
+							
+						case 'color':
+						case 'email':
+						case 'password':
+						case 'slug':
+						case 'string':
+						case 'url':
+						case 'us_state':
+						case 'zip':
+							if (!isset($field->maxlength)) $field->maxlength = 255;
+							eval('$t->string($field->name, $field->maxlength)' . 
+								($field->required ? '' : '->nullable()') .
+								(!Schema::hasColumn($table->name, $field->name) ? '' : '->change()') .
+								'; ');
+							break;
+							
+						case 'date':
+							eval('$t->date($field->name)' . 
+								($field->required ? '' : '->nullable()') .
+								(!Schema::hasColumn($table->name, $field->name) ? '' : '->change()') .
+								'; ');
+							break;
+							
+						case 'datetime':
+							eval('$t->datetime($field->name)' . 
+								($field->required ? '' : '->nullable()') .
+								(!Schema::hasColumn($table->name, $field->name) ? '' : '->change()') .
+								'; ');
+							break;
+							
+						case 'html':
+						case 'text':
+							eval('$t->text($field->name)' . 
+								($field->required ? '' : '->nullable()') .
+								(!Schema::hasColumn($table->name, $field->name) ? '' : '->change()') .
+								'; ');
+							break;
+							
+						case 'integer':
+						case 'select':
+						case 'user':
+							eval('$t->integer($field->name)' . 
+								($field->required ? '' : '->nullable()') .
+								(!Schema::hasColumn($table->name, $field->name) ? '' : '->change()') .
+								'; ');
+							break;
+							
+						case 'money':
+							eval('$t->decimal($field->name, 5, 2)' . 
+								($field->required ? '' : '->nullable()') .
+								(!Schema::hasColumn($table->name, $field->name) ? '' : '->change()') .
+								'; ');
+							break;
+
+					    default:
+							throw new Exception($field->type . ' not supported yet!');
+					}
+
+				});
+			}
+			
+		}
 		
-		//return redirect(route('home'))->with('message', 'hi');
+		return redirect(route('home'))->with('message', trans('center::tables.success'));
 	}
 	
 }
+
+
+
+
+
+
+
