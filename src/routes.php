@@ -12,11 +12,8 @@ Route::group(['prefix' => config('center.prefix'), 'namespace' => 'LeftRight\Cen
 	Route::get('/change/{email}/{token}',	'LoginController@getChange');
 	Route::post('/change',					'LoginController@postChange');
 
-	
-	Route::group(['middleware' => 'admin'], function(){
-		# Schema
-		Route::get('/refresh', 'TableController@refresh');
-	});
+	# Schema
+	Route::get('/refresh', 'TableController@refresh');
 
 	Route::group(['middleware' => 'user'], function(){
 			

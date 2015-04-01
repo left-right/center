@@ -32,7 +32,12 @@ class TableController extends Controller {
 	
 	# Refresh from config
 	public function refresh() {
-		return redirect(route('home'))->with('message', 'hi');
+	
+		$tables = config('center.tables');
+		dd($tables);
+		
+		
+		//return redirect(route('home'))->with('message', 'hi');
 	}
 	
 }

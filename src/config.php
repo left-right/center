@@ -12,34 +12,52 @@ return [
 	//system tables
 	'db' => [
 		'files' => 'files',
+		'metadata' => 'metadata',
 		'permissions' => 'permissions',
 		'users' => 'users',
 	],
 	
 	//default objects to start
-	'tables' => [
+	'system_tables' => [
 		'files' => [
 			'hidden',
 			'fields' => [
-				'id' => 'id',
 				'object' => 'string',
 				'field' => 'string',
 				'host' => 'string',
 				'path' => 'string',
 				'name' => 'string',
 				'extension' => 'string',
-				'width' => 'int',
-				'height' => 'int',
-				'created_at' => 'datetime',
-				'created_by' => 'int',
+				'width' => 'integer',
+				'height' => 'integer',
+				'created_at',
+				'created_by',
+			],
+		],
+		'metadata' => [
+			'hidden',
+			'fields' => [
+				'table' => [
+					'type' => 'string',
+					'required',	
+				],
+				'event' => [
+					'type' => 'string',
+					'required',	
+				],
+				'row_id' => [
+					'type' => 'integer',
+					'required',	
+				],
+				'created_at',
+				'created_by',
 			],
 		],
 		'permissions' => [
 			'hidden',
 			'fields' =>	[
-				'id' => 'id',
 				'user_id' => [
-					'type' => 'int',
+					'type' => 'integer',
 					'required',
 				],
 				'object' => [
@@ -56,7 +74,6 @@ return [
 			'list'=> ['name', 'last_login', 'updated_at'],
 			'order_by' => 'name',
 			'fields' => [
-				'id' => 'id',
 				'name' => [
 					'type' => 'string',
 					'required',
@@ -76,9 +93,7 @@ return [
 				],
 				'admin' => 'checkbox',
 				'updated_at',
-				'updated_by',
 				'deleted_at',
-				'deleted_by',
 			],
 		],
 	],

@@ -111,7 +111,7 @@
 @endsection
 
 @section('side')
-	@if (!empty($table->form_help))
-		<p>{{ nl2br($table->form_help) }}</p>
+	@if (Lang::has('center::' . $table->name . '.help.create'))
+		<p>{{ nl2br(trans('center::' . $table->name . '.help.create')) }}</p>
 	@endif
 @endsection

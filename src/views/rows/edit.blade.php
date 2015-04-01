@@ -148,8 +148,8 @@
 @endsection
 
 @section('side')
-	@if (!empty($object->form_help))
-		<p>{{ nl2br($object->form_help) }}</p>
+	@if (Lang::has('center::' . $table->name . '.help.edit'))
+		<p>{{ nl2br(trans('center::' . $table->name . '.help.edit')) }}</p>
 	@endif
 
 	{!! Form::open(['method'=>'delete', 'action'=>['\LeftRight\Center\Controllers\RowController@destroy', $table->name, $instance->id]]) !!}

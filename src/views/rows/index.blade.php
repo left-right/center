@@ -59,7 +59,9 @@
 	</div>
 	@endforeach
 	{!! Form::close() !!}
-	<p>{{ nl2br(trans('center::tables.' . $table->name . '.help')) }}</p>
+	@if (Lang::has('center::' . $table->name . '.help.index'))
+		<p>{{ nl2br(trans('center::' . $table->name . '.help.index')) }}</p>
+	@endif
 @endsection
 
 @section('script')

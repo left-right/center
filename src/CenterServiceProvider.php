@@ -7,12 +7,31 @@ use DB;
 use Config;
 
 class CenterServiceProvider extends ServiceProvider {
+
+	private static $field_types = [
+		'checkboxes', 'checkbox', 'color', 'date', 'datetime', 'email', 'html', 
+		'image', 'images', 'integer', 'money', 'password', 'select', 'slug', 'string', 
+		'text', 'time', 'url', 'us_state', 'user', 'zip',
+	];
 	
 	public function register() {
 		$this->mergeConfigFrom(__DIR__.'/config.php', 'center');
 	}
 
 	public function boot() {
+		
+		//set up publishes paths and define config locations
+		$this->config();
+		
+		//expand table definitions
+		$this->schema();
+
+		//create model definitions on-the-fly
+		//$this->models();
+	}
+
+	//set up publishes paths and define config locations
+	private function config() {
 		$this->loadViewsFrom(__DIR__.'/views', 'center');
 		$this->loadTranslationsFrom(__DIR__.'/translations', 'center');
 		$this->publishes([
@@ -20,17 +39,26 @@ class CenterServiceProvider extends ServiceProvider {
 		], 'public');
 		include __DIR__.'/macros.php';
 		include __DIR__.'/routes.php';
+	}
 	
-		//expand table schema from config with default values
+	//parse through config, expand it by applying default values
+	private function schema() {
 		//todo: consider caching this
 		$expanded_tables = [];
-		$tables = config('center.tables');
+		$tables = array_merge(config('center.tables'), config('center.system_tables'));
 		foreach ($tables as $table=>$table_properties) {
+			
+			//parse table definition
 			$table_properties = self::promoteNumericKeyToTrue($table_properties);
 			$table_properties['name'] = $table;
-			$table_properties['title'] = trans('center::tables.' . $table . '.title');
+			$table_properties['title'] = trans('center::' . $table . '.title');
+			
+			//temp, soon to look up from permissions table
 			$table_properties['user_can_create'] = true;
 			$table_properties['user_can_edit'] = true;
+			
+			//loop through fields
+			if (!isset($table_properties['fields'])) $table_properties['fields'] = [];
 			$expanded_fields = [];
 			foreach ($table_properties['fields'] as $field=>$field_properties) {
 				
@@ -41,23 +69,48 @@ class CenterServiceProvider extends ServiceProvider {
 				
 				//set types on reserved system fields
 				if (in_array($field, ['created_at', 'updated_at', 'deleted_at'])) $field_properties['type'] = 'datetime';
-				if (in_array($field, ['id', 'created_by', 'updated_by', 'deleted_by', 'precedence'])) $field_properties['type'] = 'int';
+				if (in_array($field, ['id', 'created_by', 'updated_by', 'deleted_by', 'precedence'])) $field_properties['type'] = 'integer';
+
+				//check
+				if (!in_array($field_properties['type'], self::$field_types)) die('field ' . $table . '.' . $field . ' is of type ' . $field_properties['type'] . ' which is not supported.');
 
 				//set other field attributes
 				$field_properties['name'] = $field;
-				$field_properties['title'] = trans('center::fields.' . $table . '.' . $field);
+				$field_properties['title'] = trans('center::' . $table . '.fields.' . $field);
 				if (!isset($field_properties['required'])) $field_properties['required'] = in_array($field, ['id', 'created_at', 'updated_at', 'tinyint']);
 				if (!isset($field_properties['hidden'])) $field_properties['hidden'] = in_array($field, ['id', 'created_at', 'updated_at', 'deleted_at', 'created_by', 'updated_by', 'deleted_by', 'password']);
+				
+				//forced overrides
+				if ($field_properties['type'] == 'password') $field_properties['hidden'] = true;
+				if ($field_properties['hidden']) $field_properties['required'] = false;
+				
+				//save
 				$expanded_fields[$field] = (object) $field_properties;
+				
 			}
+			
+			//forced overrides
+			if (($table == config('center.db.users')) && !isset($table_properties['fields']['deleted_at'])) {
+				//users are not deletable, could throw off relationships
+				$table_properties['fields']['deleted_at'] = [
+					'name' => 'deleted_at',
+					'type' => 'datetime',
+					'hidden' => true,
+					'required' => false,
+				];
+			}
+			
 			$table_properties['fields'] = (object) $expanded_fields;
 			if (!isset($table_properties['hidden'])) $table_properties['hidden'] = false;
+			if (!isset($table_properties['order_by'])) $table_properties['order_by'] = 'id';
 			$expanded_tables[$table] = (object) $table_properties;
 		}
-		Config::set('center.tables', $expanded_tables);
-		
-		/*
-		# Loop through and process the $fields into $objects for model methods below
+		Config::set('center.tables', $expanded_tables);		
+	}
+	
+	
+	//loop through and process the $fields into $objects for model methods below
+	private function models() {
 		$objects = [];
 		foreach ($fields as $field) {
 
@@ -166,10 +219,10 @@ class CenterServiceProvider extends ServiceProvider {
 
 				' . implode(' ', $object['relationships']) . '
 			}');
-		}
-		*/
+		}		
 	}
 	
+	//helper for config()
 	private static function promoteNumericKeyToTrue($array) {
 		foreach ($array as $key=>$value) {
 			if (is_int($key)) {
