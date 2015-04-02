@@ -22,7 +22,9 @@ return [
 		'files' => [
 			'keep_clean',
 			'hidden',
+			'model' => 'File',
 			'fields' => [
+				'row_id' => 'integer',
 				'table' => 'string',
 				'field' => 'string',
 				'path' => 'string',
@@ -81,6 +83,7 @@ return [
 			'keep_clean',
 			'list'=> ['name', 'last_login', 'updated_at'],
 			'order_by' => 'name',
+			'model' => 'User',
 			'fields' => [
 				'name' => [
 					'type' => 'string',
@@ -105,6 +108,11 @@ return [
 				'deleted_at',
 			],
 		],
+	],
+	'icons' => [
+		'home' => '<i class="glyphicon glyphicon-home"></i>',
+		'breadcrumb' => ' <i class="glyphicon glyphicon-chevron-right"></i> ',
+		'create' => '<i class="glyphicon glyphicon-hand-left"></i>',
 	],
 	'img' => [
 		'default' => [

@@ -1,11 +1,12 @@
 <?php namespace LeftRight\Center\Controllers;
 
+use App;
 use Aws\Common\Enum\Region;
 use Aws\Laravel\AwsServiceProvider;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Str;
+use Maatwebsite\Excel\Facades\Excel;
 use Maatwebsite\Excel\ExcelServiceProvider;
-use Auth;
 use DateTime;
 use DB;
 use LeftRight\Center\Libraries\Slug;
@@ -28,7 +29,7 @@ class RowController extends \App\Http\Controllers\Controller {
 		$rows = DB::table($table->name);
 
 		# Empty arrays mainly for search
-		$text_fields = $select_fields = $date_fields = $columns = [];
+		$select_fields = $date_fields = $columns = [];
 		$date_fields = ['created_at'=>'Created', 'updated_at'=>'Updated'];
 
 		# Build select statement
@@ -102,10 +103,10 @@ class RowController extends \App\Http\Controllers\Controller {
 		$searching = false;
 
 		# Text search?
-		if (Request::has('search')) {
+		if ($table->search && Request::has('search')) {
 			$searching = true;
-			foreach ($text_fields as $field) {
-				$rows->orWhere($field->name, 'LIKE', '%' . Request::input('search') . '%');
+			foreach ($table->search as $field) {
+				$rows->orWhere($field, 'LIKE', '%' . Request::input('search') . '%');
 			}
 		}
 		
@@ -480,15 +481,16 @@ class RowController extends \App\Http\Controllers\Controller {
 
 					# Unset any old file associations (will get cleaned up after this loop)
 					DB::table(config('center.db.files'))
-						->where('field_id', $field->id)
-						->where('instance_id', $row_id)
-						->update(array('instance_id'=>null));
+						->where('table', $table->name)
+						->where('field', $field->name)
+						->where('row_id', $row_id)
+						->update(['row_id'=>null]);
 
 
 					# Capture the uploaded file by setting the reverse-lookup
 					DB::table(config('center.db.files'))
 						->where('id', Request::input($field->name))
-						->update(array('instance_id'=>$row_id));
+						->update(['row_id'=>$row_id]);
 
 				}
 
@@ -687,19 +689,19 @@ class RowController extends \App\Http\Controllers\Controller {
 	//export instances
 	public function export($table) {
 
-		$object = DB::table(config('center.db.objects'))->where('name', $table)->first();
+		$table = config('center.tables.' . $table);
 
-		App::make('excel')->create($object->title, function($excel) use ($object) {
+		Excel::create($table->title, function($excel) use ($table) {
 
-		    $excel->setTitle($object->title)->sheet($object->title, function($sheet) use ($object) {
+		    $excel->setTitle($table->title)->sheet($table->title, function($sheet) use ($object) {
 		
-					$fields = DB::table(config('center.db.fields'))->whereNotIn('type', ['html', 'checkboxes', 'text'])->where('object_id', $object->id)->get();
 					$results = DB::table($table->name)->get();
 					$rows = [];
 					
 					foreach ($results as $result) {
 						$row = [];
-						foreach ($fields as &$field) {
+						foreach ($table->fields as $field) {
+							if (in_array($field->type, ['html', 'checkboxes', 'text'])) continue;
 							$row[$field->name] = $result->{$field->name};
 						}
 						$rows[] = $row;

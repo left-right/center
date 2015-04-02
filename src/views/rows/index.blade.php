@@ -7,7 +7,7 @@
 @section('main')
 
 	{!! \LeftRight\Center\Libraries\Breadcrumbs::leave([
-		action('\LeftRight\Center\Controllers\TableController@index')=>trans('center::tables.plural'),
+		action('\LeftRight\Center\Controllers\TableController@index')=>trans('center::site.home'),
 		$table->title,
 		]) !!}
 

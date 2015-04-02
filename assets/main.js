@@ -227,9 +227,9 @@ $(function() {
 
 	//jquery function to cover a input element, used on page load and when cloning
 	jQuery.fn.extend({
-		setUploadedIds : function(field_id) {
+		setUploadedIds : function(table_name, field_name) {
 			var ids = new Array();
-			$(".image[data-field-id=" + field_id + "]:not(.new)").each(function(){
+			$(".image[data-table-name=" + table_name + "][data-field-name=" + field_name + "]:not(.new)").each(function(){
 				ids[ids.length] = $(this).attr('data-file-id')
 			});
 			$(this).val(ids.join(","));
@@ -298,12 +298,13 @@ $(function() {
 					window.console.log(data.jqXHR.responseText);
 				},
 				done: function(e, data) {
-					//window.console.log(data);
+					window.console.log(data);
 
 					//get some vars
 					var multiple = $(this).prop("multiple");
 					var $form = $(this).parent();
-					var field_id = $form.find("input[name=field_id]").val();
+					var table_name = $form.find("input[name=table_name]").val();
+					var field_name = $form.find("input[name=field_name]").val();
 					var $div = $("div.image[data-form-id=" + $form.attr("id") + "]");
 					var $hidden = $div.closest(".form-group").find("input[type=hidden]");
 
@@ -324,7 +325,7 @@ $(function() {
 						.height(data.result.screenheight);
 
 					//update hidden field value that will be passed with this form
-					$hidden.setUploadedIds(field_id);
+					$hidden.setUploadedIds(table_name, field_name);
 				}
 			});
 
