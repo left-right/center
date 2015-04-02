@@ -1,40 +1,43 @@
-<?php namespace LeftRight\Center\Controllers;
+<?php namespace LeftRight\Center\Console;
 
-use Auth;
-use DB;
-use Request;
+use Illuminate\Console\Command;
 use Schema;
+use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Console\Input\InputArgument;
 
-class TableController extends Controller {
+class Refresh extends Command {
 
-	# Display list for home page
-	public function index() {
-		if (!Auth::check()) return LoginController::getIndex();
+	/**
+	 * The console command name.
+	 *
+	 * @var string
+	 */
+	protected $name = 'center:refresh';
 
-		$tables = array_where(config('center.tables'), function($key, $value) {
-		    return !$value->hidden && LoginController::checkPermission($value->name, 'view');
-		});
-		$objects = [];
-		foreach ($tables as $table) {
-			$latest = DB::table($table->name)
-				->leftJoin(config('center.db.users') . ' as u2', $table->name . '.updated_by', '=', 'u2.id')
-				->select('u2.name as updated_name', $table->name . '.updated_at')
-				->orderBy($table->name . '.updated_at', 'desc')
-				->first();
-			$objects[] = (object) [
-				'title' => $table->title,
-				'link' => action('\LeftRight\Center\Controllers\RowController@index', $table->name),
-				'updated_name' => $latest->updated_name,
-				'updated_at' => $latest->updated_at,
-				'count' => DB::table($table->name)->count(),
-			];
-		}
-		return view('center::tables.index', compact('objects'));
+	/**
+	 * The console command description.
+	 *
+	 * @var string
+	 */
+	protected $description = 'Refresh table schema based on current configuration.';
+
+	/**
+	 * Create a new command instance.
+	 *
+	 * @return void
+	 */
+	public function __construct()
+	{
+		parent::__construct();
 	}
-	
-	# Refresh from config
-	public function refresh() {
-	
+
+	/**
+	 * Execute the console command.
+	 *
+	 * @return mixed
+	 */
+	public function fire()
+	{
 		$tables = config('center.tables');
 		//dd($tables);
 		
@@ -130,48 +133,31 @@ class TableController extends Controller {
 
 				});
 			}
-			
 		}
-		
-		/*removed unused tables?
-		if (config('center.keep_clean')) {
-			$tables = Schema::getTableListing();
-			dd($tables);
-		}*/
-		
-		return redirect(route('home'))->with('message', trans('center::site.refresh_success'));
+		$this->comment(PHP_EOL . trans('center::site.refresh_success') . PHP_EOL);
 	}
-	
-	public function permissions($table) {
-		$table = config('center.tables.' . $table);
-		$permissions = DB::table(config('center.db.permissions'))->where('table', $table->name)->lists('level', 'user');
-		$users = DB::table(config('center.db.users'))->whereNull('deleted_at')->get();
-		foreach ($users as &$user) {
-			$user->level = (isset($permissions[$user->id])) ? $permissions[$user->id] : null;
-		}
-		$permission_levels = LoginController::getPermissionLevels();
-		return view('center::tables.permissions', compact('users', 'table', 'permission_levels'));
+
+	/**
+	 * Get the console command arguments.
+	 *
+	 * @return array
+	 */
+	protected function getArguments()
+	{
+		return [
+		];
 	}
-	
-	public function savePermissions($table) {
-		DB::table(config('center.db.permissions'))->where('table', $table)->delete();
-		foreach (Request::input('permissions') as $user=>$level) {
-			if (!empty($level)) {
-				DB::table(config('center.db.permissions'))->insert([
-					'table' => $table,
-					'user' => $user,
-					'level' => $level,
-				]);		
-			}
-		}
-		LoginController::updateUserPermissions();
-		return redirect(action('\LeftRight\Center\Controllers\RowController@index', $table))->with('message', trans('center::site.permissions_update_success'));
+
+	/**
+	 * Get the console command options.
+	 *
+	 * @return array
+	 */
+	protected function getOptions()
+	{
+		return [
+			['example', null, InputOption::VALUE_OPTIONAL, 'An example option.', null],
+		];
 	}
+
 }
-
-
-
-
-
-
-

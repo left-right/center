@@ -10,15 +10,6 @@
 		trans('center::site.home'),
 		]) !!}
 
-	@if (config('center.local'))
-		<div class="btn-group">
-			<a class="btn btn-default" href="{{ URL::action('\LeftRight\Center\Controllers\TableController@refresh') }}">
-				<i class="glyphicon glyphicon-refresh"></i>
-				@lang('center::site.refresh')
-			</a>
-		</div>
-	@endif
-	
 	@include('center::notifications')
 
 	{!! \LeftRight\Center\Libraries\Table::rows($objects)

@@ -24,7 +24,6 @@ return [
 		'edit'				=> 'Can edit',	
 	],
 	'permissions_update_success' => 'User permissions updated',
-	'refresh'				=> 'Refresh',
 	'refresh_success'		=> 'Successfully refreshed the database schema.',
 	'remember_me'			=> 'Remember me',
 	'save'					=> 'Save Changes',

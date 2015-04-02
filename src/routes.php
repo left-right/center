@@ -15,7 +15,6 @@ Route::group(['prefix' => config('center.prefix'), 'namespace' => 'LeftRight\Cen
 	Route::group(['middleware' => 'user'], function(){
 			
 		# Special routes
-		Route::get('/refresh', 'TableController@refresh');
 		Route::get('/logout', 'LoginController@logout');
 		Route::post('/upload/image', 'FileController@image');
 		Route::get('cleanup', function(){

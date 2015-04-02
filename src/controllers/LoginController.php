@@ -16,18 +16,14 @@ class LoginController extends \App\Http\Controllers\Controller {
 	//show login page if not logged in
 	public static function getIndex() {
 		
-		//if (Auth::check()) return ObjectController::index;
-		
 		//show install form
 		try {
-			$installed = DB::table(config('center.db.users'))->count();			
+			if (!DB::table(config('center.db.users'))->count()) return view('center::login.install');
 		} catch (\Exception $e) {
 			if ($e->getCode() == 2002) {
 				trigger_error('Center needs a valid database connection.');
 			}
 		}
-		
-		if (!$installed) return view('center::login.install');
 
 		return view('center::login.index');
 	}
