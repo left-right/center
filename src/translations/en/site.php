@@ -8,7 +8,7 @@ return [
 	'password'				=> 'Password',
 	'password_reset'		=> 'Reset Password',
 	'home'					=> 'Center',
-	'install'				=> 'Install',
+	'install'				=> 'Install Center',
 	'login'					=> 'Log In',
 	'login_invalid'			=> 'That email / password combination was not found.',
 	'logout'				=> 'Log Out',
@@ -32,4 +32,5 @@ return [
 	'updated_at'			=> 'Updated',
 	'updated_name'			=> 'Updated By',
 	'welcome'				=> 'Center Login',
+	'your_name'				=> 'Your Name',
 ];

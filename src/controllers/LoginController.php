@@ -47,20 +47,25 @@ class LoginController extends \App\Http\Controllers\Controller {
 		} 
 		
 		//make user
-		$user_id = DB::table(config('center.db.users'))->insertGetId(array(
+		$user_id = DB::table(config('center.db.users'))->insertGetId([
 			'name'			=> Request::input('name'),
 			'email'			=> Request::input('email'),
 			'password'		=> Hash::make(Request::input('password')),
-			'role'			=> 1,
 			'last_login'	=> new DateTime,
-			'created_at'	=> new DateTime,
 			'updated_at'	=> new DateTime,
-		));
+		]);
 		
-		//show that user created self
-		DB::table(config('center.db.users'))->where('id', $user_id)->update(array('updated_by'=>$user_id));
+		DB::table(config('center.db.permissions'))->insert([
+			'table'			=> config('center.db.users'),
+			'user'			=> $user_id,
+			'level'			=> 'edit',
+		]);
+		
+		//show that user created self (couldn't we just hardcode 1 above?)
+		DB::table(config('center.db.users'))->where('id', $user_id)->update(['updated_by'=>$user_id]);
 		
 		Auth::loginUsingId($user_id);
+		LoginController::updateUserPermissions();
 		
 		return Redirect::route('home');
 	}
