@@ -23,14 +23,13 @@ An innovative CMS for Laravel 5.
 			'Excel'     => 'Maatwebsite\Excel\Facades\Excel',
 
 5. add this to $middleware in App/Http/Kernel.php
-```
-		'LeftRight\Center\Middleware\Permissions',
-```
+
+			'LeftRight\Center\Middleware\Permissions',
+
 6. add this to $middleware in App/Http/Kernel.php
-```
-		'user' => 'LeftRight\Center\Middleware\User',
-```
+
+			'user' => 'LeftRight\Center\Middleware\User',
+
 7. add this to $commands in App/Console/Kernel.php
-```
-		'LeftRight\Center\Console\Refresh',
-```
+
+			'LeftRight\Center\Console\Refresh',
