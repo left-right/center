@@ -10,7 +10,7 @@
 		trans('center::site.home'),
 		]) !!}
 
-	@if (Auth::user()->admin)
+	@if (config('center.local'))
 		<div class="btn-group">
 			<a class="btn btn-default" href="{{ URL::action('\LeftRight\Center\Controllers\TableController@refresh') }}">
 				<i class="glyphicon glyphicon-refresh"></i>
@@ -34,5 +34,5 @@
 
 @section('side')
 	<p>@lang('center::site.help')</p>
-	<p><a href="{{ action('\LeftRight\Center\Controllers\LoginController@getLogout') }}" class="btn btn-default btn-xs">@lang('center::site.logout')</a>
+	<p><a href="{{ action('\LeftRight\Center\Controllers\LoginController@logout') }}" class="btn btn-default btn-xs">@lang('center::site.logout')</a>
 @endsection

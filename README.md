@@ -1,26 +1,34 @@
 # Center
-An innovative CMS for Laravel 5
+An innovative CMS for Laravel 5. 
 
-(video to come)
+(walkthrough video to come)
 
 ### Installation
+In Terminal:
+```
 composer require left-right/center:dev-master
-add the following to providers in config/app.php
+```
+add these to $providers in config/app.php
 ```
 'LeftRight\Center\CenterServiceProvider',
 'Illuminate\Html\HtmlServiceProvider',
+'Maatwebsite\Excel\ExcelServiceProvider',
 ```
-add the following to $routeMiddleware in App/Http/Kernel.php
+add these to $aliases in config/app.php
+```
+'Form'      => 'Illuminate\Html\FormFacade',
+'HTML'      => 'Illuminate\Html\HtmlFacade',
+'Excel'     => 'Maatwebsite\Excel\Facades\Excel',
+```
+add these to $middleware in App/Http/Kernel.php
+```
+'LeftRight\Center\Middleware\Permissions',
+```
+add these to $middleware in App/Http/Kernel.php
 ```
 'user' => 'LeftRight\Center\Middleware\User',
-'admin' => 'LeftRight\Center\Middleware\Admin',
-'programmer' => 'LeftRight\Center\Middleware\Programmer',
 ```
-
-### Package development workflow in Laravel 5
-With the removal of the Workbench, I've tried using illuminate/html with limited success. The easiest
-thing for me is after running composer update from the project root, simply running
+In Terminal, again:
 ```
-rm -rf vendor/left-right/center/
-sudo ln -s ~/Sites/center vendor/left-right/center
+php artisan vendor:publish
 ```

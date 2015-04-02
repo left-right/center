@@ -72,6 +72,15 @@
 						{!! Form::integer($field->name, null, ['class'=>'form-control ' . $field->type . ($field->required ? ' required' : '')]) !!}
 					@elseif ($field->type == 'money')
 						{!! Form::decimal($field->name, null, ['class'=>'form-control ' . $field->type . ($field->required ? ' required' : '')]) !!}
+					@elseif ($field->type == 'permissions')
+						@foreach ($field->tables as $table)
+						<div class="row form-group">
+							<div class="col-md-3">
+								{!! Form::select('permissions[' . $table->name . ']', $field->options, null, ['class'=>'form-control']) !!}
+							</div>
+							<label class="col-md-9 control-label" style="text-align:left;">{{ $table->title }}</label>
+						</div>
+						@endforeach
 					@elseif ($field->type == 'select')
 						{!! Form::select($field->name, $field->options, null, ['class'=>'form-control ' . $field->type . ($field->required ? ' required' : '')]) !!}
 					@elseif ($field->type == 'slug')

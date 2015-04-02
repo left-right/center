@@ -2,6 +2,7 @@
 
 use Auth;
 use DB;
+use Request;
 use Schema;
 
 class TableController extends Controller {
@@ -11,7 +12,7 @@ class TableController extends Controller {
 		if (!Auth::check()) return LoginController::getIndex();
 
 		$tables = array_where(config('center.tables'), function($key, $value) {
-		    return !$value->hidden;
+		    return !$value->hidden && LoginController::checkPermission($value->name, 'view');
 		});
 		$objects = [];
 		foreach ($tables as $table) {
@@ -111,6 +112,9 @@ class TableController extends Controller {
 								(!Schema::hasColumn($table->name, $field->name) ? '' : '->change()') .
 								'; ');
 							break;
+							
+						case 'permissions':
+							break;
 
 					    default:
 							trigger_error($field->type . ' not supported yet!');
@@ -135,9 +139,34 @@ class TableController extends Controller {
 			dd($tables);
 		}*/
 		
-		return redirect(route('home'))->with('message', trans('center::tables.success'));
+		return redirect(route('home'))->with('message', trans('center::site.refresh_success'));
 	}
 	
+	public function permissions($table) {
+		$table = config('center.tables.' . $table);
+		$permissions = DB::table(config('center.db.permissions'))->where('table', $table->name)->lists('level', 'user');
+		$users = DB::table(config('center.db.users'))->whereNull('deleted_at')->get();
+		foreach ($users as &$user) {
+			$user->level = (isset($permissions[$user->id])) ? $permissions[$user->id] : null;
+		}
+		$permission_levels = LoginController::getPermissionLevels();
+		return view('center::tables.permissions', compact('users', 'table', 'permission_levels'));
+	}
+	
+	public function savePermissions($table) {
+		DB::table(config('center.db.permissions'))->where('table', $table)->delete();
+		foreach (Request::input('permissions') as $user=>$level) {
+			if (!empty($level)) {
+				DB::table(config('center.db.permissions'))->insert([
+					'table' => $table,
+					'user' => $user,
+					'level' => $level,
+				]);		
+			}
+		}
+		LoginController::updateUserPermissions();
+		return redirect(action('\LeftRight\Center\Controllers\RowController@index', $table))->with('message', trans('center::site.permissions_update_success'));
+	}
 }
 
 

@@ -3,15 +3,18 @@
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use LeftRight\Center\Controllers\InstanceController;
+use LeftRight\Center\Controllers\LoginController;
+use Auth;
 use DB;
 use Config;
+use Session;
 
 class CenterServiceProvider extends ServiceProvider {
 
 	private static $field_types = [
 		'checkboxes', 'checkbox', 'color', 'date', 'datetime', 'email', 'html', 
-		'image', 'images', 'integer', 'money', 'password', 'select', 'slug', 'string', 
-		'text', 'time', 'url', 'us_state', 'user', 'zip',
+		'image', 'images', 'integer', 'money', 'password', 'permissions', 'select', 
+		'slug', 'string', 'text', 'time', 'url', 'us_state', 'user', 'zip',
 	];
 	
 	public function register() {
@@ -40,9 +43,9 @@ class CenterServiceProvider extends ServiceProvider {
 		include __DIR__.'/routes.php';
 	}
 	
-	//parse through config, expand it by applying default values
-	//create models on the fly as well
+	//parse through config, expand it by applying default values and permissions
 	private function schema() {
+		
 		//todo: consider caching this
 		$expanded_tables = [];
 		$tables = array_merge(config('center.tables'), config('center.system_tables'));
@@ -56,8 +59,6 @@ class CenterServiceProvider extends ServiceProvider {
 			if (!isset($table_properties['search'])) $table_properties['search'] = false;
 			
 			//temp, soon to look up from permissions table
-			$table_properties['user_can_create'] = true;
-			$table_properties['user_can_edit'] = true;
 			$table_properties['dates'] = [];
 			
 			//loop through fields
@@ -69,8 +70,9 @@ class CenterServiceProvider extends ServiceProvider {
 				if (is_int($field)) $field = $field_properties;
 				if (is_string($field_properties)) $field_properties = ['type'=>$field_properties];
 				$field_properties = self::promoteNumericKeyToTrue($field_properties);
-				
+
 				//set types on reserved system fields
+				if ($field == 'permissions') $field_properties['type'] = 'permissions';
 				if (in_array($field, ['created_at', 'updated_at', 'deleted_at'])) $field_properties['type'] = 'datetime';
 				if (in_array($field, ['id', 'created_by', 'updated_by', 'deleted_by', 'precedence'])) $field_properties['type'] = 'integer';
 				
@@ -82,7 +84,15 @@ class CenterServiceProvider extends ServiceProvider {
 				//set other field attributes
 				$field_properties['name'] = $field;
 				$field_properties['title'] = trans('center::' . $table . '.fields.' . $field);
-				if (!isset($field_properties['required'])) $field_properties['required'] = in_array($field, ['id', 'created_at', 'updated_at', 'tinyint']);
+				if (!isset($field_properties['required'])) {
+					if (in_array($field, ['id', 'created_at', 'updated_at'])) {
+						$field_properties['required'] = true;
+					} elseif (in_array($field_properties['type'], ['checkbox'])) {
+						$field_properties['required'] = true;
+					} else {
+						$field_properties['required'] = false;
+					}
+				}
 				if (!isset($field_properties['hidden'])) $field_properties['hidden'] = in_array($field, ['id', 'created_at', 'updated_at', 'deleted_at', 'created_by', 'updated_by', 'deleted_by', 'password']);
 				if (in_array($field_properties['type'], ['image' ,'images'])) {
 					if (empty($field_properties['width'])) $field_properties['width'] = null;
@@ -114,6 +124,7 @@ class CenterServiceProvider extends ServiceProvider {
 			if (!isset($table_properties['order_by'])) $table_properties['order_by'] = 'id';
 			$expanded_tables[$table] = (object) $table_properties;
 		}
+		//dd($expanded_tables);
 		Config::set('center.tables', $expanded_tables);		
 	}
 	

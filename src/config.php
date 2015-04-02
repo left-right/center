@@ -1,4 +1,5 @@
 <?php
+global $app;
 
 return [
 	//you may add or replace the default bootstrap css
@@ -12,10 +13,12 @@ return [
 	//system tables (keys fixed, values must match system_tables keys)
 	'db' => [
 		'files' => 'files',
-		'metadata' => 'metadata',
 		'permissions' => 'permissions',
 		'users' => 'users',
 	],
+	
+	//exposes manual refresh button
+	'local' => $app->environment('local'),
 	
 	//default objects to start
 	'system_tables' => [
@@ -24,7 +27,7 @@ return [
 			'hidden',
 			'model' => 'File',
 			'fields' => [
-				'row_id' => 'integer',
+				'row' => 'integer',
 				'table' => 'string',
 				'field' => 'string',
 				'path' => 'string',
@@ -41,39 +44,19 @@ return [
 				'precedence'=>'integer',
 			],
 		],
-		'metadata' => [
-			'keep_clean',
-			'hidden',
-			'fields' => [
-				'table' => [
-					'type' => 'string',
-					'required',	
-				],
-				'event' => [
-					'type' => 'string',
-					'required',	
-				],
-				'row_id' => [
-					'type' => 'integer',
-					'required',	
-				],
-				'created_at',
-				'created_by',
-			],
-		],
 		'permissions' => [
 			'keep_clean',
 			'hidden',
 			'fields' =>	[
-				'user_id' => [
+				'user' => [
 					'type' => 'integer',
 					'required',
 				],
-				'object' => [
+				'table' => [
 					'type' => 'string',
 					'required',
 				],
-				'type' => [
+				'level' => [
 					'type' => 'string',
 					'required',
 				],
@@ -102,7 +85,7 @@ return [
 					'type' => 'datetime',
 					'hidden',
 				],
-				'admin' => 'checkbox',
+				'permissions', 
 				'updated_at',
 				'updated_by',
 				'deleted_at',

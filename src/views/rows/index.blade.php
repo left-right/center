@@ -12,17 +12,25 @@
 		]) !!}
 
 	<div class="btn-group">
-		<a class="btn btn-default" id="create" href="{{ action('\LeftRight\Center\Controllers\RowController@export', $table->name) }}">
+		@if (\LeftRight\Center\Controllers\LoginController::checkPermission(config('center.db.users'), 'edit'))
+		<a class="btn btn-default" href="{{ action('\LeftRight\Center\Controllers\TableController@permissions', $table->name) }}">
+			<i class="glyphicon glyphicon-user"></i>
+			@lang('center::site.permissions')
+		</a>
+		@endif
+		<a class="btn btn-default" href="{{ action('\LeftRight\Center\Controllers\RowController@export', $table->name) }}">
 			<i class="glyphicon glyphicon-circle-arrow-down"></i>
 			@lang('center::rows.export')
 		</a>
-		@if ($table->user_can_create)
-			<a class="btn btn-default" id="create" href="{{ action('\LeftRight\Center\Controllers\RowController@create', $table->name) }}">
+		@if (\LeftRight\Center\Controllers\LoginController::checkPermission($table->name, 'create'))
+			<a class="btn btn-default" href="{{ action('\LeftRight\Center\Controllers\RowController@create', $table->name) }}">
 				<i class="glyphicon glyphicon-plus"></i>
 				@lang('center::rows.create')
 			</a>
 		@endif
 	</div>
+	
+	@include('center::notifications')
 
 	@if (count($rows))
 		@if ($table->nested)
@@ -49,10 +57,12 @@
 
 @section('side')
 	{!! Form::open(['method'=>'get', 'id'=>'search']) !!}
-	<div class="form-group @if (\Request::has('search')) has_input @endif">
-	{!! Form::text('search', Request::input('search'), ['class'=>'form-control', 'placeholder'=>'Search']) !!}
-	<i class="glyphicon glyphicon-remove-circle"></i>
-	</div>
+	@if ($table->search)
+		<div class="form-group @if (\Request::has('search')) has_input @endif">
+		{!! Form::text('search', Request::input('search'), ['class'=>'form-control', 'placeholder'=>'Search']) !!}
+		<i class="glyphicon glyphicon-remove-circle"></i>
+		</div>
+	@endif
 	@foreach ($filters as $name=>$options)
 	<div class="form-group">
 		{!! Form::select($name, $options, Request::input($name), ['class'=>'form-control']) !!}

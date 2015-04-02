@@ -8,6 +8,7 @@ use Illuminate\Support\Str;
 use Mail;
 use Request;
 use Redirect;
+use Session;
 use URL;
 
 class LoginController extends \App\Http\Controllers\Controller {
@@ -33,6 +34,9 @@ class LoginController extends \App\Http\Controllers\Controller {
 				DB::table(config('center.db.users'))->where('id', Auth::user()->id)->update([
 					'last_login'=>new DateTime
 				]);
+				
+				self::updateUserPermissions();
+				
 				return Redirect::intended(URL::route('home'));
 			}
 			return Redirect::route('home')->with('error', trans('center::site.login_invalid'));
@@ -58,8 +62,9 @@ class LoginController extends \App\Http\Controllers\Controller {
 	}
 	
 	//logout
-	public function getLogout() {
+	public function logout() {
 		Auth::logout();
+	    Session::forget('center.permissions');
 		return Redirect::route('home');
 	}
 
@@ -126,6 +131,40 @@ class LoginController extends \App\Http\Controllers\Controller {
 
 		//log you in
 		return Redirect::route('home');
+	}
+	
+	//permissions, used by center controller 
+	public static function permissions($user_id) {
+		return DB::table(config('center.db.permissions'))->where('user', $user_id)->lists('level', 'table');
+	}
+	
+	//check permission level for active user
+	public static function checkPermission($table, $level) {
+		$permissions = Session::get('center.permissions');
+		if (array_key_exists($table, $permissions)) {
+			if ($level == 'view') {
+				return true;
+			} elseif ($level == 'create') {
+				if (($permissions[$table] == 'create') || ($permissions[$table] == 'edit')) return true;
+			} elseif ($level == 'edit') {
+				if ($permissions[$table] == 'edit') return true;
+			}
+		}
+		return false;
+	}
+	
+	//for dropdowns
+	public static function getPermissionLevels() {
+		return [
+			'' => trans('center::site.permission_levels.none'),
+			'view' => trans('center::site.permission_levels.view'),
+			'create' => trans('center::site.permission_levels.create'),
+			'edit' => trans('center::site.permission_levels.edit'),
+		];
+	}
+	
+	public static function updateUserPermissions() {
+	    Session::set('center.permissions', LoginController::permissions(Auth::id()));
 	}
 
 }

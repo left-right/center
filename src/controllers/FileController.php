@@ -46,7 +46,7 @@ class FileController extends Controller {
 	/**
 	 * genericized function to handle upload, available externally via service provider
 	 */
-	public static function saveImage($table_name, $field_name, $file, $name, $instance_id=null) {
+	public static function saveImage($table_name, $field_name, $file, $name) {
 		//get field info
 		$table 	= config('center.tables.' . $table_name);
 		$field = $table->fields->{$field_name};
@@ -169,7 +169,8 @@ class FileController extends Controller {
 
 	public static function findOrphans() {
 		
-		//trim down file list
+		//trim down file list -- not working
+		return;
 		
 		//delete files from non-existent fields
 		DB::table(config('center.db.files'))
@@ -226,7 +227,7 @@ class FileController extends Controller {
 	public static function cleanup($files=false) {
 
 		//by default, remove all non-instanced files
-		if (!$files) $files = DB::table(config('center.db.files'))->whereNull('instance_id')->get();
+		if (!$files) $files = DB::table(config('center.db.files'))->whereNull('row')->get();
 		
 		//try to physically remove
 		$ids = array();

@@ -1,5 +1,6 @@
 <?php namespace LeftRight\Center\Controllers;
 
+use Auth;
 use App;
 use Aws\Common\Enum\Region;
 use Aws\Laravel\AwsServiceProvider;
@@ -10,8 +11,10 @@ use Maatwebsite\Excel\ExcelServiceProvider;
 use DateTime;
 use DB;
 use LeftRight\Center\Libraries\Slug;
+use LeftRight\Center\Controllers\LoginController;
 use Redirect;
 use Request;
+use Session;
 use URL;
 use Validator;
 
@@ -23,8 +26,14 @@ class RowController extends \App\Http\Controllers\Controller {
 
 		# Get info about the object
 		$table = config('center.tables.' . $table);
-		//dd($table);
 
+		# Security
+		if (!isset($table->name)) {
+			return redirect()->route('home')->with('error', trans('center::site.table_does_not_exist'));
+		} elseif (!LoginController::checkPermission($table->name, 'view')) {
+			return redirect()->route('home')->with('error', trans('center::site.no_permissions_view'));
+		}
+		
 		# Start query
 		$rows = DB::table($table->name);
 
@@ -122,7 +131,7 @@ class RowController extends \App\Http\Controllers\Controller {
 		$rows = $rows->get();
 
 		# Set URLs on each instance
-		if ($table->user_can_edit) {
+		if (LoginController::checkPermission($table->name, 'edit')) {
 			foreach ($rows as &$instance) {
 				$instance->link = action('\LeftRight\Center\Controllers\RowController@edit', [$table->name, $instance->id, $linked_id]);
 				$instance->delete = action('\LeftRight\Center\Controllers\RowController@delete', [$table->name, $instance->id]);
@@ -168,6 +177,16 @@ class RowController extends \App\Http\Controllers\Controller {
 	//show create form for an object instance
 	public function create($table, $linked_id=false) {
 		$table = config('center.tables.' . $table);
+
+		# Security
+		if (!isset($table->name)) {
+			return redirect()->route('home')->with('error', trans('center::site.table_does_not_exist'));
+		} elseif (!LoginController::checkPermission($table->name, 'view')) {
+			return redirect()->route('home')->with('error', trans('center::site.no_permissions_view'));
+		} elseif (!LoginController::checkPermission($table->name, 'create')) {
+			return redirect()->action('\LeftRight\Center\Controllers\RowController@index', $table->name)->with('error', trans('center::site.no_permissions_create'));
+		}
+		
 		$options = [];
 		
 		# Add return var to the queue
@@ -213,6 +232,11 @@ class RowController extends \App\Http\Controllers\Controller {
 				if ($field->type == 'select' && !$field->required) {
 					$field->options = [''=>''] + $field->options;
 				}
+			} elseif ($field->type == 'permissions') {
+				$field->tables = array_where(config('center.tables'), function($key, $value) {
+					return !$value->hidden;
+				});
+				$field->options = LoginController::getPermissionLevels();
 			} elseif ($field->type == 'user') {
 				$field->options = DB::table(config('center.db.users'))->orderBy('name')->lists('name', 'id');
 				if (!$field->required) $field->options = [''=>''] + $field->options;
@@ -230,7 +254,16 @@ class RowController extends \App\Http\Controllers\Controller {
 	//save a new object instance to the database
 	public function store($table, $linked_id=false) {
 		$table = config('center.tables.' . $table);
-		
+
+		# Security
+		if (!isset($table->name)) {
+			return redirect()->route('home')->with('error', trans('center::site.table_does_not_exist'));
+		} elseif (!LoginController::checkPermission($table->name, 'view')) {
+			return redirect()->route('home')->with('error', trans('center::site.no_permissions_view'));
+		} elseif (!LoginController::checkPermission($table->name, 'create')) {
+			return redirect()->action('\LeftRight\Center\Controllers\RowController@index', $table->name)->with('error', trans('center::site.no_permissions_create'));
+		}
+
 		//metadata
 		$inserts = [];
 
@@ -242,20 +275,20 @@ class RowController extends \App\Http\Controllers\Controller {
 				$inserts[$field->name] = 0;
 			}
 			if ($field->name == 'created_at') $inserts['created_at'] = new DateTime;
-			if ($field->name == 'updated_at') $inserts['updated_at'] = new DateTime;
-			if ($field->name == 'created_by') $inserts['updated_at'] = Auth::user()->id;
-			if ($field->name == 'updated_by') $inserts['updated_at'] = Auth::user()->id;
+			if ($field->name == 'updated_at') $inserts['updated_at'] = new DateTime();
+			if ($field->name == 'created_by') $inserts['created_by'] = Auth::user()->id;
+			if ($field->name == 'updated_by') $inserts['updated_by'] = Auth::user()->id;
 			if ($field->name == 'precedence') $inserts['updated_at'] = DB::table($table->name)->max('precedence') + 1;
 		}
 
-		//validate
+		/*validate
 		$v = Validator::make(Request::all(), [
 		    'email' => 'required|unique:users|max:255',
 		]);
 		
 		if ($v->fails()) {
 		    return redirect()->back()->withInput()->withErrors($v->errors());
-		}
+		}*/
 
 		//slug
 		if (property_exists($table->fields, 'slug')) {
@@ -272,11 +305,11 @@ class RowController extends \App\Http\Controllers\Controller {
 			//add unique, formatted slug to the insert batch
 			$inserts['slug'] = Slug::make($slug_source, $uniques);
 		}
-
+		
 		//run insert
 		$row_id = DB::table($table->name)->insertGetId($inserts);
 		
-		//handle any checkboxes, had to wait for instance_id
+		//handle any checkboxes, had to wait for row_id
 		foreach ($table->fields as $field) {
 			if ($field->type == 'checkboxes') {
 				//figure out schema, loop through and save all the checkboxes
@@ -291,15 +324,28 @@ class RowController extends \App\Http\Controllers\Controller {
 					}
 				}
 			} elseif ($field->type == 'image') {
-				DB::table(config('center.db.files'))->where('id', Request::input($field->name))->update(['instance_id'=>$row_id]);
+				DB::table(config('center.db.files'))->where('id', Request::input($field->name))->update(['row'=>$row_id]);
 			} elseif ($field->type == 'images') {
 				$file_ids = explode(',', Request::input($field->name));
 				$precedence = 0;
 				foreach ($file_ids as $file_id) {
 					DB::table(config('center.db.files'))->where('id', $file_id)->update([
-						'instance_id'=>$row_id,
+						'row'=>$row_id,
 						'precedence'=>++$precedence,
 					]);
+				}
+			} elseif ($field->type == 'permissions') {
+				if ($table->name == config('center.db.users')) {
+					DB::table(config('center.db.permissions'))->where('user', $row_id)->delete();
+					foreach (Request::input('permissions') as $table_name=>$level) {
+						if (!empty($value)) {
+							DB::table(config('center.db.permissions'))->insert([
+								'user' => $row_id,
+								'table' => $table_name,
+								'level' => $level,
+							]);
+						}
+					}
 				}
 			}
 		}
@@ -323,6 +369,17 @@ class RowController extends \App\Http\Controllers\Controller {
 	
 		# Get object / field / whatever infoz
 		$table = config('center.tables.' . $table);
+
+		# Security
+		if (!isset($table->name)) {
+			return redirect()->route('home')->with('error', trans('center::site.table_does_not_exist'));
+		} elseif (!LoginController::checkPermission($table->name, 'view')) {
+			return redirect()->route('home')->with('error', trans('center::site.no_permissions_view'));
+		} elseif (!LoginController::checkPermission($table->name, 'edit')) {
+			return redirect()->action('\LeftRight\Center\Controllers\RowController@index', $table->name)->with('error', trans('center::site.no_permissions_edit'));
+		}
+
+		# Retrieve instance/row values
 		$instance = DB::table($table->name)->where('id', $row_id)->first();
 
 		# Add return var to the queue
@@ -394,6 +451,18 @@ class RowController extends \App\Http\Controllers\Controller {
 					}
 				}
 				list($field->screen_width, $field->screen_height) = FileController::getImageDimensions($field->width, $field->height);
+			} elseif ($field->type == 'permissions') {
+				$field->tables = array_where(config('center.tables'), function($key, $value) {
+					return !$value->hidden;
+				});
+				
+				$permissions = LoginController::permissions($row_id);
+				
+				foreach ($field->tables as $table) {
+					$table->value = isset($permissions[$table->name]) ? $permissions[$table->name] : '';
+				}
+
+				$field->options = LoginController::getPermissionLevels();
 			} elseif ($field->type == 'slug') {
 				if ($field->required && empty($instance->{$field->name}) && $field->related_field_id) {
 					//slugify related field to populate this one
@@ -429,12 +498,22 @@ class RowController extends \App\Http\Controllers\Controller {
 	public function update($table, $row_id, $linked_id=false) {
 		$table = config('center.tables.' . $table);
 		
+		# Security
+		if (!isset($table->name)) {
+			return redirect()->route('home')->with('error', trans('center::site.table_does_not_exist'));
+		} elseif (!LoginController::checkPermission($table->name, 'view')) {
+			return redirect()->route('home')->with('error', trans('center::site.no_permissions_view'));
+		} elseif (!LoginController::checkPermission($table->name, 'edit')) {
+			return redirect()->action('\LeftRight\Center\Controllers\RowController@index', $table->name)->with('error', trans('center::site.no_permissions_edit'));
+		}
+
 		//metadata
 		$updates = [
 			'updated_at'=>new DateTime,
 			'updated_by'=>Auth::user()->id,
 		];
 		
+				
 		//run loop through the fields
 		foreach ($table->fields as $field) {
 			if ($field->hidden) continue;
@@ -460,8 +539,9 @@ class RowController extends \App\Http\Controllers\Controller {
 
 				# Unset any old file associations (will get cleaned up after this loop)
 				DB::table(config('center.db.files'))
-					->where('field_id', $field->id)
-					->where('instance_id', $row_id)
+					->where('table', $table->name)
+					->where('field', $field->name)
+					->where('row', $row_id)
 					->update(array('instance_id'=>null));
 
 				# Create new associations
@@ -476,6 +556,22 @@ class RowController extends \App\Http\Controllers\Controller {
 						));
 				}
 
+			} elseif ($field->type == 'permissions') {
+				if ($table->name == config('center.db.users')) {
+					DB::table(config('center.db.permissions'))->where('user', $row_id)->delete();
+					foreach (Request::input('permissions') as $table_name=>$level) {
+						if (!empty($level)) {
+							DB::table(config('center.db.permissions'))->insert([
+								'user' => $row_id,
+								'table' => $table_name,
+								'level' => $level,
+							]);
+						}
+					}
+					
+					//update permissions if you're updating yourself
+					if ($row_id == Auth::id()) LoginController::updateUserPermissions();
+				}
 			} else {
 				if ($field->type == 'image') {
 
@@ -483,14 +579,14 @@ class RowController extends \App\Http\Controllers\Controller {
 					DB::table(config('center.db.files'))
 						->where('table', $table->name)
 						->where('field', $field->name)
-						->where('row_id', $row_id)
-						->update(['row_id'=>null]);
+						->where('row', $row_id)
+						->update(['row'=>null]);
 
 
 					# Capture the uploaded file by setting the reverse-lookup
 					DB::table(config('center.db.files'))
 						->where('id', Request::input($field->name))
-						->update(['row_id'=>$row_id]);
+						->update(['row'=>$row_id]);
 
 				}
 
@@ -530,6 +626,16 @@ class RowController extends \App\Http\Controllers\Controller {
 	# Remove object from db - todo check key/constraints
 	public function destroy($table, $row_id) {
 		$table = config('center.tables.' . $table);
+
+		# Security
+		if (!isset($table->name)) {
+			return redirect()->route('home')->with('error', trans('center::site.table_does_not_exist'));
+		} elseif (!LoginController::checkPermission($table->name, 'view')) {
+			return redirect()->route('home')->with('error', trans('center::site.no_permissions_view'));
+		} elseif (!LoginController::checkPermission($table->name, 'edit')) {
+			return redirect()->action('\LeftRight\Center\Controllers\RowController@index', $table->name)->with('error', trans('center::site.no_permissions_edit'));
+		}
+
 		DB::table($table->name)->where('id', $row_id)->delete();
 
 		return Redirect::to(Request::input('return_to'));
@@ -537,7 +643,16 @@ class RowController extends \App\Http\Controllers\Controller {
 	
 	# Reorder fields by drag-and-drop
 	public function reorder($table) {
-		$object = DB::table(config('center.db.objects'))->where('name', $table)->first();
+		$table = config('center.tables.' . $table);
+
+		# Security
+		if (!isset($table->name)) {
+			return redirect()->route('home')->with('error', trans('center::site.table_does_not_exist'));
+		} elseif (!LoginController::checkPermission($table->name, 'view')) {
+			return redirect()->route('home')->with('error', trans('center::site.no_permissions_view'));
+		} elseif (!LoginController::checkPermission($table->name, 'edit')) {
+			return redirect()->action('\LeftRight\Center\Controllers\RowController@index', $table->name)->with('error', trans('center::site.no_permissions_edit'));
+		}
 
 		//determine whether nested
 		$object->nested = false;
@@ -578,23 +693,34 @@ class RowController extends \App\Http\Controllers\Controller {
 	
 	# Soft delete
 	public function delete($table, $row_id) {
-		$object = DB::table(config('center.db.objects'))->where('name', $table)->first();
+		$table = config('center.tables.' . $table);
+
+		# Security
+		if (!isset($table->name)) {
+			return redirect()->route('home')->with('error', trans('center::site.table_does_not_exist'));
+		} elseif (!LoginController::checkPermission($table->name, 'view')) {
+			return redirect()->route('home')->with('error', trans('center::site.no_permissions_view'));
+		} elseif (!LoginController::checkPermission($table->name, 'edit')) {
+			return redirect()->action('\LeftRight\Center\Controllers\RowController@index', $table->name)->with('error', trans('center::site.no_permissions_edit'));
+		}
 		
 		//toggle instance with active or inactive
 		$deleted_at = (Request::input('active') == 1) ? null : new DateTime;
 
-		DB::table($table->name)->where('id', $row_id)->update(array(
+		//todo check if updated_at and updated_by exist before updating
+
+		DB::table($table->name)->where('id', $row_id)->update([
 			'deleted_at'=>$deleted_at,
 			'updated_at'=>new DateTime,
 			'updated_by'=>Auth::user()->id,
-		));
+		]);
 
-		//update object meta
+		/*update object meta
 		DB::table(config('center.db.objects'))->where('id', $object->id)->update(array(
 			'count'=>DB::table($table->name)->whereNull('deleted_at')->count(),
 			'updated_at'=>new DateTime,
 			'updated_by'=>Auth::user()->id,
-		));
+		));*/
 
 		$updated = DB::table($table->name)->where('id', $row_id)->pluck('updated_at');
 
@@ -677,7 +803,7 @@ class RowController extends \App\Http\Controllers\Controller {
 			foreach ($columns as $column) {
 				$return->column($column->name, $column->type, $column->title);
 			}
-			if ($table->user_can_edit) {
+			if (LoginController::checkPermission($table->name, 'edit')) {
 				$return->deletable();
 				if ($table->order_by == 'precedence') $return->draggable(action('\LeftRight\Center\Controllers\RowController@reorder', $table));
 			}
@@ -693,7 +819,7 @@ class RowController extends \App\Http\Controllers\Controller {
 
 		Excel::create($table->title, function($excel) use ($table) {
 
-		    $excel->setTitle($table->title)->sheet($table->title, function($sheet) use ($object) {
+		    $excel->setTitle($table->title)->sheet($table->title, function($sheet) use ($table) {
 		
 					$results = DB::table($table->name)->get();
 					$rows = [];

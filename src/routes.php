@@ -16,7 +16,7 @@ Route::group(['prefix' => config('center.prefix'), 'namespace' => 'LeftRight\Cen
 			
 		# Special routes
 		Route::get('/refresh', 'TableController@refresh');
-		Route::get('/logout', 'LoginController@getLogout');
+		Route::get('/logout', 'LoginController@logout');
 		Route::post('/upload/image', 'FileController@image');
 		Route::get('cleanup', function(){
 			FileController::findOrphans();
@@ -45,15 +45,17 @@ Route::group(['prefix' => config('center.prefix'), 'namespace' => 'LeftRight\Cen
 		});
 
 		# Instance routing, optionally with linked_id for related objects
-		Route::get('/{object_name}/delete/{instance_id}',		'RowController@delete');
-		Route::get('/{object_name}',							'RowController@index');
-		Route::get('/{object_name}/export',						'RowController@export');
-		Route::get('/{object_name}/create/{linked_id?}',		'RowController@create');
-		Route::post('/{object_name}/reorder',					'RowController@reorder');
-		Route::post('/{object_name}/{linked_id?}',				'RowController@store');
-		Route::get('/{object_name}/{instance_id}/{linked_id?}',	'RowController@edit');
-		Route::put('/{object_name}/{instance_id}/{linked_id?}',	'RowController@update');
-		Route::delete('/{object_name}/{instance_id}', 			'RowController@destroy');
+		Route::get('/{table_name}/delete/{instance_id}',		'RowController@delete');
+		Route::get('/{table_name}',							'RowController@index');
+		Route::get('/{table_name}/export',						'RowController@export');
+		Route::get('/{table_name}/permissions',				'TableController@permissions');
+		Route::put('/{table_name}/permissions',				'TableController@savePermissions');
+		Route::get('/{table_name}/create/{linked_id?}',		'RowController@create');
+		Route::post('/{table_name}/reorder',					'RowController@reorder');
+		Route::post('/{table_name}/{linked_id?}',				'RowController@store');
+		Route::get('/{table_name}/{instance_id}/{linked_id?}',	'RowController@edit');
+		Route::put('/{table_name}/{instance_id}/{linked_id?}',	'RowController@update');
+		Route::delete('/{table_name}/{instance_id}', 			'RowController@destroy');
 	
 		
 	});
