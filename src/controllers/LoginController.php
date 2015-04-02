@@ -19,7 +19,15 @@ class LoginController extends \App\Http\Controllers\Controller {
 		//if (Auth::check()) return ObjectController::index;
 		
 		//show install form
-		if (!DB::table(config('center.db.users'))->count()) return view('center::login.install');
+		try {
+			$installed = DB::table(config('center.db.users'))->count();			
+		} catch (\Exception $e) {
+			if ($e->getCode() == 2002) {
+				trigger_error('Center needs a valid database connection.');
+			}
+		}
+		
+		if (!$installed) return view('center::login.install');
 
 		return view('center::login.index');
 	}

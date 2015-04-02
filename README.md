@@ -4,31 +4,29 @@ An innovative CMS for Laravel 5.
 (walkthrough video to come)
 
 ### Installation
-In Terminal:
+1) create a valid database connection
+
+2) In Terminal:
 ```
 composer require left-right/center:dev-master
 ```
-add these to $providers in config/app.php
+3) add these to $providers in config/app.php
 ```
-'LeftRight\Center\CenterServiceProvider',
-'Illuminate\Html\HtmlServiceProvider',
-'Maatwebsite\Excel\ExcelServiceProvider',
+		'LeftRight\Center\CenterServiceProvider',
+		'Illuminate\Html\HtmlServiceProvider',
+		'Maatwebsite\Excel\ExcelServiceProvider',
 ```
-add these to $aliases in config/app.php
+4) add these to $aliases in config/app.php
 ```
-'Form'      => 'Illuminate\Html\FormFacade',
-'HTML'      => 'Illuminate\Html\HtmlFacade',
-'Excel'     => 'Maatwebsite\Excel\Facades\Excel',
+		'Form'      => 'Illuminate\Html\FormFacade',
+		'HTML'      => 'Illuminate\Html\HtmlFacade',
+		'Excel'     => 'Maatwebsite\Excel\Facades\Excel',
 ```
-add these to $middleware in App/Http/Kernel.php
+5) add these to $middleware in App/Http/Kernel.php
 ```
-'LeftRight\Center\Middleware\Permissions',
+		'LeftRight\Center\Middleware\Permissions',
 ```
-add these to $middleware in App/Http/Kernel.php
+6) add these to $middleware in App/Http/Kernel.php
 ```
-'user' => 'LeftRight\Center\Middleware\User',
-```
-In Terminal, again:
-```
-php artisan vendor:publish
+		'user' => 'LeftRight\Center\Middleware\User',
 ```

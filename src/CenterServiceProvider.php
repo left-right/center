@@ -48,7 +48,7 @@ class CenterServiceProvider extends ServiceProvider {
 		
 		//todo: consider caching this
 		$expanded_tables = [];
-		$tables = array_merge(config('center.tables'), config('center.system_tables'));
+		$tables = array_merge(config('center.tables', []), config('center.system_tables'));
 		foreach ($tables as $table=>$table_properties) {
 			
 			//parse table definition
