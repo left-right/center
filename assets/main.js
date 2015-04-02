@@ -251,7 +251,8 @@ $(function() {
 			var width    = $(this).width();
 			var height   = $(this).height();
 			var action	 = $(this).attr('data-action');
-			var field_id = $(this).attr('data-field-id');
+			var table_name = $(this).attr('data-table-name');
+			var field_name = $(this).attr('data-field-name');
 			var multiple = $(this).closest('.form-group').hasClass('field-images');
 			var isnew    = $(this).hasClass('new');
 			var token	 = $(this).closest('form').find('input[name=_token]').val();
@@ -263,7 +264,8 @@ $(function() {
 			if (multiple) {				
 				$('<form id="' + random + '" class="upload upload_image' + (isnew ? ' new' : '') + '">' + 
 					'<input type="hidden" name="_token" value="' + token + '">' + 
-					'<input type="hidden" name="field_id" value="' + field_id + '">' + 
+					'<input type="hidden" name="table_name" value="' + table_name + '">' + 
+					'<input type="hidden" name="field_name" value="' + field_name + '">' + 
 					'<input type="file" name="image" multiple>' +
 					'<a class="remove"><i class="glyphicon glyphicon-remove-circle"></i></a>' +
 					'</form>')
@@ -271,7 +273,8 @@ $(function() {
 			} else {
 				$('<form id="' + random + '" class="upload upload_image">' + 
 					'<input type="hidden" name="_token" value="' + token + '">' + 
-					'<input type="hidden" name="field_id" value="' + field_id + '">' + 
+					'<input type="hidden" name="table_name" value="' + table_name + '">' + 
+					'<input type="hidden" name="field_name" value="' + field_name + '">' + 
 					'<input type="file" name="image">' +
 					'</form>')
 					.appendTo("body");

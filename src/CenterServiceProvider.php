@@ -19,7 +19,6 @@ class CenterServiceProvider extends ServiceProvider {
 	}
 
 	public function boot() {
-		
 		//set up publishes paths and define config locations
 		$this->config();
 		
@@ -52,6 +51,7 @@ class CenterServiceProvider extends ServiceProvider {
 			$table_properties = self::promoteNumericKeyToTrue($table_properties);
 			$table_properties['name'] = $table;
 			$table_properties['title'] = trans('center::' . $table . '.title');
+			if (!isset($table_properties['keep_clean'])) $table_properties['keep_clean'] = false;
 			
 			//temp, soon to look up from permissions table
 			$table_properties['user_can_create'] = true;
@@ -73,7 +73,7 @@ class CenterServiceProvider extends ServiceProvider {
 
 				//check
 				if (!in_array($field_properties['type'], self::$field_types)) {
-					throw new Exception('field ' . $table . '.' . $field . ' is of type ' . $field_properties['type'] . ' which is not supported.');
+					trigger_error('field ' . $table . '.' . $field . ' is of type ' . $field_properties['type'] . ' which is not supported.');
 				}
 
 				//set other field attributes
@@ -81,6 +81,10 @@ class CenterServiceProvider extends ServiceProvider {
 				$field_properties['title'] = trans('center::' . $table . '.fields.' . $field);
 				if (!isset($field_properties['required'])) $field_properties['required'] = in_array($field, ['id', 'created_at', 'updated_at', 'tinyint']);
 				if (!isset($field_properties['hidden'])) $field_properties['hidden'] = in_array($field, ['id', 'created_at', 'updated_at', 'deleted_at', 'created_by', 'updated_by', 'deleted_by', 'password']);
+				if (in_array($field_properties['type'], ['image' ,'images'])) {
+					if (empty($field_properties['width'])) $field_properties['width'] = null;
+					if (empty($field_properties['height'])) $field_properties['height'] = null;
+				}
 				
 				//forced overrides
 				if ($field_properties['type'] == 'password') $field_properties['hidden'] = true;

@@ -20,11 +20,11 @@ return [
 	//default objects to start
 	'system_tables' => [
 		'files' => [
+			'keep_clean',
 			'hidden',
 			'fields' => [
-				'object' => 'string',
+				'table' => 'string',
 				'field' => 'string',
-				'host' => 'string',
 				'path' => 'string',
 				'name' => 'string',
 				'extension' => [
@@ -33,11 +33,14 @@ return [
 				],
 				'width' => 'integer',
 				'height' => 'integer',
+				'size' => 'integer',
 				'created_at',
 				'created_by',
+				'precedence'=>'integer',
 			],
 		],
 		'metadata' => [
+			'keep_clean',
 			'hidden',
 			'fields' => [
 				'table' => [
@@ -57,6 +60,7 @@ return [
 			],
 		],
 		'permissions' => [
+			'keep_clean',
 			'hidden',
 			'fields' =>	[
 				'user_id' => [
@@ -74,6 +78,7 @@ return [
 			],
 		],
 		'users' => [
+			'keep_clean',
 			'list'=> ['name', 'last_login', 'updated_at'],
 			'order_by' => 'name',
 			'fields' => [
@@ -96,6 +101,7 @@ return [
 				],
 				'admin' => 'checkbox',
 				'updated_at',
+				'updated_by',
 				'deleted_at',
 			],
 		],

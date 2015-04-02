@@ -319,7 +319,7 @@ class RowController extends \App\Http\Controllers\Controller {
 	
 	//show edit form
 	public function edit($table, $row_id, $linked_id=false) {
-
+	
 		# Get object / field / whatever infoz
 		$table = config('center.tables.' . $table);
 		$instance = DB::table($table->name)->where('id', $row_id)->first();

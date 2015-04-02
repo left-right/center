@@ -12,25 +12,21 @@ Route::group(['prefix' => config('center.prefix'), 'namespace' => 'LeftRight\Cen
 	Route::get('/change/{email}/{token}',	'LoginController@getChange');
 	Route::post('/change',					'LoginController@postChange');
 
-	# Schema
-	Route::get('/refresh', 'TableController@refresh');
-
 	Route::group(['middleware' => 'user'], function(){
 			
-		# Programmers only
-		Route::group(['before'=>'admin'], function(){
-
-			
-		});
-
-		# All authenticated users
-		Route::group(array('before'=>'user'), function(){
-			Route::get('/logout', 'LoginController@getLogout');
-			Route::post('/upload/image', 'FileController@image');
-
-			# Test routes
-			Route::get('/image/test', 'FileController@test');
-			Route::get('/slug/test', function(){
+		# Special routes
+		Route::get('/refresh', 'TableController@refresh');
+		Route::get('/logout', 'LoginController@getLogout');
+		Route::post('/upload/image', 'FileController@image');
+		Route::get('cleanup', function(){
+			FileController::findOrphans();
+			FileController::cleanup();
+		});		
+		
+		# Test routes
+		Route::group(['prefix' => 'test'], function(){ 
+			Route::get('/image', 'FileController@test');
+			Route::get('/slug', function(){
 				$phrases = [
 					'',
 					'and',
@@ -46,23 +42,20 @@ Route::group(['prefix' => config('center.prefix'), 'namespace' => 'LeftRight\Cen
 				Slug::setForObject($object);
 				die('object was ' . $object->name);
 			});
-			Route::get('cleanup', function(){
-				FileController::findOrphans();
-				FileController::cleanup();
-			});		
-			
-			# Complex instance routing, optionally with linked_id for related objects
-			Route::get('/{object_name}/delete/{instance_id}',		'RowController@delete');
-			Route::get('/{object_name}',							'RowController@index');
-			Route::get('/{object_name}/export',						'RowController@export');
-			Route::get('/{object_name}/create/{linked_id?}',		'RowController@create');
-			Route::post('/{object_name}/reorder',					'RowController@reorder');
-			Route::post('/{object_name}/{linked_id?}',				'RowController@store');
-			Route::get('/{object_name}/{instance_id}/{linked_id?}',	'RowController@edit');
-			Route::put('/{object_name}/{instance_id}/{linked_id?}',	'RowController@update');
-			Route::delete('/{object_name}/{instance_id}', 			'RowController@destroy');
 		});
+
+		# Instance routing, optionally with linked_id for related objects
+		Route::get('/{object_name}/delete/{instance_id}',		'RowController@delete');
+		Route::get('/{object_name}',							'RowController@index');
+		Route::get('/{object_name}/export',						'RowController@export');
+		Route::get('/{object_name}/create/{linked_id?}',		'RowController@create');
+		Route::post('/{object_name}/reorder',					'RowController@reorder');
+		Route::post('/{object_name}/{linked_id?}',				'RowController@store');
+		Route::get('/{object_name}/{instance_id}/{linked_id?}',	'RowController@edit');
+		Route::put('/{object_name}/{instance_id}/{linked_id?}',	'RowController@update');
+		Route::delete('/{object_name}/{instance_id}', 			'RowController@destroy');
 	
+		
 	});
 	
 });

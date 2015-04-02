@@ -1,6 +1,7 @@
 <?php namespace LeftRight\Center\Libraries;
 
 use Illuminate\Support\Str;
+use Session;
 
 class Table {
 
@@ -103,13 +104,13 @@ class Table {
 			}
 
 			//create row
-			$rows[] = '<tr' . (empty($row->id) ?: ' id="' . $row->id . '"') . (self::$deletable && $row->deleted_at ? ' class="inactive"' : '') . '>' . implode($columns) . '</tr>';
+			$rows[] = '<tr' . (empty($row->id) ? '' : ' id="' . $row->id . '"') . (self::$deletable && $row->deleted_at ? ' class="inactive"' : '') . '>' . implode($columns) . '</tr>';
 		}
 
 		$bodies[] = '<tbody>' . implode($rows) . '</tbody>';
 
 		//output
-		return '<table id="' . $id . '" class="table table-condensed' . (!self::$draggable ?: ' draggable" data-draggable-url="' . self::$draggable) . '" data-csrf-token="' . \Session::token() . '">' .
+		return '<table id="' . $id . '" class="table table-condensed' . (self::$draggable ? ' draggable" data-draggable-url="' . self::$draggable : '') . '" data-csrf-token="' . Session::token() . '">' .
 					$head . 
 					implode($bodies) . 
 				'</table>';

@@ -2,7 +2,6 @@
 
 use Auth;
 use DB;
-use Exception;
 use Schema;
 
 class TableController extends Controller {
@@ -96,6 +95,7 @@ class TableController extends Controller {
 								'; ');
 							break;
 							
+						case 'image':
 						case 'integer':
 						case 'select':
 						case 'user':
@@ -113,13 +113,27 @@ class TableController extends Controller {
 							break;
 
 					    default:
-							throw new Exception($field->type . ' not supported yet!');
+							trigger_error($field->type . ' not supported yet!');
+					}
+
+					//remove unused columns?
+					if ($table->keep_clean) {
+						$columns = Schema::getColumnListing($table->name);
+						$fields = array_keys((array) $table->fields);
+						$columns = array_diff($columns, $fields, ['id']);
+						foreach ($columns as $column) $t->dropColumn($column);
 					}
 
 				});
 			}
 			
 		}
+		
+		/*removed unused tables?
+		if (config('center.keep_clean')) {
+			$tables = Schema::getTableListing();
+			dd($tables);
+		}*/
 		
 		return redirect(route('home'))->with('message', trans('center::tables.success'));
 	}

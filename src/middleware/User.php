@@ -11,8 +11,6 @@ class User {
     {
         if (Auth::guest()) {
 	        return View::make('center::login.index');
-        } elseif (Auth::user()->role === null) {
-	        return Redirect::to('/', 403);
         }
         
         return $next($request);
