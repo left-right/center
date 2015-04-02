@@ -16,7 +16,7 @@
     "require": {
         "php": ">=5.4.0",
         "illuminate/support": "5.0.*",
-        "illuminate/html": "dev-master",
+        "illuminate/html": "5.0.*",
         "intervention/image": "2.*",
         "doctrine/dbal": "2.*",
 		"maatwebsite/excel": "2.*"
