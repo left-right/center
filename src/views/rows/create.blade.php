@@ -1,7 +1,7 @@
 @extends('center::template')
 
 @section('title')
-	@lang('center::rows.create')
+	@lang('center::site.create')
 @endsection
 
 @section('main')
@@ -9,7 +9,7 @@
 	{!! \LeftRight\Center\Libraries\Breadcrumbs::leave([
 		URL::action('\LeftRight\Center\Controllers\TableController@index')=>trans('center::site.home'),
 		URL::action('\LeftRight\Center\Controllers\RowController@index', $table->name)=>$table->title,
-		trans('center::rows.create'),
+		trans('center::site.create'),
 		]) !!}
 
 	@include('center::notifications')

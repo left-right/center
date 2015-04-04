@@ -38,11 +38,10 @@ class RowController extends \App\Http\Controllers\Controller {
 		$rows = DB::table($table->name);
 
 		# Empty arrays mainly for search
-		$select_fields = $date_fields = $columns = [];
-		$date_fields = ['created_at'=>'Created', 'updated_at'=>'Updated'];
-
+		$date_fields = $select_fields = $date_fields = $columns = [];
+		
 		# Build select statement
-		$rows->select([$table->name . '.id', $table->name . '.updated_at', $table->name . '.deleted_at']);
+		$rows->select([$table->name . '.id']);
 		foreach ($table->list as $field) {
 			$field = $table->fields->{$field};
 				

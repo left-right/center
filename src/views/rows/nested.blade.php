@@ -15,7 +15,7 @@
 				</a></div>
 		</div>
 		@if (count($instance->children))
-			@include('center::instances.nested', array('instances'=>$instance->children))
+			@include('center::rows.nested', array('instances'=>$instance->children))
 		@endif
 	</li>
 @endforeach

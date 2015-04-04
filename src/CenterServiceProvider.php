@@ -34,13 +34,20 @@ class CenterServiceProvider extends ServiceProvider {
 
 	//set up publishes paths and define config locations
 	private function config() {
-		$this->loadViewsFrom(__DIR__.'/views', 'center');
-		$this->loadTranslationsFrom(__DIR__.'/translations', 'center');
+		$this->loadViewsFrom(__DIR__ . '/views', 'center');
+		$this->loadTranslationsFrom(__DIR__ . '/translations', 'center');
 		$this->publishes([
-			__DIR__.'/../assets/public' => public_path('vendor/center'),
+			__DIR__ . '/../assets/public' => public_path('vendor/center'),
 		], 'public');
-		include __DIR__.'/macros.php';
-		include __DIR__.'/routes.php';
+		$this->publishes([
+			__DIR__ . '/config.sample.php' => config_path('center.php'),
+		], 'config');
+		$this->publishes([
+			__DIR__ . '/translations/en/site.php' => app_path('../resources/lang/packages/en/center/site.php'),
+			__DIR__ . '/translations/en/users.php' => app_path('../resources/lang/packages/en/center/users.php'),
+		], 'lang');
+		include __DIR__ . '/macros.php';
+		include __DIR__ . '/routes.php';
 	}
 	
 	//parse through config, expand it by applying default values and permissions
@@ -57,6 +64,7 @@ class CenterServiceProvider extends ServiceProvider {
 			$table_properties['title'] = trans('center::' . $table . '.title');
 			if (!isset($table_properties['keep_clean'])) $table_properties['keep_clean'] = false;
 			if (!isset($table_properties['search'])) $table_properties['search'] = false;
+			if (!isset($table_properties['list'])) $table_properties['list'] = [];
 			
 			//temp, soon to look up from permissions table
 			$table_properties['dates'] = [];

@@ -23,8 +23,8 @@ class TableController extends Controller {
 			$objects[] = (object) [
 				'title' => $table->title,
 				'link' => action('\LeftRight\Center\Controllers\RowController@index', $table->name),
-				'updated_name' => $latest->updated_name,
-				'updated_at' => $latest->updated_at,
+				'updated_name' => isset($latest->updated_name) ? $latest->updated_name : '',
+				'updated_at' => isset($latest->updated_at) ? $latest->updated_at : '',
 				'count' => DB::table($table->name)->count(),
 			];
 		}

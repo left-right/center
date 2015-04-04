@@ -1,7 +1,7 @@
 @extends('center::template')
 
 @section('title')
-	@lang('center::rows.edit')
+	@lang('center::site.edit')
 @endsection
 
 @section('main')
@@ -9,7 +9,7 @@
 	{!! \LeftRight\Center\Libraries\Breadcrumbs::leave([
 		action('\LeftRight\Center\Controllers\TableController@index')=>trans('center::site.home'),
 		action('\LeftRight\Center\Controllers\RowController@index', $table->name)=>$table->title,
-		trans('center::rows.edit'),
+		trans('center::site.edit'),
 		]) !!}
 
 	{!! Form::open(['class'=>'form-horizontal ' . $table->name, 'url'=>action('\LeftRight\Center\Controllers\RowController@update', [$table->name, $instance->id, $linked_id]), 'method'=>'put']) !!}
@@ -145,7 +145,7 @@
 		<div class="btn-group">
 			<a class="btn btn-default" id="create" href="{{ action('\LeftRight\Center\Controllers\RowController@create', [$link['object']->name, $instance->id]) }}">
 				<i class="glyphicon glyphicon-plus"></i> 
-				@lang('center::rows.create')
+				@lang('center::site.create')
 			</a>
 		</div>
 		
@@ -163,7 +163,7 @@
 
 	{!! Form::open(['method'=>'delete', 'action'=>['\LeftRight\Center\Controllers\RowController@destroy', $table->name, $instance->id]]) !!}
 		{!! Form::hidden('return_to', $return_to) !!}
-		{!! Form::submit(trans('center::rows.destroy'), ['class'=>'btn btn-default btn-xs']) !!}
+		{!! Form::submit(trans('center::site.destroy'), ['class'=>'btn btn-default btn-xs']) !!}
 	{!! Form::close() !!}
 
 @endsection

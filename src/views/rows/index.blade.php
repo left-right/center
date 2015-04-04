@@ -20,12 +20,12 @@
 		@endif
 		<a class="btn btn-default" href="{{ action('\LeftRight\Center\Controllers\RowController@export', $table->name) }}">
 			<i class="glyphicon glyphicon-circle-arrow-down"></i>
-			@lang('center::rows.export')
+			@lang('center::site.export')
 		</a>
 		@if (\LeftRight\Center\Controllers\LoginController::checkPermission($table->name, 'create'))
 			<a class="btn btn-default" href="{{ action('\LeftRight\Center\Controllers\RowController@create', $table->name) }}">
 				<i class="glyphicon glyphicon-plus"></i>
-				@lang('center::rows.create')
+				@lang('center::site.create')
 			</a>
 		@endif
 	</div>
@@ -39,7 +39,7 @@
 					Title
 					<div class="updated_at">Updated</div>
 				</div>
-				@include('center::rows.nested', ['instances'=>$rows])
+				@include('center::site.nested', ['instances'=>$rows])
 			</div>
 		@else
 			{!! \LeftRight\Center\Controllers\RowController::table($table, $columns, $rows) !!}
@@ -47,9 +47,9 @@
 	@else
 	<div class="alert alert-warning">
 		@if ($searching)
-			@lang('center::instances.search_empty', ['title'=>strtolower($table->title)])
+			@lang('center::site.search_empty', ['title'=>strtolower($table->title)])
 		@else
-			@lang('center::instances.empty', ['title'=>strtolower($table->title)])
+			@lang('center::site.empty', ['title'=>strtolower($table->title)])
 		@endif
 	</div>
 	@endif

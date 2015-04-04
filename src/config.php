@@ -1,8 +1,7 @@
 <?php
-global $app;
 
 return [
-	//you may add or replace the default bootstrap css
+	//you may augment or replace the default bootstrap css
 	'css' => [
 		'/vendor/center/css/main.min.css',
 	],
@@ -16,9 +15,6 @@ return [
 		'permissions' => 'permissions',
 		'users' => 'users',
 	],
-	
-	//exposes manual refresh button
-	'local' => $app->environment('local'),
 	
 	//default objects to start
 	'system_tables' => [
