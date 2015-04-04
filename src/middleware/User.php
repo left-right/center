@@ -3,14 +3,14 @@
 use Auth;
 use Closure;
 use Redirect;
-use View;
+use LeftRight\Center\Controllers\LoginController;
 
 class User {
 
     public function handle($request, Closure $next)
     {
         if (Auth::guest()) {
-	        return View::make('center::login.index');
+	        return LoginController::getIndex();
         }
         
         return $next($request);

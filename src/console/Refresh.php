@@ -1,6 +1,7 @@
 <?php namespace LeftRight\Center\Console;
 
 use Illuminate\Console\Command;
+use LeftRight\Center\Controllers\LoginController;
 use Schema;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputArgument;
@@ -134,6 +135,13 @@ class Refresh extends Command {
 				});
 			}
 		}
+
+		//now can set permissions, had to wait for permissions table potentially to be created
+		foreach ($tables as $table) {
+			//set default permissions
+			LoginController::setDefaultTablePermissions($table->name);
+		}
+
 		$this->comment(PHP_EOL . trans('center::site.refresh_success') . PHP_EOL);
 	}
 

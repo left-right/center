@@ -108,6 +108,11 @@ class RowController extends \App\Http\Controllers\Controller {
 		# Set the order and direction
 		$rows->orderBy($table->name . '.' . $table->order_by);
 
+		# Soft deletes?
+		if (isset($table->fields->deleted_at)) {
+			$rows->addSelect('deleted_at');
+		}
+
 		$searching = false;
 
 		# Text search?
@@ -131,9 +136,9 @@ class RowController extends \App\Http\Controllers\Controller {
 
 		# Set URLs on each instance
 		if (LoginController::checkPermission($table->name, 'edit')) {
-			foreach ($rows as &$instance) {
-				$instance->link = action('\LeftRight\Center\Controllers\RowController@edit', [$table->name, $instance->id, $linked_id]);
-				$instance->delete = action('\LeftRight\Center\Controllers\RowController@delete', [$table->name, $instance->id]);
+			foreach ($rows as &$row) {
+				$row->link = action('\LeftRight\Center\Controllers\RowController@edit', [$table->name, $row->id, $linked_id]);
+				$row->delete = action('\LeftRight\Center\Controllers\RowController@delete', [$table->name, $row->id]);
 			}
 		}
 

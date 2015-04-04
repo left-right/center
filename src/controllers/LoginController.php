@@ -46,26 +46,22 @@ class LoginController extends \App\Http\Controllers\Controller {
 			return Redirect::route('home')->with('error', trans('center::site.login_invalid'));
 		} 
 		
-		//make user
+		//installing, make user
 		$user_id = DB::table(config('center.db.users'))->insertGetId([
 			'name'			=> Request::input('name'),
 			'email'			=> Request::input('email'),
 			'password'		=> Hash::make(Request::input('password')),
 			'last_login'	=> new DateTime,
 			'updated_at'	=> new DateTime,
+			'updated_by'	=> 1,
 		]);
-		
-		DB::table(config('center.db.permissions'))->insert([
-			'table'			=> config('center.db.users'),
-			'user'			=> $user_id,
-			'level'			=> 'edit',
-		]);
-		
-		//show that user created self (couldn't we just hardcode 1 above?)
-		DB::table(config('center.db.users'))->where('id', $user_id)->update(['updated_by'=>$user_id]);
-		
+
+		//don't need to insert permissions; they were already inserted by refresh
+		//self::setDefaultTablePermissions(config('center.db.users'));
+				
 		Auth::loginUsingId($user_id);
-		LoginController::updateUserPermissions();
+
+		self::updateUserPermissions();
 		
 		return Redirect::route('home');
 	}
@@ -172,6 +168,20 @@ class LoginController extends \App\Http\Controllers\Controller {
 		];
 	}
 	
+	//set default permissions on a table (install and refresh)
+	public static function setDefaultTablePermissions($table) {
+		$admins = config('center.admins');
+		foreach ($admins as $admin) {
+			DB::table(config('center.db.permissions'))->where('user', $admin)->where('table', $table)->delete();
+			DB::table(config('center.db.permissions'))->insert([
+				'user' => $admin,
+				'table' => $table,
+				'level' => 'edit',
+			]);
+		}
+	}
+
+	//update user permissions
 	public static function updateUserPermissions() {
 	    Session::set('center.permissions', LoginController::permissions(Auth::id()));
 	}
