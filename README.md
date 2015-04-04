@@ -26,7 +26,7 @@ An innovative CMS for Laravel 5.
 
 			'LeftRight\Center\Middleware\Permissions',
 
-6. add this to $middleware in App/Http/Kernel.php
+6. add this to $routeMiddleware in App/Http/Kernel.php
 
 			'user' => 'LeftRight\Center\Middleware\User',
 

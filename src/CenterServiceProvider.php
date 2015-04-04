@@ -144,7 +144,8 @@ class CenterServiceProvider extends ServiceProvider {
 		foreach ($tables as $table) {
 			//only make models for defined models
 			if (!isset($table->model)) continue;
-			
+
+			$softDeletes = isset($table->fields->deleted_at);
 			$relationships = $dates = [];
 			
 			if ($table->name == config('center.db.files')) {
@@ -211,11 +212,11 @@ class CenterServiceProvider extends ServiceProvider {
 			}
 			
 			eval('namespace LeftRight\Center\Models;
-			use Illuminate\Database\Eloquent\SoftDeletes;
+			' . ($softDeletes ? 'use Illuminate\Database\Eloquent\SoftDeletes;' : '') . '
 			use Eloquent;
 
 			class ' . $table->model . ' extends Eloquent {
-			    use SoftDeletes;
+			    ' . ($softDeletes ? 'use SoftDeletes;' : '') . '
 				
 				public $table      = \'' . $table->name . '\'; //public intentionally
 				protected $guarded = array();
