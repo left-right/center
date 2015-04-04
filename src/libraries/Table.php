@@ -37,7 +37,7 @@ class Table {
 	public function draw($id='untitled') {
 		
 		//start up
-		if (self::$draggable) array_unshift(self::$columns, ['label'=>'', 'type'=>'draggy']);
+		if (self::$draggable) array_unshift(self::$columns, ['label'=>'', 'type'=>'draggy', 'name'=>'draggy']);
 		if (self::$deletable) self::column('delete', 'delete', '');
 		if (self::$grouped) $last_group = '';
 		$colspan = count(self::$columns);

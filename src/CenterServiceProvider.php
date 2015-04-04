@@ -101,7 +101,7 @@ class CenterServiceProvider extends ServiceProvider {
 						$field_properties['required'] = false;
 					}
 				}
-				if (!isset($field_properties['hidden'])) $field_properties['hidden'] = in_array($field, ['id', 'created_at', 'updated_at', 'deleted_at', 'created_by', 'updated_by', 'deleted_by', 'password']);
+				if (!isset($field_properties['hidden'])) $field_properties['hidden'] = in_array($field, ['id', 'created_at', 'updated_at', 'deleted_at', 'created_by', 'updated_by', 'deleted_by', 'password', 'precedence']);
 				if (in_array($field_properties['type'], ['image' ,'images'])) {
 					if (empty($field_properties['width'])) $field_properties['width'] = null;
 					if (empty($field_properties['height'])) $field_properties['height'] = null;

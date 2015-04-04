@@ -33,3 +33,10 @@ An innovative CMS for Laravel 5.
 7. add this to $commands in App/Console/Kernel.php
 
 			'LeftRight\Center\Console\Refresh',
+
+8. add this to your composer.json under autoload
+			"files": [
+				"vendor/left-right/center/src/middleware/Permissions.php",
+				"vendor/left-right/center/src/console/Refresh.php"
+			],
+

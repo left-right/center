@@ -87,11 +87,11 @@ class RowController extends \App\Http\Controllers\Controller {
 		# Handle group-by fields
 		$table->nested = false;
 		if (!empty($table->group_by_field)) {
-			$grouped_field = DB::table(config('center.db.fields'))->where('id', $object->group_by_field)->first();
+			$grouped_field = DB::table(config('center.db.fields'))->where('id', $table->group_by_field)->first();
 			$grouped_object = self::getRelatedObject($grouped_field->related_object_id);
-			if ($grouped_object->id == $object->id) {
+			if ($grouped_object->id == $table->id) {
 				//nested object
-				$object->nested = true;
+				$table->nested = true;
 			} else {
 				# Include group_by_field in resultset
 				$rows
@@ -165,7 +165,7 @@ class RowController extends \App\Http\Controllers\Controller {
 
 		# Return array to edit()
 		if ($linked_id) {
-			$object->group_by_field = false; //hacky, but easiest way to remove grouping
+			$table->group_by_field = false; //hacky, but easiest way to remove grouping
 			return $return;
 		}
 
@@ -277,7 +277,7 @@ class RowController extends \App\Http\Controllers\Controller {
 			if ($field->name == 'updated_at') $inserts['updated_at'] = new DateTime();
 			if ($field->name == 'created_by') $inserts['created_by'] = Auth::user()->id;
 			if ($field->name == 'updated_by') $inserts['updated_by'] = Auth::user()->id;
-			if ($field->name == 'precedence') $inserts['updated_at'] = DB::table($table->name)->max('precedence') + 1;
+			if ($field->name == 'precedence') $inserts['precedence'] = DB::table($table->name)->max('precedence') + 1;
 		}
 
 		/*validate
@@ -292,7 +292,7 @@ class RowController extends \App\Http\Controllers\Controller {
 		//slug
 		if (property_exists($table->fields, 'slug')) {
 			//determine where slug is coming from
-			if ($slug_source = Slug::source($object->id)) {
+			if ($slug_source = Slug::source($table->id)) {
 				$slug_source = Request::input($slug_source);
 			} else {
 				$slug_source = date('Y-m-d');
@@ -350,7 +350,7 @@ class RowController extends \App\Http\Controllers\Controller {
 		}
 
 		/*update objects table with latest counts
-		DB::table(config('center.db.objects'))->where('id', $object->id)->update([
+		DB::table(config('center.db.objects'))->where('id', $table->id)->update([
 			'count'=>DB::table($table->name)->whereNull('deleted_at')->count(),
 			'updated_at'=>new DateTime,
 			'updated_by'=>Auth::user()->id
@@ -595,7 +595,7 @@ class RowController extends \App\Http\Controllers\Controller {
 
 		//slug
 		/*
-		if (!empty($object->url)) {
+		if (!empty($table->url)) {
 			$uniques = DB::table($table->name)->where('id', '<>', $row_id)->lists('slug');
 			$updates['slug'] = Slug::make(Request::input('slug'), $uniques);
 		}
@@ -613,7 +613,7 @@ class RowController extends \App\Http\Controllers\Controller {
 		//FileController::cleanup();
 
 		/*update object meta
-		DB::table(config('center.db.objects'))->where('id', $object->id)->update([
+		DB::table(config('center.db.objects'))->where('id', $table->id)->update([
 			'count'=>DB::table($table->name)->whereNull('deleted_at')->count(),
 			'updated_at'=>new DateTime,
 			'updated_by'=>Auth::user()->id
@@ -646,23 +646,23 @@ class RowController extends \App\Http\Controllers\Controller {
 
 		# Security
 		if (!isset($table->name)) {
-			return redirect()->route('home')->with('error', trans('center::site.table_does_not_exist'));
+			return; // redirect()->route('home')->with('error', trans('center::site.table_does_not_exist'));
 		} elseif (!LoginController::checkPermission($table->name, 'view')) {
-			return redirect()->route('home')->with('error', trans('center::site.no_permissions_view'));
+			return; // redirect()->route('home')->with('error', trans('center::site.no_permissions_view'));
 		} elseif (!LoginController::checkPermission($table->name, 'edit')) {
-			return redirect()->action('\LeftRight\Center\Controllers\RowController@index', $table->name)->with('error', trans('center::site.no_permissions_edit'));
+			return; // redirect()->action('\LeftRight\Center\Controllers\RowController@index', $table->name)->with('error', trans('center::site.no_permissions_edit'));
 		}
 
 		//determine whether nested
-		$object->nested = false;
-		if (!empty($object->group_by_field)) {
-			$grouped_field = DB::table(config('center.db.fields'))->where('id', $object->group_by_field)->first();
-			if ($grouped_field->related_object_id == $object->id) {
-				$object->nested = true;
+		$table->nested = false;
+		if (!empty($table->group_by_field)) {
+			$grouped_field = DB::table(config('center.db.fields'))->where('id', $table->group_by_field)->first();
+			if ($grouped_field->related_object_id == $table->id) {
+				$table->nested = true;
 			}
 		}
 
-		if ($object->nested) {
+		if ($table->nested) {
 			$row_ids = explode(',', Request::input('list'));
 			$precedence = 1;
 			foreach ($row_ids as $row_id) {
@@ -715,7 +715,7 @@ class RowController extends \App\Http\Controllers\Controller {
 		]);
 
 		/*update object meta
-		DB::table(config('center.db.objects'))->where('id', $object->id)->update(array(
+		DB::table(config('center.db.objects'))->where('id', $table->id)->update(array(
 			'count'=>DB::table($table->name)->whereNull('deleted_at')->count(),
 			'updated_at'=>new DateTime,
 			'updated_by'=>Auth::user()->id,
@@ -790,7 +790,7 @@ class RowController extends \App\Http\Controllers\Controller {
 	private static function getRelatedObjectName($object) {
 		return DB::table(config('center.db.fields'))
 			->join(config('center.db.objects'), config('center.db.fields') . '.related_object_id', '=', config('center.db.objects') . '.id')
-			->where(config('center.db.fields') . '.id', $object->group_by_field)
+			->where(config('center.db.fields') . '.id', $table->group_by_field)
 			->pluck(config('center.db.objects') . '.name');
 	}
 
@@ -803,8 +803,8 @@ class RowController extends \App\Http\Controllers\Controller {
 				$return->column($column->name, $column->type, $column->title);
 			}
 			if (LoginController::checkPermission($table->name, 'edit')) {
-				$return->deletable();
-				if ($table->order_by == 'precedence') $return->draggable(action('\LeftRight\Center\Controllers\RowController@reorder', $table));
+				if (isset($table->fields->deleted_at)) $return->deletable();
+				if ($table->order_by == 'precedence') $return->draggable(action('\LeftRight\Center\Controllers\RowController@reorder', $table->name));
 			}
 			if (!empty($table->group_by_field)) $return->groupBy('group');
 			return $return->draw($table->name);
