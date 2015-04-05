@@ -318,7 +318,7 @@ class RowController extends \App\Http\Controllers\Controller {
 			if ($field->type == 'checkboxes') {
 				//figure out schema, loop through and save all the checkboxes
 				$object_column = self::formatKeyColumn($table->name);
-				$remote_column = self::formatKeyColumn($field->related_object_id);
+				$remote_column = self::formatKeyColumn($field->source);
 				if (Request::has($field->name)) {
 					foreach (Request::input($field->name) as $related_id) {
 						DB::table($field->name)->insert(array(
