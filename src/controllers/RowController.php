@@ -20,6 +20,10 @@ use Validator;
 
 class RowController extends \App\Http\Controllers\Controller {
 
+	# Need these for processing input
+	private static $relation_field_types = ['checkboxes', 'images', 'permissions'];
+
+
 	# Show list of instances for an object
 	# $group_by_id is for when coming from a linked object
 	public function index($table, $linked_id=false) {
@@ -269,21 +273,7 @@ class RowController extends \App\Http\Controllers\Controller {
 		}
 
 		//metadata
-		$inserts = [];
-
-		//run various cleanup processes on the fields
-		foreach ($table->fields as $field) {
-			if (Request::has($field->name)) {
-				$inserts[$field->name] = self::sanitize($field);
-			} elseif ($field->type == 'checkbox') {
-				$inserts[$field->name] = 0;
-			}
-			if ($field->name == 'created_at') $inserts['created_at'] = new DateTime;
-			if ($field->name == 'updated_at') $inserts['updated_at'] = new DateTime();
-			if ($field->name == 'created_by') $inserts['created_by'] = Auth::user()->id;
-			if ($field->name == 'updated_by') $inserts['updated_by'] = Auth::user()->id;
-			if ($field->name == 'precedence') $inserts['precedence'] = DB::table($table->name)->max('precedence') + 1;
-		}
+		$inserts = self::processColumnsInput($table);
 
 		/*validate
 		$v = Validator::make(Request::all(), [
@@ -294,72 +284,11 @@ class RowController extends \App\Http\Controllers\Controller {
 		    return redirect()->back()->withInput()->withErrors($v->errors());
 		}*/
 
-		//slug
-		if (property_exists($table->fields, 'slug')) {
-			//determine where slug is coming from
-			if ($slug_source = Slug::source($table->id)) {
-				$slug_source = Request::input($slug_source);
-			} else {
-				$slug_source = date('Y-m-d');
-			}
-	
-			//get other values to check uniqueness
-			$uniques = DB::table($table->name)->lists('slug');
-	
-			//add unique, formatted slug to the insert batch
-			$inserts['slug'] = Slug::make($slug_source, $uniques);
-		}
-		
 		//run insert
 		$row_id = DB::table($table->name)->insertGetId($inserts);
 		
 		//handle any checkboxes, had to wait for row_id
-		foreach ($table->fields as $field) {
-			if ($field->type == 'checkboxes') {
-				//figure out schema, loop through and save all the checkboxes
-				$object_column = self::formatKeyColumn($table->name);
-				$remote_column = self::formatKeyColumn($field->source);
-				if (Request::has($field->name)) {
-					foreach (Request::input($field->name) as $related_id) {
-						DB::table($field->name)->insert(array(
-							$object_column=>$row_id,
-							$remote_column=>$related_id,
-						));
-					}
-				}
-			} elseif ($field->type == 'image') {
-				DB::table(config('center.db.files'))->where('id', Request::input($field->name))->update(['row_id'=>$row_id]);
-			} elseif ($field->type == 'images') {
-				$file_ids = explode(',', Request::input($field->name));
-				$precedence = 0;
-				foreach ($file_ids as $file_id) {
-					DB::table(config('center.db.files'))->where('id', $file_id)->update([
-						'row_id'=>$row_id,
-						'precedence'=>++$precedence,
-					]);
-				}
-			} elseif ($field->type == 'permissions') {
-				if ($table->name == config('center.db.users')) {
-					DB::table(config('center.db.permissions'))->where('user', $row_id)->delete();
-					foreach (Request::input('permissions') as $table_name=>$level) {
-						if (!empty($value)) {
-							DB::table(config('center.db.permissions'))->insert([
-								'user' => $row_id,
-								'table' => $table_name,
-								'level' => $level,
-							]);
-						}
-					}
-				}
-			}
-		}
-
-		/*update objects table with latest counts
-		DB::table(config('center.db.objects'))->where('id', $table->id)->update([
-			'count'=>DB::table($table->name)->whereNull('deleted_at')->count(),
-			'updated_at'=>new DateTime,
-			'updated_by'=>Auth::user()->id
-		]);*/
+		self::processRelationsInput($table, $row_id);
 
 		//clean up any abandoned files
 		FileController::cleanup();
@@ -511,119 +440,18 @@ class RowController extends \App\Http\Controllers\Controller {
 			return redirect()->action('\LeftRight\Center\Controllers\RowController@index', $table->name)->with('error', trans('center::site.no_permissions_edit'));
 		}
 
-		//metadata
-		$updates = [
-			'updated_at'=>new DateTime,
-			'updated_by'=>Auth::user()->id,
-		];
-		
-				
-		//run loop through the fields
-		foreach ($table->fields as $field) {
-			if ($field->hidden) continue;
-			if ($field->type == 'checkboxes') {
-				
-				# Figure out schema
-				$object_column = self::formatKeyColumn($table->name);
-				$remote_column = self::formatKeyColumn($field->source);
-
-				# Clear old values
-				DB::table($field->name)->where($object_column, $row_id)->delete();
-
-				# Loop through and save all the checkboxes
-				if (Request::has($field->name)) {
-					foreach (Request::input($field->name) as $related_id) {
-						DB::table($field->name)->insert(array(
-							$object_column=>$row_id,
-							$remote_column=>$related_id,
-						));
-					}
-				}
-			} elseif ($field->type == 'images') {
-
-				# Unset any old file associations (will get cleaned up after this loop)
-				DB::table(config('center.db.files'))
-					->where('table', $table->name)
-					->where('field', $field->name)
-					->where('row_id', $row_id)
-					->update(array('instance_id'=>null));
-
-				# Create new associations
-				$file_ids = explode(',', Request::input($field->name));
-				$precedence = 0;
-				foreach ($file_ids as $file_id) {
-					DB::table(config('center.db.files'))
-						->where('id', $file_id)
-						->update(array(
-							'instance_id'=>$row_id,
-							'precedence'=>++$precedence,
-						));
-				}
-
-			} elseif ($field->type == 'permissions') {
-				if ($table->name == config('center.db.users')) {
-					DB::table(config('center.db.permissions'))->where('user', $row_id)->delete();
-					foreach (Request::input('permissions') as $table_name=>$level) {
-						if (!empty($level)) {
-							DB::table(config('center.db.permissions'))->insert([
-								'user' => $row_id,
-								'table' => $table_name,
-								'level' => $level,
-							]);
-						}
-					}
-					
-					//update permissions if you're updating yourself
-					if ($row_id == Auth::id()) LoginController::updateUserPermissions();
-				}
-			} else {
-				if ($field->type == 'image') {
-
-					# Unset any old file associations (will get cleaned up after this loop)
-					DB::table(config('center.db.files'))
-						->where('table', $table->name)
-						->where('field', $field->name)
-						->where('row_id', $row_id)
-						->update(['row_id'=>null]);
-
-
-					# Capture the uploaded file by setting the reverse-lookup
-					DB::table(config('center.db.files'))
-						->where('id', Request::input($field->name))
-						->update(['row_id'=>$row_id]);
-
-				}
-
-				$updates[$field->name] = self::sanitize($field);
-			}
-		}
-
-		//slug
-		/*
-		if (!empty($table->url)) {
-			$uniques = DB::table($table->name)->where('id', '<>', $row_id)->lists('slug');
-			$updates['slug'] = Slug::make(Request::input('slug'), $uniques);
-		}
-		*/
-		
-		/* //todo manage a redirect table if client demand warrants it
-		$old_slug = DB::table($table->name)->find($row_id)->pluck('slug');
-		if ($updates['slug'] != $old_slug) {
-		}*/
+		//sanitize and convert input to array
+		$updates = self::processColumnsInput($table, $row_id);
 				
 		//run update
 		DB::table($table->name)->where('id', $row_id)->update($updates);
+
+		//relations
+		self::processRelationsInput($table, $row_id);
 		
 		//clean up abandoned files
 		FileController::cleanup();
 
-		/*update object meta
-		DB::table(config('center.db.objects'))->where('id', $table->id)->update([
-			'count'=>DB::table($table->name)->whereNull('deleted_at')->count(),
-			'updated_at'=>new DateTime,
-			'updated_by'=>Auth::user()->id
-		]);*/
-		
 		return Redirect::to(Request::input('return_to'));
 	}
 	
@@ -732,7 +560,7 @@ class RowController extends \App\Http\Controllers\Controller {
 	}
 
 	# Sanitize field values before inserting
-	private function sanitize($field) {
+	private static function sanitize($field) {
 		
 		//foreign key situation, exit
 		if (in_array($field->type, ['checkboxes', 'images'])) return;
@@ -763,6 +591,129 @@ class RowController extends \App\Http\Controllers\Controller {
 		}
 
 		return $value;
+	}
+
+	# Process Column Input
+	private static function processColumnsInput($table, $row_id=false) {
+
+		//metadata
+		$return = [
+			'updated_at'=>new DateTime,
+			'updated_by'=>Auth::user()->id,
+		];
+
+		if ($row_id === false) {
+			if (property_exists($table->fields, 'created_at')) $return['created_at'] = new DateTime;
+			if (property_exists($table->fields, 'created_by')) $return['created_by'] = Auth::user()->id;
+			if (property_exists($table->fields, 'precedence')) $return['precedence'] = DB::table($table->name)->max('precedence') + 1;
+			if (property_exists($table->fields, 'slug')) {
+				//determine where slug is coming from
+				if (Request::has($table->fields['slug']->source)) {
+					$value = Request::input($table->fields->slug->source);
+				} else {
+					$value = date('Y-m-d');
+				}
+		
+				//get other values to check uniqueness
+				$uniques = DB::table($table->name)->lists('slug');
+		
+				//add unique, formatted slug to the insert batch
+				$return['slug'] = Slug::make($value, $uniques);
+			}
+		}
+		
+		//loop through the fields
+		foreach ($table->fields as $field) {
+			if ($field->hidden || in_array($field->type, self::$relation_field_types)) continue;
+
+			if ($field->type == 'image') {
+
+				if ($row_id) {
+					# Unset any old file associations (will get cleaned up later)
+					DB::table(config('center.db.files'))
+						->where('table', $table->name)
+						->where('field', $field->name)
+						->where('row_id', $row_id)
+						->update(['row_id'=>null]);
+				}
+
+
+				# Capture the uploaded file by setting the reverse-lookup
+				DB::table(config('center.db.files'))
+					->where('id', Request::input($field->name))
+					->update(['row_id'=>$row_id]);
+
+			}
+
+			$return[$field->name] = self::sanitize($field);
+		}
+
+		return $return;
+	}
+
+	//run relationship updates on input (used by store and update)
+	private static function processRelationsInput($table, $row_id) {
+
+		foreach ($table->fields as $field) {
+			if ($field->type == 'checkboxes') {
+				
+				# Figure out schema
+				$object_column = self::formatKeyColumn($table->name);
+				$remote_column = self::formatKeyColumn($field->source);
+
+				# Clear old values
+				DB::table($field->name)->where($object_column, $row_id)->delete();
+
+				# Loop through and save all the checkboxes
+				if (Request::has($field->name)) {
+					foreach (Request::input($field->name) as $related_id) {
+						DB::table($field->name)->insert([
+							$object_column=>$row_id,
+							$remote_column=>$related_id,
+						]);
+					}
+				}
+
+			} elseif ($field->type == 'images') {
+
+				# Unset any old file associations (will get cleaned up after this loop)
+				DB::table(config('center.db.files'))
+					->where('table', $table->name)
+					->where('field', $field->name)
+					->where('row_id', $row_id)
+					->update(['instance_id' => null]);
+
+				# Create new associations
+				$file_ids = explode(',', Request::input($field->name));
+				$precedence = 0;
+				foreach ($file_ids as $file_id) {
+					DB::table(config('center.db.files'))
+						->where('id', $file_id)
+						->update([
+							'row_id' => $row_id,
+							'precedence' => ++$precedence,
+						]);
+				}
+
+			} elseif ($field->type == 'permissions') {
+
+				if ($table->name == config('center.db.users')) {
+					DB::table(config('center.db.permissions'))->where('user', $row_id)->delete();
+					foreach (Request::input('permissions') as $table_name => $level) {
+						if (!empty($level)) {
+							DB::table(config('center.db.permissions'))->insert([
+								'user' => $row_id,
+								'table' => $table_name,
+								'level' => $level,
+							]);
+						}
+					}
+					
+					//update permissions if you're updating yourself
+					if ($row_id == Auth::id()) LoginController::updateUserPermissions();
+				}
+			}
+		}
 	}
 
 	# Recursively assemble nested tree
