@@ -59,6 +59,7 @@ class CenterServiceProvider extends ServiceProvider {
 		$tables = array_merge(config('center.tables', []), config('center.system_tables'));
 		foreach ($tables as $table=>$table_properties) {
 			
+			//sanitize for use in db names and php functions
 			$table = str_slug($table, '_');
 
 			//parse table definition
@@ -137,15 +138,27 @@ class CenterServiceProvider extends ServiceProvider {
 				];
 			}
 			
+			//save fields to table as an object
 			$table_properties['fields'] = (object) $expanded_fields;
+
+			//default table properties
 			if (!isset($table_properties['model'])) $table_properties['model'] = studly_case(str_singular($table));
 			if (!isset($table_properties['create'])) $table_properties['create'] = true;
 			if (!isset($table_properties['hidden'])) $table_properties['hidden'] = false;
 			if (!isset($table_properties['order_by'])) $table_properties['order_by'] = 'id';
 			if (!isset($table_properties['direction'])) $table_properties['direction'] = 'ASC';
+
+			//save table to $tables array as an object
 			$expanded_tables[$table] = (object) $table_properties;
 		}
+
+		//sort alpha by title
+		uksort($expanded_tables, function($a, $b) use ($expanded_tables) {
+			return $expanded_tables[$a]->title > $expanded_tables[$b]->title;
+		});
+
 		//dd($expanded_tables);
+
 		Config::set('center.tables', $expanded_tables);		
 	}
 	
