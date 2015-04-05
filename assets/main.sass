@@ -6,6 +6,7 @@ $gray-lightest	: #f5f5f5
 $gray-medium	: #ccc
 
 $margin			: 24px
+$margin-row		: 15px
 $modal-radius	: 6px //because bootstrap doesn't round the interior elements
 $field-radius	: 4px
 
@@ -107,7 +108,7 @@ form
 				color: white
 				text-shadow: 0 0 2px $gray
 				float: left 
-				margin: 0 $margin $margin 0
+				margin: 0 $margin-row $margin-row 0
 				&.new
 					background-color: $gray-lightest
 					color: $gray-medium
@@ -186,7 +187,7 @@ form
 
 	h1
 		font-weight: normal
-		font-size: $margin
+		font-size: 24px
 		line-height: 1.2
 		margin: 0 0 $margin 0
 		i.glyphicon-chevron-right

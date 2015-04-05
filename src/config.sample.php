@@ -8,7 +8,6 @@ return [
 			'keep_clean',
 			'list'=> ['name', 'last_login', 'updated_at'],
 			'order_by' => 'name',
-			'model' => 'User',
 			'fields' => [
 				'name' => [
 					'type' => 'string',

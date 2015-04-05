@@ -22,7 +22,7 @@
 			<i class="glyphicon glyphicon-circle-arrow-down"></i>
 			@lang('center::site.export')
 		</a>
-		@if (\LeftRight\Center\Controllers\LoginController::checkPermission($table->name, 'create'))
+		@if ($table->create && \LeftRight\Center\Controllers\LoginController::checkPermission($table->name, 'create'))
 			<a class="btn btn-default" href="{{ action('\LeftRight\Center\Controllers\RowController@create', $table->name) }}">
 				<i class="glyphicon glyphicon-plus"></i>
 				@lang('center::site.create')

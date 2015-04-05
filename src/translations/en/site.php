@@ -18,8 +18,8 @@ return [
 	'login_invalid'			=> 'That email / password combination was not found.',
 	'logout'				=> 'Log Out',
 	'no_permissions_view'	=> 'You don\'t have permission to view that object.',
-	'no_permissions_create'	=> 'You don\'t have permission to create new instances of that object.',
-	'no_permissions_edit'	=> 'You don\'t have permission to edit instances of that object.',
+	'no_permissions_create'	=> 'You don\'t have permission to create new instances of this object.',
+	'no_permissions_edit'	=> 'You don\'t have permission to edit instances of this object.',
 	'permissions'			=> 'Permissions',
 	'permissions_help'		=> '',
 	'permission_levels'		=> [

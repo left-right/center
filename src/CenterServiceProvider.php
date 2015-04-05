@@ -4,6 +4,7 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use LeftRight\Center\Controllers\InstanceController;
 use LeftRight\Center\Controllers\LoginController;
+use LeftRight\Center\Controllers\RowController;
 use Auth;
 use DB;
 use Config;
@@ -58,6 +59,8 @@ class CenterServiceProvider extends ServiceProvider {
 		$tables = array_merge(config('center.tables', []), config('center.system_tables'));
 		foreach ($tables as $table=>$table_properties) {
 			
+			$table = str_slug($table, '_');
+
 			//parse table definition
 			$table_properties = self::promoteNumericKeyToTrue($table_properties);
 			$table_properties['name'] = $table;
@@ -101,6 +104,13 @@ class CenterServiceProvider extends ServiceProvider {
 						$field_properties['required'] = false;
 					}
 				}
+
+				//in general, the name of a checkbox field should be the name of its joining table
+				//however your are allowed to name the source, and let center set the joining table for you
+				if (($field_properties['type'] == 'checkboxes') && empty($field_properties['source'])) {
+					$field_properties['source'] = $field;
+					$field = $field_properties['name'] = RowController::formatJoiningTable($table, $field);
+				}
 				if (!isset($field_properties['hidden'])) $field_properties['hidden'] = in_array($field, ['id', 'created_at', 'updated_at', 'deleted_at', 'created_by', 'updated_by', 'deleted_by', 'password', 'precedence']);
 				if (in_array($field_properties['type'], ['image' ,'images'])) {
 					if (empty($field_properties['width'])) $field_properties['width'] = null;
@@ -128,8 +138,11 @@ class CenterServiceProvider extends ServiceProvider {
 			}
 			
 			$table_properties['fields'] = (object) $expanded_fields;
+			if (!isset($table_properties['model'])) $table_properties['model'] = studly_case(str_singular($table));
+			if (!isset($table_properties['create'])) $table_properties['create'] = true;
 			if (!isset($table_properties['hidden'])) $table_properties['hidden'] = false;
 			if (!isset($table_properties['order_by'])) $table_properties['order_by'] = 'id';
+			if (!isset($table_properties['direction'])) $table_properties['direction'] = 'ASC';
 			$expanded_tables[$table] = (object) $table_properties;
 		}
 		//dd($expanded_tables);
@@ -139,74 +152,70 @@ class CenterServiceProvider extends ServiceProvider {
 	
 	//loop through and process the $fields into $objects for model methods below
 	private function models() {
-		$objects = [];
+		$relationships = [];
 		$tables = config('center.tables');
+
+		//loop through once to create relationships between tables
 		foreach ($tables as $table) {
-			//only make models for defined models
-			if (!isset($table->model)) continue;
 
 			$softDeletes = isset($table->fields->deleted_at);
 			
-			$relationships = $dates = [];
-			
-			/*
-			if (!empty($field->related_model)) {
-				if (!isset($objects[$field->related_id])) $objects[$field->related_id] = [
-					'model' => $field->related_model,
-					'name' => $field->related_name,
-					'dates' => ['\'created_at\'', '\'updated_at\'', '\'deleted_at\''],
-					'relationships' => [],
-				];
-			}
-			*/
+			$dates = [];
+
+			if (!isset($relationships[$table->name])) $relationships[$table->name] = [];
 			
 			foreach ($table->fields as $field) {
 				
 				//define relationships
-				if ($field->type == 'select') {
-					//this is legacy. i think we're worried about the universe folding in on itself
-					if ($field->object_id == $field->related_id) continue;
+				if ($field->type == 'checkboxes') {
 	
 					//out from this object
-					$objects[$field->object_id]['relationships'][] = '
-					public function ' . $field->related_name . '() {
-						return $this->belongsTo("LeftRight\Center\Models\\' . $field->related_model . '", "' . $field->name . '");
-					}
-					';
-	
-					//back from the related object
-					$objects[$field->related_id]['relationships'][] = '
-					public function ' . $field->object_name . '() {
-						return $this->hasMany("LeftRight\Center\Models\\' . $field->object_model . '", "' . $field->name . '");
-					}
-					';
-	
-				} elseif ($field->type == 'checkboxes') {
-	
-					//out from this object
-					$objects[$field->object_id]['relationships'][] = '
-					public function ' . $field->related_name . '() {
-						return $this->belongsToMany("LeftRight\Center\Models\\' . $field->related_model . '", "' . $field->name . '", "' . InstanceController::getKey($field->object_name) . '", "' . InstanceController::getKey($field->related_name) . '")->orderBy("' . $field->related_order_by . '", "' . $field->related_direction . '");
+					$relationships[$table->name][] = '
+					public function ' . $tables[$field->source]->name . '() {
+						return $this->belongsToMany("LeftRight\Center\Models\\' . $tables[$field->source]->model . '", "' . $field->name . '", "' . RowController::formatKeyColumn($table->name) . '", "' . RowController::formatKeyColumn($tables[$field->source]->name) . '")->orderBy("' . $tables[$field->source]->order_by . '", "' . $tables[$field->source]->direction . '");
 					}
 					';
 				
 					//back from the related object
-					$objects[$field->related_id]['relationships'][] = '
-					public function ' . $field->object_name . '() {
-						return $this->belongsToMany("LeftRight\Center\Models\\' . $field->object_model . '", "' . $field->name . '", "' . InstanceController::getKey($field->related_name) . '", "' . InstanceController::getKey($field->object_name) . '")->orderBy("' . $field->object_order_by . '", "' . $field->object_direction . '");
+					$relationships[$tables[$field->source]->name][] = '
+					public function ' . $table->name . '() {
+						return $this->belongsToMany("LeftRight\Center\Models\\' . $table->model . '", "' . $field->name . '", "' . RowController::formatKeyColumn($tables[$field->source]->name) . '", "' . RowController::formatKeyColumn($table->name) . '")->orderBy("' . $table->order_by . '", "' . $table->direction . '");
 					}
-					';
+					';	
+
+				} elseif (in_array($field->type, ['date', 'datetime'])) {
+					
+					$dates[] = '\'' . $field->name . '\'';
 				
-				} elseif (($field->type == 'image') && (substr($field->name, -3) == '_id')) {
-					$relationships[] = '
+				} elseif (($field->type == 'image') && ends_with($field->name, '_id')) {
+				
+					//cannot overwrite property
+					$relationships[$table->name][] = '
 					public function ' . substr($field->name, 0, -3) . '() {
 						return $this->hasOne("LeftRight\Center\Models\File", "id", "' . $field->name . '");
 					}';
+				
+				} elseif ($field->type == 'select') {
+					
+					//out from this object
+					$relationships[$table->name][] = '
+					public function ' . $tables[$field->source]->name . '() {
+						return $this->belongsTo("LeftRight\Center\Models\\' . $tables[$field->source]->model . '", "' . $field->name . '");
+					}
+					';
 	
-				} elseif (in_array($field->type, ['date', 'datetime'])) {
-					$dates[] = '\'' . $field->name . '\'';
+					//back from the related object
+					$relationships[$tables[$field->source]->name][] = '
+					public function ' . $table->name . '() {
+						return $this->hasMany("LeftRight\Center\Models\\' . $table->model . '", "' . $field->name . '");
+					}
+					';
 				}
 			}
+		}
+
+		//now we must loop through again; the first loop set relationships on other tables
+		foreach ($tables as $table) {
 			
 			eval('namespace LeftRight\Center\Models;
 			' . ($softDeletes ? 'use Illuminate\Database\Eloquent\SoftDeletes;' : '') . '
@@ -239,7 +248,7 @@ class CenterServiceProvider extends ServiceProvider {
 					return $this->belongsTo(\'User\', \'updated_by\');
 				}
 
-				' . implode(' ', $relationships) . '
+				' . implode(' ', $relationships[$table->name]) . '
 			}');
 			
 		}

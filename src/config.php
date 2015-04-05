@@ -25,7 +25,6 @@ return [
 		'files' => [
 			'keep_clean',
 			'hidden',
-			'model' => 'File',
 			'fields' => [
 				'row_id' => 'integer',
 				'table' => [

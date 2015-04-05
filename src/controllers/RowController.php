@@ -49,8 +49,8 @@ class RowController extends \App\Http\Controllers\Controller {
 				$related_object = self::getRelatedObject($field->related_object_id);
 				$rows->addSelect(DB::raw('(SELECT GROUP_CONCAT(' . $related_object->name . '.' . $related_object->field->name . ' SEPARATOR ", ") 
 					FROM ' . $related_object->name . ' 
-					JOIN ' . $field->name . ' ON ' . $related_object->name . '.id = ' . $field->name . '.' . self::getKey($related_object->name) . '
-					WHERE ' . $field->name . '.' . self::getKey($table->name) . ' = ' . $table->name . '.id 
+					JOIN ' . $field->name . ' ON ' . $related_object->name . '.id = ' . $field->name . '.' . self::formatKeyColumn($related_object->name) . '
+					WHERE ' . $field->name . '.' . self::formatKeyColumn($table->name) . ' = ' . $table->name . '.id 
 					ORDER BY ' . $related_object->name . '.' . $related_object->field->name . ') AS ' . $field->name));
 			} elseif ($field->type == 'image') {
 				$rows
@@ -145,11 +145,11 @@ class RowController extends \App\Http\Controllers\Controller {
 		# If it's a nested object, nest-ify the resultset
 		if ($table->nested) {
 			$list = array();
-			foreach ($rows as &$instance) {
-				$instance->children = array();
-				if (empty($instance->{$grouped_field->name})) { //$grouped_field->name is for ex parent_id
-					$list[] = $instance;
-				} elseif (self::nestedNodeExists($list, $instance->{$grouped_field->name}, $instance)) {
+			foreach ($rows as &$row) {
+				$row->children = array();
+				if (empty($row->{$grouped_field->name})) { //$grouped_field->name is for ex parent_id
+					$list[] = $row;
+				} elseif (self::nestedNodeExists($list, $row->{$grouped_field->name}, $row)) {
 					//attached child to parent node
 				} else {
 					//an error occurred; a parent should exist but is not yet present
@@ -180,6 +180,7 @@ class RowController extends \App\Http\Controllers\Controller {
 
 	//show create form for an object instance
 	public function create($table, $linked_id=false) {
+		$tables = config('center.tables');
 		$table = config('center.tables.' . $table);
 
 		# Security
@@ -187,7 +188,7 @@ class RowController extends \App\Http\Controllers\Controller {
 			return redirect()->route('home')->with('error', trans('center::site.table_does_not_exist'));
 		} elseif (!LoginController::checkPermission($table->name, 'view')) {
 			return redirect()->route('home')->with('error', trans('center::site.no_permissions_view'));
-		} elseif (!LoginController::checkPermission($table->name, 'create')) {
+		} elseif (!$table->create || !LoginController::checkPermission($table->name, 'create')) {
 			return redirect()->action('\LeftRight\Center\Controllers\RowController@index', $table->name)->with('error', trans('center::site.no_permissions_create'));
 		}
 		
@@ -206,8 +207,7 @@ class RowController extends \App\Http\Controllers\Controller {
 			if (($field->type == 'checkboxes') || ($field->type == 'select')) {
 
 				//load options for checkboxes or selects
-				$related_object = self::getRelatedObject($field->related_object_id);
-				$field->options = DB::table($related_object->name)->orderBy($related_object->order_by, $related_object->direction)->lists($related_object->field->name, 'id');
+				$field->options = DB::table($tables[$field->source]->name)->orderBy($tables[$field->source]->order_by, $tables[$field->source]->direction)->lists($tables[$field->source]->list[0], 'id');
 
 				//indent nested selects
 				if ($field->type == 'select' && !empty($related_object->group_by_field)) {
@@ -264,7 +264,7 @@ class RowController extends \App\Http\Controllers\Controller {
 			return redirect()->route('home')->with('error', trans('center::site.table_does_not_exist'));
 		} elseif (!LoginController::checkPermission($table->name, 'view')) {
 			return redirect()->route('home')->with('error', trans('center::site.no_permissions_view'));
-		} elseif (!LoginController::checkPermission($table->name, 'create')) {
+		} elseif (!$table->create || !LoginController::checkPermission($table->name, 'create')) {
 			return redirect()->action('\LeftRight\Center\Controllers\RowController@index', $table->name)->with('error', trans('center::site.no_permissions_create'));
 		}
 
@@ -317,8 +317,8 @@ class RowController extends \App\Http\Controllers\Controller {
 		foreach ($table->fields as $field) {
 			if ($field->type == 'checkboxes') {
 				//figure out schema, loop through and save all the checkboxes
-				$object_column = self::getKey($table->name);
-				$remote_column = self::getKey($field->related_object_id);
+				$object_column = self::formatKeyColumn($table->name);
+				$remote_column = self::formatKeyColumn($field->related_object_id);
 				if (Request::has($field->name)) {
 					foreach (Request::input($field->name) as $related_id) {
 						DB::table($field->name)->insert(array(
@@ -373,6 +373,7 @@ class RowController extends \App\Http\Controllers\Controller {
 	
 		# Get object / field / whatever infoz
 		$table = config('center.tables.' . $table);
+		$tables = config('center.tables');
 
 		# Security
 		if (!isset($table->name)) {
@@ -384,26 +385,25 @@ class RowController extends \App\Http\Controllers\Controller {
 		}
 
 		# Retrieve instance/row values
-		$instance = DB::table($table->name)->where('id', $row_id)->first();
+		$row = DB::table($table->name)->where('id', $row_id)->first();
 
 		# Add return var to the queue
 		if ($linked_id) {
-			$return_to = action('\LeftRight\Center\Controllers\InstanceController@edit', [self::getRelatedObjectName($object), $linked_id]);
+			$return_to = action('\LeftRight\Center\Controllers\RowController@edit', [self::getRelatedObjectName($object), $linked_id]);
 		} elseif (URL::previous()) {
 			$return_to = URL::previous();
 		} else {
-			$return_to = action('\LeftRight\Center\Controllers\InstanceController@index', $table->name);
+			$return_to = action('\LeftRight\Center\Controllers\RowController@index', $table->name);
 		}
 
 		//format instance values for form
 		foreach ($table->fields as $field) {
 			if ($field->type == 'datetime') {
-				if (!empty($instance->{$field->name})) $instance->{$field->name} = date('m/d/Y h:i A', strtotime($instance->{$field->name}));
+				if (!empty($row->{$field->name})) $row->{$field->name} = date('m/d/Y h:i A', strtotime($row->{$field->name}));
 			} elseif (($field->type == 'checkboxes') || ($field->type == 'select')) {
 
 				//load options for checkboxes or selects
-				$related_object = self::getRelatedObject($field->related_object_id);
-				$field->options = DB::table($related_object->name)->orderBy($related_object->order_by, $related_object->direction)->lists($related_object->field->name, 'id');
+				$field->options = DB::table($tables[$field->source]->name)->orderBy($tables[$field->source]->order_by, $tables[$field->source]->direction)->lists($tables[$field->source]->list[0], 'id');
 
 				//indent nested selects
 				if ($field->type == 'select' && !empty($related_object->group_by_field)) {
@@ -435,20 +435,20 @@ class RowController extends \App\Http\Controllers\Controller {
 
 				//get checkbox values todo make a function for consistently getting these checkbox column names
 				if ($field->type == 'checkboxes') {
-					$table_key = Str::singular($table->name) . '_id';
-					$foreign_key = Str::singular($related_object->name) . '_id';
-					$instance->{$field->name} = DB::table($field->name)->where($table_key, $instance->id)->lists($foreign_key);
+					$table_key = self::formatKeyColumn($table->name);
+					$foreign_key = self::formatKeyColumn($field->source);
+					$row->{$field->name} = DB::table($field->name)->where($table_key, $row->id)->lists($foreign_key);
 				}
 			} elseif ($field->type == 'image') {
-				$instance->{$field->name} = DB::table(config('center.db.files'))->where('id', $instance->{$field->name})->first();
-				if (!empty($instance->{$field->name}->width) && !empty($instance->{$field->name}->height)) {
-					$field->width = $instance->{$field->name}->width;
-					$field->height = $instance->{$field->name}->height;
+				$row->{$field->name} = DB::table(config('center.db.files'))->where('id', $row->{$field->name})->first();
+				if (!empty($row->{$field->name}->width) && !empty($row->{$field->name}->height)) {
+					$field->width = $row->{$field->name}->width;
+					$field->height = $row->{$field->name}->height;
 				}
 				list($field->screen_width, $field->screen_height) = FileController::getImageDimensions($field->width, $field->height);
 			} elseif ($field->type == 'images') {
-				$instance->{$field->name} = DB::table(config('center.db.files'))->where('field_id', $field->id)->where('instance_id', $instance->id)->orderBy('precedence', 'asc')->get();
-				foreach ($instance->{$field->name} as &$image) {
+				$row->{$field->name} = DB::table(config('center.db.files'))->where('field_id', $field->id)->where('instance_id', $row->id)->orderBy('precedence', 'asc')->get();
+				foreach ($row->{$field->name} as &$image) {
 					if (!empty($image->width) && !empty($image->height)) {
 						$image->screen_width = $image->width;
 						$image->screen_width = $image->height;
@@ -468,11 +468,11 @@ class RowController extends \App\Http\Controllers\Controller {
 
 				$field->options = LoginController::getPermissionLevels();
 			} elseif ($field->type == 'slug') {
-				if ($field->required && empty($instance->{$field->name}) && $field->related_field_id) {
+				if ($field->required && empty($row->{$field->name}) && $field->related_field_id) {
 					//slugify related field to populate this one
 					foreach ($fields as $related_field) {
 						if ($related_field->id == $field->related_field_id) {
-							$instance->{$field->name} = Str::slug($instance->{$related_field->name});
+							$row->{$field->name} = Str::slug($row->{$related_field->name});
 						}
 					}
 				}
@@ -495,7 +495,7 @@ class RowController extends \App\Http\Controllers\Controller {
 			$link = self::index($link, $row_id, $linked_id);
 		}*/
 
-		return view('center::rows.edit', compact('table', 'instance', 'links', 'linked_id', 'return_to'));
+		return view('center::rows.edit', compact('table', 'row', 'links', 'linked_id', 'return_to'));
 	}
 	
 	//save edits to database
@@ -524,8 +524,8 @@ class RowController extends \App\Http\Controllers\Controller {
 			if ($field->type == 'checkboxes') {
 				
 				# Figure out schema
-				$object_column = self::getKey($table->name);
-				$remote_column = self::getKey($field->related_object_id);
+				$object_column = self::formatKeyColumn($table->name);
+				$remote_column = self::formatKeyColumn($field->source);
 
 				# Clear old values
 				DB::table($field->name)->where($object_column, $row_id)->delete();
@@ -685,8 +685,8 @@ class RowController extends \App\Http\Controllers\Controller {
 		} else {
 			$rows = explode('&', Request::input('order'));
 			$precedence = 1;
-			foreach ($rows as $instance) {
-				list($garbage, $row_id) = explode('=', $instance);
+			foreach ($rows as $row) {
+				list($garbage, $row_id) = explode('=', $row);
 				if (!empty($row_id)) {
 					DB::table($table->name)->where('id', $row_id)->update(['precedence'=>$precedence++]);
 				}
@@ -778,25 +778,15 @@ class RowController extends \App\Http\Controllers\Controller {
 		return false;
 	}
 
-	# Return a foreign key column name for a given table name or object_id (public for AvalonServiceProvider::boot)
-	public static function getKey($table_name) {
-		if (ctype_digit(strval($table_name))) $table_name = DB::table(config('center.db.objects'))->where('id', $table_name)->pluck('name');
+	# Return a foreign key column name for a given table name (also used by CenterServiceProvider)
+	public static function formatKeyColumn($table_name) {
 		return Str::singular($table_name) . '_id';
 	}
 
-	# Get related object with the first string field name
-	private static function getRelatedObject($related_object_id) {
-		$related = DB::table(config('center.db.objects'))->where('id', $related_object_id)->first();
-		$related->field = DB::table(config('center.db.fields'))->where('object_id', $related_object_id)->whereIn('type', ['string', 'text'])->first();
-		return $related;
-	}
-
-	# Get related object's name with an object
-	private static function getRelatedObjectName($object) {
-		return DB::table(config('center.db.fields'))
-			->join(config('center.db.objects'), config('center.db.fields') . '.related_object_id', '=', config('center.db.objects') . '.id')
-			->where(config('center.db.fields') . '.id', $table->group_by_field)
-			->pluck(config('center.db.objects') . '.name');
+	public static function formatJoiningTable($table1, $table2) {
+		$table1 = str_singular($table1);
+		$table2 = str_singular($table2);
+		return (strcmp($table1, $table2) < 0) ? $table1 . '_' . $table2 : $table2 . '_' . $table1;		
 	}
 
 	# Draw an instance table, used both by index and by edit > linked
