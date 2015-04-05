@@ -26,17 +26,7 @@
             "LeftRight\\Center\\": "src/"
         }
     },
-    "minimum-stability": "dev",
-	"scripts": {
-		"post-package-install": [
-			"php artisan vendor:publish",
-			"php artisan center:refresh"
-		],
-		"post-package-update": [
-			"php artisan vendor:publish --tag=public --force",
-			"php artisan center:refresh"
-		]
-	}
+    "minimum-stability": "dev"
 }
 
 
