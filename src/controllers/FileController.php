@@ -96,9 +96,7 @@ class FileController extends Controller {
 		$file_id = DB::table(config('center.db.files'))->insertGetId([
 			'table' =>			$table->name,
 			'field' =>			$field->name,
-			'path' =>			$path,
-			'name' =>			$name,
-			'extension' =>		$extension,
+			'url' =>			$url,
 			'width' =>			$width,
 			'height' =>			$height,
 			'size' =>			$size,
@@ -227,16 +225,14 @@ class FileController extends Controller {
 	public static function cleanup($files=false) {
 
 		//by default, remove all non-instanced files
-		if (!$files) $files = DB::table(config('center.db.files'))->whereNull('row')->get();
+		if (!$files) $files = DB::table(config('center.db.files'))->whereNull('row_id')->get();
 		
 		//try to physically remove
 		$ids = array();
 		foreach ($files as $file) {
 			$ids[] = $file->id;
-			if ($file->writable) {
-				@unlink(public_path() . $file->path . '/' . $file->name . '.' . $file->extension);
-				@rmdir(public_path() . $file->path);
-			}
+			@unlink(public_path() . $file->url);
+			@rmdir(public_path() . dirname($file->url));
 		}
 
 		//remove records

@@ -1,7 +1,7 @@
 @extends('center::login.template')
 
 @section('title')
-	@lang('center::site.welcome')
+	@lang('center::site.install')
 @endsection
 
 @section('main')

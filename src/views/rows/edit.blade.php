@@ -53,7 +53,7 @@
 					{!! Form::textarea($field->name, $instance->{$field->name}, ['class'=>'form-control ' . $field->type . ($field->required ? ' required' : '')]) !!}
 				@elseif ($field->type == 'image')
 					@if (isset($instance->{$field->name}->id))
-					<div class="image" data-table-name="{{ $table->name }}" data-field-name="{{ $field->name }}" data-action="{{ action('\LeftRight\Center\Controllers\FileController@image') }}" style="width:{{ $field->screen_width }}px; height:{{ $field->screen_height }}px; line-height:{{ $field->screen_height }}px; background-image: url({{ $instance->{$field->name}->path }}/{{ $instance->{$field->name}->name }}.{{ $instance->{$field->name}->extension }});">
+					<div class="image" data-table-name="{{ $table->name }}" data-field-name="{{ $field->name }}" data-action="{{ action('\LeftRight\Center\Controllers\FileController@image') }}" style="width:{{ $field->screen_width }}px; height:{{ $field->screen_height }}px; line-height:{{ $field->screen_height }}px; background-image: url({{ $instance->{$field->name}->url }});">
 						{{ $field->width }} &times; {{ $field->height }}
 					</div>
 					{!! Form::hidden($field->name, $instance->{$field->name}->id) !!}

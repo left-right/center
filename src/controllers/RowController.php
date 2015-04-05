@@ -328,13 +328,13 @@ class RowController extends \App\Http\Controllers\Controller {
 					}
 				}
 			} elseif ($field->type == 'image') {
-				DB::table(config('center.db.files'))->where('id', Request::input($field->name))->update(['row'=>$row_id]);
+				DB::table(config('center.db.files'))->where('id', Request::input($field->name))->update(['row_id'=>$row_id]);
 			} elseif ($field->type == 'images') {
 				$file_ids = explode(',', Request::input($field->name));
 				$precedence = 0;
 				foreach ($file_ids as $file_id) {
 					DB::table(config('center.db.files'))->where('id', $file_id)->update([
-						'row'=>$row_id,
+						'row_id'=>$row_id,
 						'precedence'=>++$precedence,
 					]);
 				}
@@ -362,7 +362,7 @@ class RowController extends \App\Http\Controllers\Controller {
 		]);*/
 
 		//clean up any abandoned files
-		//FileController::cleanup();
+		FileController::cleanup();
 
 		//return to target		
 		return Redirect::to(Request::input('return_to'));
@@ -545,7 +545,7 @@ class RowController extends \App\Http\Controllers\Controller {
 				DB::table(config('center.db.files'))
 					->where('table', $table->name)
 					->where('field', $field->name)
-					->where('row', $row_id)
+					->where('row_id', $row_id)
 					->update(array('instance_id'=>null));
 
 				# Create new associations
@@ -583,14 +583,14 @@ class RowController extends \App\Http\Controllers\Controller {
 					DB::table(config('center.db.files'))
 						->where('table', $table->name)
 						->where('field', $field->name)
-						->where('row', $row_id)
-						->update(['row'=>null]);
+						->where('row_id', $row_id)
+						->update(['row_id'=>null]);
 
 
 					# Capture the uploaded file by setting the reverse-lookup
 					DB::table(config('center.db.files'))
 						->where('id', Request::input($field->name))
-						->update(['row'=>$row_id]);
+						->update(['row_id'=>$row_id]);
 
 				}
 
@@ -615,7 +615,7 @@ class RowController extends \App\Http\Controllers\Controller {
 		DB::table($table->name)->where('id', $row_id)->update($updates);
 		
 		//clean up abandoned files
-		//FileController::cleanup();
+		FileController::cleanup();
 
 		/*update object meta
 		DB::table(config('center.db.objects'))->where('id', $table->id)->update([

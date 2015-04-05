@@ -2,7 +2,7 @@
 
 return [
 
-	//users with these IDs will be added to objects by default
+	//users with these IDs will be added to new objects by default
 	'admins' => [ 1 ],
 
 	//you may augment or replace the default bootstrap css
@@ -27,18 +27,25 @@ return [
 			'hidden',
 			'model' => 'File',
 			'fields' => [
-				'row' => 'integer',
-				'table' => 'string',
-				'field' => 'string',
-				'path' => 'string',
-				'name' => 'string',
-				'extension' => [
+				'row_id' => 'integer',
+				'table' => [
+					'type' => 'string',
+					'required',
+				],
+				'field' => [
+					'type' => 'string',
+					'required',
+				],
+				'url' => [
 					'type' => 'string',
 					'required',
 				],
 				'width' => 'integer',
 				'height' => 'integer',
-				'size' => 'integer',
+				'size' => [
+					'type' => 'integer',
+					'required',
+				],
 				'created_at',
 				'created_by',
 				'precedence'=>'integer',

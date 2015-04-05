@@ -146,22 +146,19 @@ class CenterServiceProvider extends ServiceProvider {
 			if (!isset($table->model)) continue;
 
 			$softDeletes = isset($table->fields->deleted_at);
+			
 			$relationships = $dates = [];
 			
-			if ($table->name == config('center.db.files')) {
-				$relationships[] = 'public function url() {
-					return $this->path . $this->extension;
-				}';
-			}
-			
+			/*
 			if (!empty($field->related_model)) {
-				if (!isset($objects[$field->related_id])) $objects[$field->related_id] = array(
+				if (!isset($objects[$field->related_id])) $objects[$field->related_id] = [
 					'model' => $field->related_model,
 					'name' => $field->related_name,
-					'dates' => array('\'created_at\'', '\'updated_at\'', '\'deleted_at\''),
-					'relationships' => array(),
-				);
+					'dates' => ['\'created_at\'', '\'updated_at\'', '\'deleted_at\''],
+					'relationships' => [],
+				];
 			}
+			*/
 			
 			foreach ($table->fields as $field) {
 				
@@ -200,10 +197,10 @@ class CenterServiceProvider extends ServiceProvider {
 					}
 					';
 				
-				} elseif ($field->type == 'image') {
-	
-					$relationships[] = 'public function ' . $field->name . '() {
-						return $this->hasOne(\'LeftRight\Center\File\', \'id\', \'' . $field->name . '\');
+				} elseif (($field->type == 'image') && (substr($field->name, -3) == '_id')) {
+					$relationships[] = '
+					public function ' . substr($field->name, 0, -3) . '() {
+						return $this->hasOne("LeftRight\Center\Models\File", "id", "' . $field->name . '");
 					}';
 	
 				} elseif (in_array($field->type, ['date', 'datetime'])) {
@@ -219,8 +216,8 @@ class CenterServiceProvider extends ServiceProvider {
 			    ' . ($softDeletes ? 'use SoftDeletes;' : '') . '
 				
 				public $table      = \'' . $table->name . '\'; //public intentionally
-				protected $guarded = array();
-				protected $dates   = array(' . implode(',', $dates) . ');
+				protected $guarded = [];
+				protected $dates   = [' . implode(',', $dates) . '];
 
 				public static function boot() {
 					parent::boot();
