@@ -2,6 +2,7 @@
 
 use Auth;
 use DB;
+use LeftRight\Center\Controllers\LoginController;
 use Request;
 use Schema;
 
@@ -10,6 +11,8 @@ class TableController extends Controller {
 	# Display list for home page
 	public function index() {
 		if (!Auth::check()) return LoginController::getIndex();
+		LoginController::updateUserPermissions(); //why not
+		
 		$tables = array_where(config('center.tables'), function($key, $value) {
 		    return !$value->hidden && LoginController::checkPermission($value->name, 'view');
 		});

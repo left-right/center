@@ -64,10 +64,18 @@ class Refresh extends Command {
 						    $t->increments('id');
 						});
 					}
-					Schema::table($field->name, function($t) use($table, $field) {
-						$t->integer(RowController::formatKeyColumn($table->name));
-						$t->integer(RowController::formatKeyColumn($field->source));
-					});
+					$column = RowController::formatKeyColumn($table->name);
+					if (!Schema::hasColumn($field->name, $column)) {
+						Schema::table($field->name, function($t) use($column) {
+							$t->integer($column);
+						});
+					}
+					$column = RowController::formatKeyColumn($field->source);
+					if (!Schema::hasColumn($field->name, $column)) {
+						Schema::table($field->name, function($t) use($column) {
+							$t->integer($column);
+						});
+					}
 				} else {
 					//create column
 					Schema::table($table->name, function($t) use($table, $field) {
@@ -159,7 +167,9 @@ class Refresh extends Command {
 		//now can set permissions, had to wait for permissions table potentially to be created
 		foreach ($tables as $table) {
 			//set default permissions
-			LoginController::setDefaultTablePermissions($table->name);
+			if (!$table->hidden) {
+				LoginController::setDefaultTablePermissions($table->name);
+			}
 		}
 
 		$this->comment(PHP_EOL . trans('center::site.refresh_success') . PHP_EOL);
