@@ -91,7 +91,15 @@
 				@elseif ($field->type == 'select')
 					{!! Form::select($field->name, $field->options, $row->{$field->name}, ['class'=>'form-control ' . $field->type . ($field->required ? ' required' : '')]) !!}
 				@elseif ($field->type == 'slug')
-					{!! Form::text($field->name, $row->{$field->name}, ['class'=>'form-control ' . $field->type . ($field->required ? ' required' : '')]) !!}
+					@if (isset($table->url))
+						<div class="input-group">
+							<span class="input-group-addon">{{ url($table->url) }}/</span>
+							{!! Form::text($field->name, $row->{$field->name}, ['class'=>'form-control ' . $field->type . ($field->required ? ' required' : '')]) !!}
+							<span class="input-group-addon"><a href="{{ $table->url }}/{{ $row->slug }}" target="_blank"><i class="glyphicon glyphicon-new-window"></i></a></span>
+						</div>
+					@else
+						{!! Form::text($field->name, $row->{$field->name}, ['class'=>'form-control ' . $field->type . ($field->required ? ' required' : '')]) !!}
+					@endif
 				@elseif ($field->type == 'string')
 					{!! Form::text($field->name, $row->{$field->name}, ['class'=>'form-control ' . $field->type . ($field->required ? ' required' : '')]) !!}
 				@elseif ($field->type == 'text')
@@ -115,19 +123,6 @@
 		@endif
 	@endforeach
 	
-	@if (!empty($object->url))
-		<div class="form-group field-slug">
-			<label class="control-label col-sm-2">Location</label>
-			<div class="col-sm-10">
-				<div class="input-group">
-					<span class="input-group-addon">{{ url($object->url) }}/</span>
-					<input type="text" name="slug" class="form-control slug" value="{{ $row->slug }}">
-					<span class="input-group-addon"><a href="{{ $object->url }}{{ $row->slug }}" target="_blank"><i class="glyphicon glyphicon-new-window"></i></a></span>
-				</div>
-			</div>
-		</div>
-	@endif
-
 	<div class="form-group">
 		<div class="col-sm-10 col-sm-offset-2">
 			{!! Form::submit(trans('center::site.save'), ['class'=>'btn btn-primary']) !!}

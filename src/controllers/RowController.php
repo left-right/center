@@ -559,40 +559,6 @@ class RowController extends \App\Http\Controllers\Controller {
 		return \LeftRight\Center\Libraries\Dates::relative($updated);
 	}
 
-	# Sanitize field values before inserting
-	private static function sanitize($field) {
-		
-		//foreign key situation, exit
-		if (in_array($field->type, ['checkboxes', 'images'])) return;
-
-		//trim whitespace
-		$value = trim(Request::input($field->name));
-
-		//add each field if not present
-		if ($field->type == 'checkbox') {
-			
-			$value = !empty($value); //true or false, never null
-		
-		} elseif (empty($value) && ($value !== '0') && !$field->required) {
-		
-			$value = null; //nullable
-		
-		} else {
-
-			//format date fields
-			if ($field->type == 'date') $value = date('Y-m-d', strtotime($value));
-
-			//format date fields
-			if ($field->type == 'datetime') $value = date('Y-m-d H:i:s', strtotime($value));
-
-			//format slug fields
-			if ($field->type == 'slug') $value = Str::slug($value);
-
-		}
-
-		return $value;
-	}
-
 	# Process Column Input
 	private static function processColumnsInput($table, $row_id=false) {
 
@@ -606,46 +572,74 @@ class RowController extends \App\Http\Controllers\Controller {
 			if (property_exists($table->fields, 'created_at')) $return['created_at'] = new DateTime;
 			if (property_exists($table->fields, 'created_by')) $return['created_by'] = Auth::user()->id;
 			if (property_exists($table->fields, 'precedence')) $return['precedence'] = DB::table($table->name)->max('precedence') + 1;
-			if (property_exists($table->fields, 'slug')) {
-				//determine where slug is coming from
-				if (Request::has($table->fields['slug']->source)) {
-					$value = Request::input($table->fields->slug->source);
-				} else {
-					$value = date('Y-m-d');
-				}
-		
-				//get other values to check uniqueness
-				$uniques = DB::table($table->name)->lists('slug');
-		
-				//add unique, formatted slug to the insert batch
-				$return['slug'] = Slug::make($value, $uniques);
-			}
 		}
 		
 		//loop through the fields
 		foreach ($table->fields as $field) {
 			if ($field->hidden || in_array($field->type, self::$relation_field_types)) continue;
 
-			if ($field->type == 'image') {
+			//trim whitespace
+			$return[$field->name] = trim(Request::input($field->name));
 
-				if ($row_id) {
-					# Unset any old file associations (will get cleaned up later)
+			//first decide whether value is null
+			if ($field->type == 'checkbox') {
+				
+				$return[$field->name] = !empty($return[$field->name]); //checkboxes are true or false, never null
+			
+			} elseif ($field->type != 'slug' && empty($return[$field->name]) && ($return[$field->name] !== '0') && !$field->required) {
+				
+				$return[$field->name] = null;
+
+			} else {
+
+				if ($field->type == 'date') {
+					
+					$return[$field->name] = date('Y-m-d', strtotime($return[$field->name]));
+					
+				} elseif ($field->type == 'datetime') {
+					
+					$return[$field->name] = date('Y-m-d H:i:s', strtotime($return[$field->name]));
+					
+				} elseif ($field->type == 'image') {
+	
+					if ($row_id) {
+						# Unset any old file associations (will get cleaned up later)
+						DB::table(config('center.db.files'))
+							->where('table', $table->name)
+							->where('field', $field->name)
+							->where('row_id', $row_id)
+							->update(['row_id'=>null]);
+					}
+	
+	
+					# Capture the uploaded file by setting the reverse-lookup
 					DB::table(config('center.db.files'))
-						->where('table', $table->name)
-						->where('field', $field->name)
-						->where('row_id', $row_id)
-						->update(['row_id'=>null]);
+						->where('id', Request::input($field->name))
+						->update(['row_id'=>$row_id]);
+	
+				} elseif ($field->type == 'slug') {
+					//determine where slug is coming from
+					if (Request::has($field->name)) {
+						$value = Request::input($field->name);
+					} elseif (Request::has($table->fields->{$field->name}->source)) {
+						$value = Request::input($table->fields->{$field->name}->source);
+					} else {
+						$value = date('Y-m-d');
+					}
+			
+					//get other values to check uniqueness
+					if ($row_id) {
+						$uniques = DB::table($table->name)->where('id', '<>', $row_id)->lists($field->name);						
+					} else {
+						$uniques = DB::table($table->name)->lists($field->name);						
+					}
+			
+					//add unique, formatted slug to the insert batch
+					$return[$field->name] = Slug::make($value, $uniques);
+					
 				}
 
-
-				# Capture the uploaded file by setting the reverse-lookup
-				DB::table(config('center.db.files'))
-					->where('id', Request::input($field->name))
-					->update(['row_id'=>$row_id]);
-
 			}
-
-			$return[$field->name] = self::sanitize($field);
 		}
 
 		return $return;

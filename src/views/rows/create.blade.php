@@ -21,7 +21,7 @@
 	@foreach ($table->fields as $field)
 		@if ($linked_id && $field->id == $table->group_by_field)
 			{!! Form::hidden($field->name, $linked_id) !!}
-		@elseif (!$field->hidden)
+		@elseif (!$field->hidden && $field->type != 'slug')
 			<div class="form-group field-{{ $field->type }} @if ($errors->has($field->name)) has-error @endif">
 				<label class="control-label col-sm-2">{{ $field->title }}</label>
 				<div class="col-sm-10">
@@ -83,8 +83,17 @@
 						@endforeach
 					@elseif ($field->type == 'select')
 						{!! Form::select($field->name, $field->options, null, ['class'=>'form-control ' . $field->type . ($field->required ? ' required' : '')]) !!}
+					{{--
 					@elseif ($field->type == 'slug')
-						{!! Form::text($field->name, null, ['class'=>'form-control ' . $field->type . ($field->required ? ' required' : '')]) !!}
+						@if (isset($table->url))
+							<div class="input-group">
+								<span class="input-group-addon">{{ url($table->url) }}/</span>
+								{!! Form::text($field->name, null, ['class'=>'form-control ' . $field->type . ($field->required ? ' required' : '')]) !!}
+							</div>
+						@else
+							{!! Form::text($field->name, null, ['class'=>'form-control ' . $field->type . ($field->required ? ' required' : '')]) !!}
+						@endif
+					--}}
 					@elseif ($field->type == 'string')
 						{!! Form::text($field->name, null, ['class'=>'form-control ' . $field->type . ($field->required ? ' required' : '')]) !!}
 					@elseif ($field->type == 'text')
