@@ -30,7 +30,8 @@ class RowController extends \App\Http\Controllers\Controller {
 
 		# Get info about the object
 		$table = config('center.tables.' . $table);
-
+		//dd($table);
+		
 		# Security
 		if (!isset($table->name)) {
 			return redirect()->route('home')->with('error', trans('center::site.table_does_not_exist'));
@@ -48,14 +49,12 @@ class RowController extends \App\Http\Controllers\Controller {
 		$rows->select([$table->name . '.id']);
 		foreach ($table->list as $field) {
 			$field = $table->fields->{$field};
-				
 			if ($field->type == 'checkboxes') {
-				$related_object = self::getRelatedObject($field->related_object_id);
-				$rows->addSelect(DB::raw('(SELECT GROUP_CONCAT(' . $related_object->name . '.' . $related_object->field->name . ' SEPARATOR ", ") 
-					FROM ' . $related_object->name . ' 
-					JOIN ' . $field->name . ' ON ' . $related_object->name . '.id = ' . $field->name . '.' . self::formatKeyColumn($related_object->name) . '
+				$rows->addSelect(DB::raw('(SELECT GROUP_CONCAT(' . $field->source . '.' . self::listColumn($field->source) . ' SEPARATOR ", ") 
+					FROM ' . $field->source . ' 
+					JOIN ' . $field->name . ' ON ' . $field->source . '.id = ' . $field->name . '.' . self::formatKeyColumn($field->source) . '
 					WHERE ' . $field->name . '.' . self::formatKeyColumn($table->name) . ' = ' . $table->name . '.id 
-					ORDER BY ' . $related_object->name . '.' . $related_object->field->name . ') AS ' . $field->name));
+					ORDER BY ' . $field->source . '.' . self::listColumn($field->source) . ') AS ' . $field->name));
 			} elseif ($field->type == 'image') {
 				$rows
 					->leftJoin(config('center.db.files'), $table->name . '.' . $field->name, '=', config('center.db.files') . '.id')
@@ -98,9 +97,10 @@ class RowController extends \App\Http\Controllers\Controller {
 				$table->nested = true;
 			} else {
 				# Include group_by_field in resultset
-				$rows
-					->orderBy($grouped_object->name . '.' . $grouped_object->order_by, $grouped_object->direction)
-					->addSelect($grouped_object->name . '.' . $grouped_object->field->name . ' as group');
+				foreach ($grouped_object->order_by as $order_by=>$direction) {
+					$rows->orderBy($order_by, $direction);				
+				}
+				$rows->addSelect($grouped_object->name . '.' . $grouped_object->field->name . ' as group');
 	
 				# If $linked_id, limit scope to just $linked_id
 				if ($linked_id) {
@@ -110,7 +110,9 @@ class RowController extends \App\Http\Controllers\Controller {
 		}
 
 		# Set the order and direction
-		$rows->orderBy($table->name . '.' . $table->order_by);
+		foreach ($table->order_by as $order_by=>$direction) {
+			$rows->orderBy($order_by, $direction);
+		}
 
 		# Soft deletes?
 		if (isset($table->fields->deleted_at)) {
@@ -211,7 +213,7 @@ class RowController extends \App\Http\Controllers\Controller {
 			if (($field->type == 'checkboxes') || ($field->type == 'select')) {
 
 				//load options for checkboxes or selects
-				$field->options = DB::table($tables[$field->source]->name)->orderBy($tables[$field->source]->order_by, $tables[$field->source]->direction)->lists($tables[$field->source]->list[0], 'id');
+				$field->options = DB::table($tables[$field->source]->name)->orderBy($tables[$field->source]->order_by, $tables[$field->source]->direction)->lists(self::listColumn($field->source), 'id');
 
 				//indent nested selects
 				if ($field->type == 'select' && !empty($related_object->group_by_field)) {
@@ -249,7 +251,7 @@ class RowController extends \App\Http\Controllers\Controller {
 				$field->options = DB::table(config('center.db.users'))->orderBy('name')->lists('name', 'id');
 				if (!$field->required) $field->options = [''=>''] + $field->options;
 			} elseif ($field->type == 'us_state') {
-				$field->options = FieldController::usStates();
+				$field->options = trans('center::site.us_states');
 				if (!$field->required) $field->options = [''=>''] + $field->options;
 			} elseif (in_array($field->type, array('image', 'images'))) {
 				list($field->screen_width, $field->screen_height) = FileController::getImageDimensions($field->width, $field->height);
@@ -332,7 +334,11 @@ class RowController extends \App\Http\Controllers\Controller {
 			} elseif (($field->type == 'checkboxes') || ($field->type == 'select')) {
 
 				//load options for checkboxes or selects
-				$field->options = DB::table($tables[$field->source]->name)->orderBy($tables[$field->source]->order_by, $tables[$field->source]->direction)->lists($tables[$field->source]->list[0], 'id');
+				$field->options = DB::table($tables[$field->source]->name);
+				foreach ($tables[$field->source]->order_by as $order_by=>$direction) {
+					$field->options->orderBy($order_by, $direction);
+				}
+				$field->options = $field->options->lists(self::listColumn($field->source), 'id');
 
 				//indent nested selects
 				if ($field->type == 'select' && !empty($related_object->group_by_field)) {
@@ -409,7 +415,7 @@ class RowController extends \App\Http\Controllers\Controller {
 				$field->options = DB::table(config('center.db.users'))->orderBy('name')->lists('name', 'id');
 				if (!$field->required) $field->options = [''=>''] + $field->options;
 			} elseif ($field->type == 'us_state') {
-				$field->options = FieldController::usStates();
+				$field->options = trans('center::site.us_states');
 				if (!$field->required) $field->options = [''=>''] + $field->options;
 			}
 		}
@@ -723,6 +729,14 @@ class RowController extends \App\Http\Controllers\Controller {
 		return false;
 	}
 
+	//get the first text field column name
+	public static function listColumn($table) {
+		$tables = config('center.tables');
+		foreach ($tables[$table]->list as $field) {
+			if ($tables[$table]->fields->{$field}->type == 'string') return $field;
+		}
+	}
+
 	# Return a foreign key column name for a given table name (also used by CenterServiceProvider)
 	public static function formatKeyColumn($table_name) {
 		return Str::singular($table_name) . '_id';
@@ -744,7 +758,7 @@ class RowController extends \App\Http\Controllers\Controller {
 			}
 			if (LoginController::checkPermission($table->name, 'edit')) {
 				if (isset($table->fields->deleted_at)) $return->deletable();
-				if ($table->order_by == 'precedence') $return->draggable(action('\LeftRight\Center\Controllers\RowController@reorder', $table->name));
+				if (array_keys($table->order_by)[0] == 'precedence') $return->draggable(action('\LeftRight\Center\Controllers\RowController@reorder', $table->name));
 			}
 			if (!empty($table->group_by_field)) $return->groupBy('group');
 			return $return->draw($table->name);

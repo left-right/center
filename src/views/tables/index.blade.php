@@ -17,7 +17,7 @@
 		->column('count', 'integer', trans('center::site.count'))
 		->column('updated_name', 'updated_name', trans('center::site.updated_name'))
 		->column('updated_at', 'updated_at', trans('center::site.updated_at'))
-		//->groupBy('list_grouping')
+		->groupBy('list_grouping')
 		->draw('tables')
 		!!}
 	

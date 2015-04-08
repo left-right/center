@@ -63,7 +63,7 @@ class CenterServiceProvider extends ServiceProvider {
 			$table = str_slug($table, '_');
 
 			//parse table definition
-			$table_properties = self::promoteNumericKeyToTrue($table_properties);
+			$table_properties = self::associateNumericKeys($table_properties);
 			$table_properties['name'] = $table;
 			$table_properties['title'] = trans('center::' . $table . '.title');
 			if (!isset($table_properties['keep_clean'])) $table_properties['keep_clean'] = false;
@@ -81,7 +81,7 @@ class CenterServiceProvider extends ServiceProvider {
 				//resolve shorthand, eg 'updated_at'
 				if (is_int($field)) $field = $field_properties;
 				if (is_string($field_properties)) $field_properties = ['type'=>$field_properties];
-				$field_properties = self::promoteNumericKeyToTrue($field_properties);
+				$field_properties = self::associateNumericKeys($field_properties);
 
 				//set types on reserved system fields
 				if ($field == 'permissions') $field_properties['type'] = 'permissions';
@@ -142,11 +142,15 @@ class CenterServiceProvider extends ServiceProvider {
 			$table_properties['fields'] = (object) $expanded_fields;
 
 			//default table properties
+			if (!isset($table_properties['list_grouping'])) $table_properties['list_grouping'] = '';
 			if (!isset($table_properties['model'])) $table_properties['model'] = studly_case(str_singular($table));
 			if (!isset($table_properties['create'])) $table_properties['create'] = true;
 			if (!isset($table_properties['hidden'])) $table_properties['hidden'] = false;
-			if (!isset($table_properties['order_by'])) $table_properties['order_by'] = 'id';
-			if (!isset($table_properties['direction'])) $table_properties['direction'] = 'ASC';
+			if (!isset($table_properties['order_by'])) {
+				$table_properties['order_by'] = ['id'=>'asc'];
+			} else {
+				$table_properties['order_by'] = self::associateNumericKeys($table_properties['order_by'], 'asc');
+			}
 
 			//save table to $tables array as an object
 			$expanded_tables[$table] = (object) $table_properties;
@@ -183,16 +187,24 @@ class CenterServiceProvider extends ServiceProvider {
 				if ($field->type == 'checkboxes') {
 	
 					//out from this object
+					$order_by = [];
+					foreach ($tables[$field->source]->order_by as $column=>$direction) {
+						$order_by[] = '->orderBy("' . $column . '", "' . $direction . '")';
+					}
 					$relationships[$table->name][] = '
 					public function ' . $tables[$field->source]->name . '() {
-						return $this->belongsToMany("LeftRight\Center\Models\\' . $tables[$field->source]->model . '", "' . $field->name . '", "' . RowController::formatKeyColumn($table->name) . '", "' . RowController::formatKeyColumn($tables[$field->source]->name) . '")->orderBy("' . $tables[$field->source]->order_by . '", "' . $tables[$field->source]->direction . '");
+						return $this->belongsToMany("LeftRight\Center\Models\\' . $tables[$field->source]->model . '", "' . $field->name . '", "' . RowController::formatKeyColumn($table->name) . '", "' . RowController::formatKeyColumn($tables[$field->source]->name) . '")' . implode($order_by) . ';
 					}
 					';
 				
 					//back from the related object
+					$order_by = [];
+					foreach ($table->order_by as $column=>$direction) {
+						$order_by[] = '->orderBy("' . $column . '", "' . $direction . '")';
+					}
 					$relationships[$tables[$field->source]->name][] = '
 					public function ' . $table->name . '() {
-						return $this->belongsToMany("LeftRight\Center\Models\\' . $table->model . '", "' . $field->name . '", "' . RowController::formatKeyColumn($tables[$field->source]->name) . '", "' . RowController::formatKeyColumn($table->name) . '")->orderBy("' . $table->order_by . '", "' . $table->direction . '");
+						return $this->belongsToMany("LeftRight\Center\Models\\' . $table->model . '", "' . $field->name . '", "' . RowController::formatKeyColumn($tables[$field->source]->name) . '", "' . RowController::formatKeyColumn($table->name) . '")' . implode($order_by) . ';
 					}
 					';	
 
@@ -269,11 +281,15 @@ class CenterServiceProvider extends ServiceProvider {
 	}
 	
 	//helper for config()
-	private static function promoteNumericKeyToTrue($array) {
-		foreach ($array as $key=>$value) {
-			if (is_int($key)) {
-				$array[$value] = true;
-				unset($array[$key]);
+	private static function associateNumericKeys($array, $default=true) {
+		if (is_string($array)) {
+			$array = [$array => $default];
+		} else {
+			foreach ($array as $key=>$value) {
+				if (is_int($key)) {
+					$array[$value] = $default;
+					unset($array[$key]);
+				}
 			}
 		}
 		return $array;

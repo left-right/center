@@ -47,7 +47,7 @@ class Refresh extends Command {
 		//dd($tables);
 		
 		foreach ($tables as $table) {
-			
+
 			//create if doesn't exist, every table gets an id
 			if (!Schema::hasTable($table->name)) {
 				Schema::create($table->name, function($t) {

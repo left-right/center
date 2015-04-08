@@ -16,21 +16,24 @@ class TableController extends Controller {
 		$tables = array_where(config('center.tables'), function($key, $value) {
 		    return !$value->hidden && LoginController::checkPermission($value->name, 'view');
 		});
-		$objects = [];
+		$groups = $objects = [];
 		foreach ($tables as $table) {
 			$latest = DB::table($table->name)
 				->leftJoin(config('center.db.users') . ' as u2', $table->name . '.updated_by', '=', 'u2.id')
 				->select('u2.name as updated_name', $table->name . '.updated_at')
 				->orderBy($table->name . '.updated_at', 'desc')
 				->first();
-			$objects[] = (object) [
+			if (!isset($groups[$table->list_grouping])) $groups[$table->list_grouping] = [];
+			$groups[$table->list_grouping][] = (object) [
 				'title' => $table->title,
+				'list_grouping' => $table->list_grouping,
 				'link' => action('\LeftRight\Center\Controllers\RowController@index', $table->name),
 				'updated_name' => isset($latest->updated_name) ? $latest->updated_name : '',
 				'updated_at' => isset($latest->updated_at) ? $latest->updated_at : '',
 				'count' => DB::table($table->name)->count(),
 			];
 		}
+		foreach ($groups as $group) $objects = array_merge($objects, $group);
 		return view('center::tables.index', compact('objects'));
 	}
 	
