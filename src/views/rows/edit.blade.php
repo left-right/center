@@ -53,27 +53,27 @@
 					{!! Form::textarea($field->name, $row->{$field->name}, ['class'=>'form-control ' . $field->type . ($field->required ? ' required' : '')]) !!}
 				@elseif ($field->type == 'image')
 					@if (isset($row->{$field->name}->id))
-					<div class="image" data-table-name="{{ $table->name }}" data-field-name="{{ $field->name }}" data-action="{{ action('\LeftRight\Center\Controllers\FileController@image') }}" style="width:{{ $field->screen_width }}px; height:{{ $field->screen_height }}px; line-height:{{ $field->screen_height }}px; background-image: url({{ $row->{$field->name}->url }});">
-						{{ $field->width }} &times; {{ $field->height }}
+					<div class="image" data-table-name="{{ $table->name }}" data-field-name="{{ $field->name }}" data-action="{{ action('\LeftRight\Center\Controllers\FileController@image') }}" style="width:{{ $field->screen_width }}px; height:{{ $field->screen_height }}px; background-image: url({{ $row->{$field->name}->url }});">
+						<div class="dimensions">{{ $field->width }} &times; {{ $field->height }}</div>
 					</div>
 					{!! Form::hidden($field->name, $row->{$field->name}->id) !!}
 					@else
-					<div class="image new" data-table-name="{{ $table->name }}" data-field-name="{{ $field->name }}" data-action="{{ action('\LeftRight\Center\Controllers\FileController@image') }}" style="width:{{ $field->screen_width }}px; height:{{ $field->screen_height }}px; line-height:{{ $field->screen_height }}px;">
-						{{ $field->width or '&infin;' }} &times; {{ $field->height or '&infin;' }}
+					<div class="image new" data-table-name="{{ $table->name }}" data-field-name="{{ $field->name }}" data-action="{{ action('\LeftRight\Center\Controllers\FileController@image') }}" style="width:{{ $field->screen_width }}px; height:{{ $field->screen_height }}px;">
+						<div class="dimensions">{{ $field->width or '&infin;' }} &times; {{ $field->height or '&infin;' }}</div>
 					</div>
 					{!! Form::hidden($field->name, null) !!}
 					@endif
 				@elseif ($field->type == 'images')
 					<?php $ids = []; ?>
 					@foreach ($row->{$field->name} as $image)
-						<div class="image" data-table-name="{{ $table->name }}" data-field-name="{{ $field->name }}" data-file-id="{{ $image->id }}" data-action="{{ action('\LeftRight\Center\Controllers\FileController@image') }}" style="width:{{ $field->screen_width }}px; height:{{ $field->screen_height }}px; line-height:{{ $field->screen_height }}px; background-image: url({{ $image->url }});">
-							{{ $field->width }} &times; {{ $field->height }}
+						<div class="image" data-table-name="{{ $table->name }}" data-field-name="{{ $field->name }}" data-file-id="{{ $image->id }}" data-action="{{ action('\LeftRight\Center\Controllers\FileController@image') }}" style="width:{{ $field->screen_width }}px; height:{{ $field->screen_height }}px; background-image: url({{ $image->url }});">
+							<div class="dimensions">{{ $field->width }} &times; {{ $field->height }}</div>
 						</div>
 						<?php $ids[] = $image->id; ?>
 					@endforeach
 					{!! Form::hidden($field->name, implode(',', $ids)) !!}
-					<div class="image new" data-table-name="{{ $table->name }}" data-field-name="{{ $field->name }}" data-action="{{ action('\LeftRight\Center\Controllers\FileController@image') }}" style="width:{{ $field->screen_width }}px; height:{{ $field->screen_height }}px; line-height:{{ $field->screen_height }}px;">
-						{{ $field->width or '&infin;' }} &times; {{ $field->height or '&infin;' }}
+					<div class="image new" data-table-name="{{ $table->name }}" data-field-name="{{ $field->name }}" data-action="{{ action('\LeftRight\Center\Controllers\FileController@image') }}" style="width:{{ $field->screen_width }}px; height:{{ $field->screen_height }}px;">
+						<div class="dimensions">{{ $field->width or '&infin;' }} &times; {{ $field->height or '&infin;' }}</div>
 					</div>
 				@elseif ($field->type == 'integer')
 					{!! Form::integer($field->name, $row->{$field->name}, ['class'=>'form-control ' . $field->type . ($field->required ? ' required' : '')]) !!}

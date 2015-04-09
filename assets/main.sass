@@ -112,10 +112,15 @@ form
 				text-shadow: 0 0 2px $gray
 				float: left 
 				margin: 0 $margin-row $margin-row 0
+				display: table
 				&.new
 					background-color: $gray-lightest
 					color: $gray-medium
 					text-shadow: none
+				.dimensions
+					display: table-cell
+					line-height: 1
+					vertical-align: middle
 
 		&:last-child
 			margin-bottom: 0

@@ -60,13 +60,13 @@
 						{!! Form::textarea($field->name, Request::get($field->name), ['class'=>'form-control html' . (!$field->required ? ' required' : '')]) !!}
 					@elseif ($field->type == 'image')
 						{!! Form::hidden($field->name, Request::get($field->name)) !!}
-						<div class="image new" data-table-name="{{ $table->name }}" data-field-name="{{ $field->name }}" data-action="{{ action('\LeftRight\Center\Controllers\FileController@image') }}" style="width:{{ $field->screen_width }}px; height:{{ $field->screen_height }}px; line-height:{{ $field->screen_height }}px;">
-							<span>{{ $field->width or '&infin;' }} &times; {{ $field->height or '&infin;' }}</span>
+						<div class="image new" data-table-name="{{ $table->name }}" data-field-name="{{ $field->name }}" data-action="{{ action('\LeftRight\Center\Controllers\FileController@image') }}" style="width:{{ $field->screen_width }}px; height:{{ $field->screen_height }}px;">
+							<div class="dimensions">{{ $field->width or '&infin;' }} &times; {{ $field->height or '&infin;' }}</div>
 						</div>
 					@elseif ($field->type == 'images')
 						{!! Form::hidden($field->name, null) !!}
-						<div class="image new" data-table-name="{{ $table->name }}" data-field-name="{{ $field->name }}" data-action="{{ action('\LeftRight\Center\Controllers\FileController@image') }}" style="width:{{ $field->screen_width }}px; height:{{ $field->screen_height }}px; line-height:{{ $field->screen_height }}px;">
-							<span>{{ $field->width or '&infin;' }} &times; {{ $field->height or '&infin;' }}</span>
+						<div class="image new" data-table-name="{{ $table->name }}" data-field-name="{{ $field->name }}" data-action="{{ action('\LeftRight\Center\Controllers\FileController@image') }}" style="width:{{ $field->screen_width }}px; height:{{ $field->screen_height }}px;">
+							<div class="dimensions">{{ $field->width or '&infin;' }} &times; {{ $field->height or '&infin;' }}</div>
 						</div>
 					@elseif ($field->type == 'integer')
 						{!! Form::integer($field->name, null, ['class'=>'form-control ' . $field->type . ($field->required ? ' required' : '')]) !!}
