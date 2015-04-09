@@ -147,9 +147,16 @@ class CenterServiceProvider extends ServiceProvider {
 			if (!isset($table_properties['create'])) $table_properties['create'] = true;
 			if (!isset($table_properties['hidden'])) $table_properties['hidden'] = false;
 			if (!isset($table_properties['order_by'])) {
-				$table_properties['order_by'] = ['id'=>'asc'];
+				$table_properties['order_by'] = [$table . '.id'=>'asc'];
 			} else {
 				$table_properties['order_by'] = self::associateNumericKeys($table_properties['order_by'], 'asc');
+				foreach ($table_properties['order_by'] as $column => $direction) {
+					//add table name to disambiguate
+					if (!strstr($column, '.')) {
+						unset($table_properties['order_by'][$column]);
+						$table_properties['order_by'][$table . '.' . $column] = $direction;
+					}
+				}
 			}
 
 			//save table to $tables array as an object

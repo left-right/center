@@ -758,7 +758,7 @@ class RowController extends \App\Http\Controllers\Controller {
 			}
 			if (LoginController::checkPermission($table->name, 'edit')) {
 				if (isset($table->fields->deleted_at)) $return->deletable();
-				if (array_keys($table->order_by)[0] == 'precedence') $return->draggable(action('\LeftRight\Center\Controllers\RowController@reorder', $table->name));
+				if (array_keys($table->order_by)[0] == $table->name . '.precedence') $return->draggable(action('\LeftRight\Center\Controllers\RowController@reorder', $table->name));
 			}
 			if (!empty($table->group_by_field)) $return->groupBy('group');
 			return $return->draw($table->name);
