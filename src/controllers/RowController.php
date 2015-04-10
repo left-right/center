@@ -89,22 +89,22 @@ class RowController extends \App\Http\Controllers\Controller {
 
 		# Handle group-by fields
 		$table->nested = false;
-		if (!empty($table->group_by_field)) {
-			$grouped_field = DB::table(config('center.db.fields'))->where('id', $table->group_by_field)->first();
-			$grouped_object = self::getRelatedObject($grouped_field->related_object_id);
-			if ($grouped_object->id == $table->id) {
+		if (!empty($table->group_by)) {
+			$grouped_table = config('center.tables.' . $table->fields->{$table->group_by}->source);
+			$grouped_field = self::listColumn($grouped_table->name);
+			if ($grouped_table->name == $table->name) {
 				//nested object
 				$table->nested = true;
 			} else {
 				# Include group_by_field in resultset
-				foreach ($grouped_object->order_by as $order_by=>$direction) {
+				foreach ($grouped_table->order_by as $order_by => $direction) {
 					$rows->orderBy($order_by, $direction);				
 				}
-				$rows->addSelect($grouped_object->name . '.' . $grouped_object->field->name . ' as group');
-	
+				$rows->leftJoin($grouped_table->name, $table->name . '.' . $table->fields->{$table->group_by}->name, '=', $grouped_table->name . '.id');
+				$rows->addSelect($grouped_table->name . '.' . $grouped_field . ' as group');
 				# If $linked_id, limit scope to just $linked_id
 				if ($linked_id) {
-					$rows->where($grouped_field->name, $linked_id);
+					$rows->where($grouped_table->name, $linked_id);
 				}
 			}
 		}
@@ -760,7 +760,7 @@ class RowController extends \App\Http\Controllers\Controller {
 				if (isset($table->fields->deleted_at)) $return->deletable();
 				if (array_keys($table->order_by)[0] == $table->name . '.precedence') $return->draggable(action('\LeftRight\Center\Controllers\RowController@reorder', $table->name));
 			}
-			if (!empty($table->group_by_field)) $return->groupBy('group');
+			if (!empty($table->group_by)) $return->groupBy('group');
 			return $return->draw($table->name);
 		}
 	}
