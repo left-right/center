@@ -60,11 +60,12 @@ class RowController extends \App\Http\Controllers\Controller {
 					->leftJoin(config('center.db.files'), $table->name . '.' . $field->name, '=', config('center.db.files') . '.id')
 					->addSelect(config('center.db.files') . '.url AS ' . $field->name . '_url');
 			} elseif ($field->type == 'select') {
-				$related_object = self::getRelatedObject($field->related_object_id);
+				$related_object = config('center.tables.' . $field->source);
+				$related_field = self::listColumn($field->source);
 				$rows
 					->leftJoin($related_object->name, $table->name . '.' . $field->name, '=', $related_object->name . '.id')
-					->addSelect($related_object->name . '.' . $related_object->field->name . ' AS ' . $field->name);
-				$text_fields[] = $related_object->name . '.' . $related_object->field->name;
+					->addSelect($related_object->name . '.' . $related_field . ' AS ' . $field->name);
+				$text_fields[] = $related_object->name . '.' . $related_field;
 			} elseif ($field->type == 'user') {
 				$rows
 					->leftJoin(config('center.db.users'), $table->name . '.' . $field->name, '=', config('center.db.users') . '.id')
@@ -116,7 +117,7 @@ class RowController extends \App\Http\Controllers\Controller {
 
 		# Soft deletes?
 		if (isset($table->fields->deleted_at)) {
-			$rows->addSelect('deleted_at');
+			$rows->addSelect($table->name . '.deleted_at');
 		}
 
 		$searching = false;
@@ -166,11 +167,12 @@ class RowController extends \App\Http\Controllers\Controller {
 
 		# Search filters for the sidebar
 		$filters = [];
+		/*
 		foreach ($select_fields as $select) {
 			$related_object = self::getRelatedObject($select->related_object_id);
 			$options = DB::table($related_object->name)->orderBy($related_object->order_by, $related_object->direction)->lists($related_object->field->name, 'id');
 			$filters[$select->name] = [''=>$select->title] + $options;
-		}
+		}*/
 		
 		$return = compact('table', 'columns', 'rows', 'filters', 'searching');
 
@@ -213,7 +215,11 @@ class RowController extends \App\Http\Controllers\Controller {
 			if (($field->type == 'checkboxes') || ($field->type == 'select')) {
 
 				//load options for checkboxes or selects
-				$field->options = DB::table($tables[$field->source]->name)->orderBy($tables[$field->source]->order_by, $tables[$field->source]->direction)->lists(self::listColumn($field->source), 'id');
+				$field->options = DB::table($tables[$field->source]->name);
+				foreach ($tables[$field->source]->order_by as $column => $direction) {
+					$field->options->orderBy($column, $direction);
+				}
+				$field->options = $field->options->lists(self::listColumn($field->source), 'id');
 
 				//indent nested selects
 				if ($field->type == 'select' && !empty($related_object->group_by_field)) {
