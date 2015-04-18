@@ -60,12 +60,11 @@ class RowController extends \App\Http\Controllers\Controller {
 					->leftJoin(config('center.db.files'), $table->name . '.' . $field->name, '=', config('center.db.files') . '.id')
 					->addSelect(config('center.db.files') . '.url AS ' . $field->name . '_url');
 			} elseif ($field->type == 'select') {
-				$related_object = config('center.tables.' . $field->source);
-				$related_field = self::listColumn($field->source);
+				$related_field = $field->source . '.' . self::listColumn($field->source);
 				$rows
-					->leftJoin($related_object->name, $table->name . '.' . $field->name, '=', $related_object->name . '.id')
-					->addSelect($related_object->name . '.' . $related_field . ' AS ' . $field->name);
-				$text_fields[] = $related_object->name . '.' . $related_field;
+					->leftJoin($field->source, $field->name, '=', $field->source . '.id')
+					->addSelect(self::listColumn($field->source) . ' AS ' . $field->name);
+				$text_fields[] = $related_field;
 			} elseif ($field->type == 'user') {
 				$rows
 					->leftJoin(config('center.db.users'), $table->name . '.' . $field->name, '=', config('center.db.users') . '.id')
@@ -173,7 +172,7 @@ class RowController extends \App\Http\Controllers\Controller {
 			$options = DB::table($related_object->name)->orderBy($related_object->order_by, $related_object->direction)->lists($related_object->field->name, 'id');
 			$filters[$select->name] = [''=>$select->title] + $options;
 		}*/
-		
+				
 		$return = compact('table', 'columns', 'rows', 'filters', 'searching');
 
 		# Return array to edit()
@@ -631,7 +630,7 @@ class RowController extends \App\Http\Controllers\Controller {
 	
 				} elseif ($field->type == 'slug') {
 					//determine where slug is coming from
-					if (Request::has($field->name)) {
+					if (Request::input($field->name) !== null) { //Request::has() will return false on empty string
 						$value = Request::input($field->name);
 					} elseif (Request::has($table->fields->{$field->name}->source)) {
 						$value = Request::input($table->fields->{$field->name}->source);
@@ -737,9 +736,10 @@ class RowController extends \App\Http\Controllers\Controller {
 
 	//get the first text field column name
 	public static function listColumn($table) {
-		$tables = config('center.tables');
-		foreach ($tables[$table]->list as $field) {
-			if ($tables[$table]->fields->{$field}->type == 'string') return $field;
+		$table = config('center.tables.' . $table);
+		$fields = !empty($table->list) ? $table->list : array_keys((array) $table->fields);
+		foreach ($fields as $field) {
+			if ($table->fields->{$field}->type == 'string') return $field;
 		}
 	}
 

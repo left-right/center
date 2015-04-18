@@ -2,6 +2,7 @@
 	
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
+use LeftRight\Center\Controllers\FileController;
 use LeftRight\Center\Controllers\InstanceController;
 use LeftRight\Center\Controllers\LoginController;
 use LeftRight\Center\Controllers\RowController;
@@ -19,7 +20,7 @@ class CenterServiceProvider extends ServiceProvider {
 	];
 	
 	public function register() {
-		$this->mergeConfigFrom(__DIR__.'/config.php', 'center');
+		$this->mergeConfigFrom(__DIR__ . '/config.defaults.php', 'center');
 	}
 
 	public function boot() {
@@ -41,7 +42,7 @@ class CenterServiceProvider extends ServiceProvider {
 			__DIR__ . '/../assets/public' => public_path('vendor/center'),
 		], 'public');
 		$this->publishes([
-			__DIR__ . '/config.sample.php' => config_path('center.php'),
+			__DIR__ . '/config' => config_path('center'),
 		], 'config');
 		$this->publishes([
 			__DIR__ . '/translations/en/site.php' => app_path('../resources/lang/packages/en/center/site.php'),
@@ -56,7 +57,8 @@ class CenterServiceProvider extends ServiceProvider {
 		
 		//todo: consider caching this
 		$expanded_tables = [];
-		$tables = array_merge(config('center.tables', []), config('center.system_tables'));
+		$tables = config('center.tables', []);
+
 		foreach ($tables as $table=>$table_properties) {
 			
 			//sanitize for use in db names and php functions
@@ -251,25 +253,46 @@ class CenterServiceProvider extends ServiceProvider {
 			
 			eval('namespace LeftRight\Center\Models;
 			' . ($softDeletes ? 'use Illuminate\Database\Eloquent\SoftDeletes;' : '') . '
+			use Auth;
+			use DateTime;
+			use DB;
 			use Eloquent;
 
 			class ' . $table->model . ' extends Eloquent {
 			    ' . ($softDeletes ? 'use SoftDeletes;' : '') . '
 				
 				public $table      = \'' . $table->name . '\'; //public intentionally
+				public $timestamps = false; //going to override if present
 				protected $guarded = [];
 				protected $dates   = [' . implode(',', $dates) . '];
 
 				public static function boot() {
 					parent::boot();
-			        static::creating(function($object) {
+			        static::creating(function($object) {' . 
+				        (isset($table->fields->precedence) ? '
 						$object->precedence = DB::table(\'' . $table->name . '\')->max(\'precedence\') + 1;
+						' : '') .
+				        (isset($table->fields->created_by) ? '
 						$object->created_by = Auth::id();
+						' : '') .
+				        (isset($table->fields->created_at) ? '
+						$object->created_at = new DateTime();
+						' : '') .
+				        (isset($table->fields->updated_by) ? '
 						$object->updated_by = Auth::id();
-			        });
-			        static::updating(function($object) {
+						' : '') .
+				        (isset($table->fields->updated_at) ? '
+						$object->updated_at = new DateTime();
+						' : '') . 
+					'});
+			        static::updating(function($object) {' . 
+			        	(isset($table->fields->updated_by) ? '
 						$object->updated_by = Auth::id();
-			        });
+						' : '') .
+				        (isset($table->fields->updated_at) ? '
+						$object->updated_at = new DateTime();
+						' : '') . 
+			        '});
 				}
 
 				public function creator() {
@@ -300,6 +323,11 @@ class CenterServiceProvider extends ServiceProvider {
 			}
 		}
 		return $array;
+	}
+	
+	//save image interface (todo move to facade)
+	public static function saveImage($table_name, $field_name, $file_name, $row_id=null) {
+		return FileController::saveImage($table_name, $field_name, $file_name, $row_id);
 	}
 	
 }

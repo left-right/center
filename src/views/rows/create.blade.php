@@ -22,98 +22,7 @@
 		@if ($linked_id && $field->id == $table->group_by_field)
 			{!! Form::hidden($field->name, $linked_id) !!}
 		@elseif (!$field->hidden && $field->type != 'slug')
-			<div class="form-group field-{{ $field->type }} @if ($errors->has($field->name)) has-error @endif">
-				<label class="control-label col-sm-2">{{ $field->title }}</label>
-				<div class="col-sm-10">
-					@if ($field->type == 'checkbox')
-						{!! Form::checkbox($field->name) !!}
-					@elseif ($field->type == 'checkboxes')
-						@foreach ($field->options as $option_id=>$option_value)
-							<label class="checkbox-inline">
-								{!! Form::checkbox($field->name . '[]', $option_id) !!}
-								{{ $option_value }}
-							</label>
-						@endforeach
-					@elseif ($field->type == 'color')
-						{!! Form::text($field->name, $field->required ? '#ffffff' : null, ['class'=>'form-control ' . $field->type . ' {hash:true,caps:false}' . (!$field->required ? ' required' : '')]) !!}
-					@elseif ($field->type == 'date')
-						<div class="input-group date" data-date-format="MM/DD/YYYY">
-							<span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>
-							@if ($field->required)
-							<input type="text" class="form-control required" value="{{ date('m/d/Y') }}" name="{{ $field->name }}">
-						   	@else
-							<input type="text" class="form-control" name="{{ $field->name }}">
-						   	@endif
-						</div>
-					@elseif ($field->type == 'datetime')
-						<div class="input-group datetime" data-date-format="MM/DD/YYYY hh:mm A">
-							<span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>
-							@if ($field->required)
-							<input type="text" class="form-control required" value="{{ date('m/d/Y h:i A') }}" name="{{ $field->name }}">
-						   	@else
-							<input type="text" class="form-control" name="{{ $field->name }}">
-						   	@endif
-						</div>
-					@elseif ($field->type == 'email')
-						{!! Form::email($field->name, Request::get($field->name), ['class'=>'form-control ' . $field->type . (!$field->required ? ' required' : '')]) !!}
-					@elseif ($field->type == 'html')
-						{!! Form::textarea($field->name, Request::get($field->name), ['class'=>'form-control html' . (!$field->required ? ' required' : '')]) !!}
-					@elseif ($field->type == 'image')
-						{!! Form::hidden($field->name, Request::get($field->name)) !!}
-						<div class="image new" data-table-name="{{ $table->name }}" data-field-name="{{ $field->name }}" data-action="{{ action('\LeftRight\Center\Controllers\FileController@image') }}" style="width:{{ $field->screen_width }}px; height:{{ $field->screen_height }}px;">
-							<div class="dimensions">{{ $field->width or '&infin;' }} &times; {{ $field->height or '&infin;' }}</div>
-						</div>
-					@elseif ($field->type == 'images')
-						{!! Form::hidden($field->name, null) !!}
-						<div class="image new" data-table-name="{{ $table->name }}" data-field-name="{{ $field->name }}" data-action="{{ action('\LeftRight\Center\Controllers\FileController@image') }}" style="width:{{ $field->screen_width }}px; height:{{ $field->screen_height }}px;">
-							<div class="dimensions">{{ $field->width or '&infin;' }} &times; {{ $field->height or '&infin;' }}</div>
-						</div>
-					@elseif ($field->type == 'integer')
-						{!! Form::integer($field->name, null, ['class'=>'form-control ' . $field->type . ($field->required ? ' required' : '')]) !!}
-					@elseif ($field->type == 'money')
-						{!! Form::decimal($field->name, null, ['class'=>'form-control ' . $field->type . ($field->required ? ' required' : '')]) !!}
-					@elseif ($field->type == 'permissions')
-						@foreach ($field->tables as $table)
-						<div class="row form-group">
-							<div class="col-md-3">
-								{!! Form::select('permissions[' . $table->name . ']', $field->options, null, ['class'=>'form-control']) !!}
-							</div>
-							<label class="col-md-9 control-label" style="text-align:left;">{{ $table->title }}</label>
-						</div>
-						@endforeach
-					@elseif ($field->type == 'select')
-						{!! Form::select($field->name, $field->options, null, ['class'=>'form-control ' . $field->type . ($field->required ? ' required' : '')]) !!}
-					{{--
-					@elseif ($field->type == 'slug')
-						@if (isset($table->url))
-							<div class="input-group">
-								<span class="input-group-addon">{{ url($table->url) }}/</span>
-								{!! Form::text($field->name, null, ['class'=>'form-control ' . $field->type . ($field->required ? ' required' : '')]) !!}
-							</div>
-						@else
-							{!! Form::text($field->name, null, ['class'=>'form-control ' . $field->type . ($field->required ? ' required' : '')]) !!}
-						@endif
-					--}}
-					@elseif ($field->type == 'string')
-						{!! Form::text($field->name, null, ['class'=>'form-control ' . $field->type . ($field->required ? ' required' : '')]) !!}
-					@elseif ($field->type == 'text')
-						{!! Form::textarea($field->name, null, ['class'=>'form-control ' . $field->type . ($field->required ? ' required' : '')]) !!}
-					@elseif ($field->type == 'time')
-						<div class="input-group time" data-date-format="hh:mm A">
-							<span class="input-group-addon"><span class="glyphicon glyphicon-time"></span></span>
-							{!! Form::text($field->name, null, ['class'=>'form-control ' . $field->type . ($field->required ? ' required' : '')]) !!}
-						</div>
-					@elseif ($field->type == 'url')
-						{!! Form::url($field->name, null, ['class'=>'form-control ' . $field->type . ($field->required ? ' required' : '')]) !!}
-					@elseif ($field->type == 'us_state')
-						{!! Form::select($field->name, $field->options, null, ['class'=>'form-control ' . $field->type . ($field->required ? ' required' : '')]) !!}
-					@elseif ($field->type == 'user')
-						{!! Form::select($field->name, $field->options, null, ['class'=>'form-control ' . $field->type . ($field->required ? ' required' : '')]) !!}
-					@elseif ($field->type == 'zip')
-						{!! Form::text($field->name, null, ['class'=>'form-control ' . $field->type . ($field->required ? ' required' : ''), 'maxlength'=>5]) !!}
-					@endif
-				</div>
-			</div>
+			@include('center::fields.' . $field->type)
 		@endif
 	@endforeach
 	
@@ -130,6 +39,6 @@
 
 @section('side')
 	@if (Lang::has('center::' . $table->name . '.help.create'))
-		<p>{{ nl2br(trans('center::' . $table->name . '.help.create')) }}</p>
+		<p>{!! nl2br(trans('center::' . $table->name . '.help.create')) !!}</p>
 	@endif
 @endsection

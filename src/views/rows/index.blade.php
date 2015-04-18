@@ -70,7 +70,7 @@
 	@endforeach
 	{!! Form::close() !!}
 	@if (Lang::has('center::' . $table->name . '.help.index'))
-		<p>{{ nl2br(trans('center::' . $table->name . '.help.index')) }}</p>
+		<p>{!! nl2br(trans('center::' . $table->name . '.help.index')) !!}</p>
 	@endif
 @endsection
 
