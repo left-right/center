@@ -13,7 +13,7 @@ class Breadcrumbs {
 			$return[] = (is_string($link)) ? '<a href="' . $link . '">' . $text . '</a>' : $text;
 		}
 		
-		return '<h1>' . implode(config('center.icons.breadcrumb'), $return) . '</h1>';
+		return '<h1>' . implode(' ' . config('center.icons.breadcrumb') . ' ', $return) . '</h1>';
 	}
 	
 }

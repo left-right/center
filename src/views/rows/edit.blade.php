@@ -6,22 +6,24 @@
 
 @section('main')
 
-	{!! \LeftRight\Center\Libraries\Breadcrumbs::leave([
-		action('\LeftRight\Center\Controllers\TableController@index')=>trans('center::site.home'),
-		action('\LeftRight\Center\Controllers\RowController@index', $table->name)=>$table->title,
-		trans('center::site.edit'),
-		]) !!}
+	@if ($linked_field)
+		{!! \LeftRight\Center\Libraries\Breadcrumbs::leave([
+			URL::action('\LeftRight\Center\Controllers\TableController@index')=>trans('center::site.home'),
+			URL::action('\LeftRight\Center\Controllers\RowController@index', $table->fields->{$linked_field}->source)=>config('center.tables.' . $table->fields->{$linked_field}->source)->title,
+			URL::action('\LeftRight\Center\Controllers\RowController@edit', [$table->fields->{$linked_field}->source, $linked_row])=>trans('center::site.edit'),
+			trans('center::' . $table->name . '.edit'),
+			]) !!}
+	@else
+		{!! \LeftRight\Center\Libraries\Breadcrumbs::leave([
+			action('\LeftRight\Center\Controllers\TableController@index')=>trans('center::site.home'),
+			action('\LeftRight\Center\Controllers\RowController@index', $table->name)=>$table->title,
+			trans('center::site.edit'),
+			]) !!}
+	@endif
 
-	{!! Form::open(['class'=>'form-horizontal ' . $table->name, 'url'=>action('\LeftRight\Center\Controllers\RowController@update', [$table->name, $row->id, $linked_id]), 'method'=>'put']) !!}
+	{!! Form::open(['class'=>'form-horizontal ' . $table->name, 'url'=>action('\LeftRight\Center\Controllers\RowController@update', [$table->name, $row->id]), 'method'=>'put']) !!}
 	
-		{!! Form::hidden('return_to', $return_to) !!}
-
 	@foreach ($table->fields as $field)
-		{{--
-		@if ($linked_id && $field->id == $object->group_by_field)
-			{!! Form::hidden($field->name, $linked_id) !!}
-		@else
-		--}}
 		@if (!$field->hidden)
 			@include('center::fields.' . $field->type)
 		@endif
@@ -30,7 +32,7 @@
 	<div class="form-group">
 		<div class="col-sm-10 col-sm-offset-2">
 			{!! Form::submit(trans('center::site.save'), ['class'=>'btn btn-primary']) !!}
-			{!! HTML::link($return_to, trans('center::site.cancel'), ['class'=>'btn btn-default']) !!}
+			{!! HTML::link(\LeftRight\Center\Libraries\Trail::last(action('\LeftRight\Center\Controllers\RowController@index', $table->name)), trans('center::site.cancel'), ['class'=>'btn btn-default']) !!}
 		</div>
 	</div>
 
@@ -39,16 +41,16 @@
 	@foreach ($links as $link)
 
 	<div class="related">
-		<h3>{{ $link['object']->title }}</h3>
+		<h3>{{ $link['table']->title }}</h3>
 
 		<div class="btn-group">
-			<a class="btn btn-default" id="create" href="{{ action('\LeftRight\Center\Controllers\RowController@create', [$link['object']->name, $row->id]) }}">
-				<i class="glyphicon glyphicon-plus"></i> 
+			<a class="btn btn-default" id="create" href="{{ action('\LeftRight\Center\Controllers\RowController@create', [$link['table']->name, $link['linked_field'], $link['linked_row']]) }}">
+				{!! config('center.icons.create') !!}
 				@lang('center::site.create')
 			</a>
 		</div>
 		
-		{!! LeftRight\Center\Controllers\RowController::table($link['object'], $link['columns'], $link['instances']) !!}
+		{!! LeftRight\Center\Controllers\RowController::table($link['table'], $link['columns'], $link['rows']) !!}
 	</div>
 	
 	@endforeach
@@ -61,7 +63,6 @@
 	@endif
 
 	{!! Form::open(['method'=>'delete', 'action'=>['\LeftRight\Center\Controllers\RowController@destroy', $table->name, $row->id]]) !!}
-		{!! Form::hidden('return_to', $return_to) !!}
 		{!! Form::submit(trans('center::site.destroy'), ['class'=>'btn btn-default btn-xs']) !!}
 	{!! Form::close() !!}
 

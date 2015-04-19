@@ -14,17 +14,17 @@
 	<div class="btn-group">
 		@if (\LeftRight\Center\Controllers\LoginController::checkPermission(config('center.db.users'), 'edit'))
 		<a class="btn btn-default" href="{{ action('\LeftRight\Center\Controllers\TableController@permissions', $table->name) }}">
-			<i class="glyphicon glyphicon-user"></i>
+			{!! config('center.icons.permissions') !!}
 			@lang('center::site.permissions')
 		</a>
 		@endif
 		<a class="btn btn-default" href="{{ action('\LeftRight\Center\Controllers\RowController@export', $table->name) }}">
-			<i class="glyphicon glyphicon-circle-arrow-down"></i>
+			{!! config('center.icons.export') !!}
 			@lang('center::site.export')
 		</a>
 		@if ($table->create && \LeftRight\Center\Controllers\LoginController::checkPermission($table->name, 'create'))
 			<a class="btn btn-default" href="{{ action('\LeftRight\Center\Controllers\RowController@create', $table->name) }}">
-				<i class="glyphicon glyphicon-plus"></i>
+				{!! config('center.icons.create') !!}
 				@lang('center::site.create')
 			</a>
 		@endif

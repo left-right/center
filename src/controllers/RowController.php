@@ -11,6 +11,7 @@ use Maatwebsite\Excel\ExcelServiceProvider;
 use DateTime;
 use DB;
 use LeftRight\Center\Libraries\Slug;
+use LeftRight\Center\Libraries\Trail;
 use LeftRight\Center\Controllers\LoginController;
 use Redirect;
 use Request;
@@ -25,12 +26,15 @@ class RowController extends \App\Http\Controllers\Controller {
 
 
 	# Show list of instances for an object
-	# $group_by_id is for when coming from a linked object
-	public function index($table, $linked_id=false) {
+	# $linked_field and $linked_row are for when coming from a linked object
+	public function index($table_name, $linked_field=false, $linked_row=false) {
 
 		# Get info about the object
-		$table = config('center.tables.' . $table);
+		$table = config('center.tables.' . $table_name);
 		//dd($table);
+		
+		# Trail
+		if (!$linked_field) Trail::clear();
 		
 		# Security
 		if (!isset($table->name)) {
@@ -102,15 +106,16 @@ class RowController extends \App\Http\Controllers\Controller {
 				}
 				$rows->leftJoin($grouped_table->name, $table->name . '.' . $table->fields->{$table->group_by}->name, '=', $grouped_table->name . '.id');
 				$rows->addSelect($grouped_table->name . '.' . $grouped_field . ' as group');
-				# If $linked_id, limit scope to just $linked_id
-				if ($linked_id) {
-					$rows->where($grouped_table->name, $linked_id);
-				}
 			}
 		}
 
+		# If linked, limit scope to just the linked row
+		if ($linked_field && $linked_row) {
+			$rows->where($table->name . '.' . $linked_field, $linked_row);
+		}
+
 		# Set the order and direction
-		foreach ($table->order_by as $order_by=>$direction) {
+		foreach ($table->order_by as $order_by => $direction) {
 			$rows->orderBy($order_by, $direction);
 		}
 
@@ -143,7 +148,7 @@ class RowController extends \App\Http\Controllers\Controller {
 		# Set URLs on each instance
 		if (LoginController::checkPermission($table->name, 'edit')) {
 			foreach ($rows as &$row) {
-				$row->link = action('\LeftRight\Center\Controllers\RowController@edit', [$table->name, $row->id, $linked_id]);
+				$row->link = action('\LeftRight\Center\Controllers\RowController@edit', [$table->name, $row->id, $linked_field, $linked_row]);
 				$row->delete = action('\LeftRight\Center\Controllers\RowController@delete', [$table->name, $row->id]);
 			}
 		}
@@ -173,20 +178,17 @@ class RowController extends \App\Http\Controllers\Controller {
 			$filters[$select->name] = [''=>$select->title] + $options;
 		}*/
 				
-		$return = compact('table', 'columns', 'rows', 'filters', 'searching');
+		$return = compact('table', 'columns', 'rows', 'filters', 'searching', 'linked_field', 'linked_row');
 
 		# Return array to edit()
-		if ($linked_id) {
-			$table->group_by_field = false; //hacky, but easiest way to remove grouping
-			return $return;
-		}
+		if ($linked_field && $linked_row) return $return;
 
 		# Return HTML view
 		return view('center::rows.index', $return);
 	}
 
 	//show create form for an object instance
-	public function create($table, $linked_id=false) {
+	public function create($table, $linked_field=false, $linked_row=false) {
 		$tables = config('center.tables');
 		$table = config('center.tables.' . $table);
 
@@ -201,14 +203,8 @@ class RowController extends \App\Http\Controllers\Controller {
 		
 		$options = [];
 		
-		# Add return var to the queue
-		if ($linked_id) {
-			$return_to = action('\LeftRight\Center\Controllers\InstanceController@edit', [self::getRelatedObjectName($object), $linked_id]);
-		} elseif (URL::previous()) {
-			$return_to = URL::previous();
-		} else {
-			$return_to = action('\LeftRight\Center\Controllers\InstanceController@index', $table->name);
-		}
+		# Add to return stack
+		Trail::manage();
 
 		foreach ($table->fields as $field) {
 			if (($field->type == 'checkboxes') || ($field->type == 'select')) {
@@ -263,11 +259,11 @@ class RowController extends \App\Http\Controllers\Controller {
 			}
 		}
 
-		return view('center::rows.create', compact('table', 'linked_id', 'return_to'));
+		return view('center::rows.create', compact('table', 'linked_field', 'linked_row'));
 	}
 
 	//save a new object instance to the database
-	public function store($table, $linked_id=false) {
+	public function store($table) {
 		$table = config('center.tables.' . $table);
 
 		# Security
@@ -279,7 +275,6 @@ class RowController extends \App\Http\Controllers\Controller {
 			return redirect()->action('\LeftRight\Center\Controllers\RowController@index', $table->name)->with('error', trans('center::site.no_permissions_create'));
 		}
 
-		//metadata
 		$inserts = self::processColumnsInput($table);
 
 		/*validate
@@ -300,12 +295,12 @@ class RowController extends \App\Http\Controllers\Controller {
 		//clean up any abandoned files
 		FileController::cleanup();
 
-		//return to target		
-		return Redirect::to(Request::input('return_to'));
+		//return to last line in stack or object index
+		return redirect(Trail::last(action('\LeftRight\Center\Controllers\RowController@index', $table->name)));
 	}
 	
 	//show edit form
-	public function edit($table, $row_id, $linked_id=false) {
+	public function edit($table, $row_id, $linked_field=false, $linked_row=false) {
 	
 		# Get object / field / whatever infoz
 		$table = config('center.tables.' . $table);
@@ -319,20 +314,14 @@ class RowController extends \App\Http\Controllers\Controller {
 		} elseif (!LoginController::checkPermission($table->name, 'edit')) {
 			return redirect()->action('\LeftRight\Center\Controllers\RowController@index', $table->name)->with('error', trans('center::site.no_permissions_edit'));
 		}
-
+		
 		# Retrieve instance/row values
 		$row = DB::table($table->name)->where('id', $row_id)->first();
+		
+		# Add to return stack
+		Trail::manage();
 
-		# Add return var to the queue
-		if ($linked_id) {
-			$return_to = action('\LeftRight\Center\Controllers\RowController@edit', [self::getRelatedObjectName($object), $linked_id]);
-		} elseif (URL::previous()) {
-			$return_to = URL::previous();
-		} else {
-			$return_to = action('\LeftRight\Center\Controllers\RowController@index', $table->name);
-		}
-
-		//format instance values for form
+		# Format instance values for form
 		foreach ($table->fields as $field) {
 			if ($field->type == 'datetime') {
 				if (!empty($row->{$field->name})) $row->{$field->name} = date('m/d/Y h:i A', strtotime($row->{$field->name}));
@@ -425,21 +414,17 @@ class RowController extends \App\Http\Controllers\Controller {
 			}
 		}
 
+		// Get linked objects
 		$links = [];
-		/* Get linked objects
-		$links = DB::table(config('center.db.object_links'))
-				->where('object_id', $table->id)
-				->join(config('center.db.objects'), config('center.db.object_links') . '.linked_id', '=', config('center.db.objects') . '.id')
-				->lists(config('center.db.objects') . '.name');
-		foreach ($links as &$link) {
-			$link = self::index($link, $row_id, $linked_id);
-		}*/
+		foreach ($table->links as $table_name => $field_name) {
+			$links[] = self::index($table_name, $field_name, $row_id);
+		}
 
-		return view('center::rows.edit', compact('table', 'row', 'links', 'linked_id', 'return_to'));
+		return view('center::rows.edit', compact('table', 'row', 'links', 'linked_field', 'linked_row'));
 	}
 	
-	//save edits to database
-	public function update($table, $row_id, $linked_id=false) {
+	# Save edits to database
+	public function update($table, $row_id) {
 		$table = config('center.tables.' . $table);
 		
 		# Security
@@ -463,7 +448,8 @@ class RowController extends \App\Http\Controllers\Controller {
 		//clean up abandoned files
 		FileController::cleanup();
 
-		return Redirect::to(Request::input('return_to'));
+		//return to last line in stack or object index
+		return redirect(Trail::last(action('\LeftRight\Center\Controllers\RowController@index', $table->name)));
 	}
 	
 	# Remove object from db - todo check key/constraints
@@ -481,7 +467,7 @@ class RowController extends \App\Http\Controllers\Controller {
 
 		DB::table($table->name)->where('id', $row_id)->delete();
 
-		return Redirect::to(Request::input('return_to'));
+		return Redirect::to(Trail::last());
 	}
 	
 	# Reorder fields by drag-and-drop

@@ -17,7 +17,7 @@
 				</div>
 			</div>
 			<div class="row">
-				<div class="col-md-9 main">				
+				<div class="col-md-9 main">	
 					@yield('main')
 				</div>
 				<div class="col-md-3 side">

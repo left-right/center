@@ -148,6 +148,7 @@ class CenterServiceProvider extends ServiceProvider {
 			if (!isset($table_properties['model'])) $table_properties['model'] = studly_case(str_singular($table));
 			if (!isset($table_properties['create'])) $table_properties['create'] = true;
 			if (!isset($table_properties['hidden'])) $table_properties['hidden'] = false;
+			if (!isset($table_properties['links'])) $table_properties['links'] = [];
 			if (!isset($table_properties['order_by'])) {
 				$table_properties['order_by'] = [$table . '.id'=>'asc'];
 			} else {

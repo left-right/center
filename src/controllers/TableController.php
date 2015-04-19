@@ -3,6 +3,7 @@
 use Auth;
 use DB;
 use LeftRight\Center\Controllers\LoginController;
+use LeftRight\Center\Libraries\Trail;
 use Request;
 use Schema;
 
@@ -12,6 +13,9 @@ class TableController extends Controller {
 	public function index() {
 		if (!Auth::check()) return LoginController::getIndex();
 		LoginController::updateUserPermissions(); //why not
+
+		# Trail
+		Trail::clear();
 		
 		$tables = array_where(config('center.tables'), function($key, $value) {
 		    return !$value->hidden && LoginController::checkPermission($value->name, 'view');

@@ -44,19 +44,18 @@ Route::group(['prefix' => config('center.prefix'), 'namespace' => 'LeftRight\Cen
 		});
 
 		# Instance routing, optionally with linked_id for related objects
-		Route::get('/{table_name}/delete/{instance_id}',		'RowController@delete');
-		Route::get('/{table_name}',							'RowController@index');
-		Route::get('/{table_name}/export',						'RowController@export');
-		Route::get('/{table_name}/permissions',				'TableController@permissions');
-		Route::put('/{table_name}/permissions',				'TableController@savePermissions');
-		Route::get('/{table_name}/create/{linked_id?}',		'RowController@create');
-		Route::post('/{table_name}/reorder',					'RowController@reorder');
-		Route::post('/{table_name}/{linked_id?}',				'RowController@store');
-		Route::get('/{table_name}/{instance_id}/{linked_id?}',	'RowController@edit');
-		Route::put('/{table_name}/{instance_id}/{linked_id?}',	'RowController@update');
-		Route::delete('/{table_name}/{instance_id}', 			'RowController@destroy');
+		Route::get('/{table_name}/delete/{row_id}',							'RowController@delete');
+		Route::get('/{table_name}',											'RowController@index');
+		Route::get('/{table_name}/export',									'RowController@export');
+		Route::get('/{table_name}/permissions',								'TableController@permissions');
+		Route::put('/{table_name}/permissions',								'TableController@savePermissions');
+		Route::get('/{table_name}/create/{linked_field?}/{linked_row?}',	'RowController@create');
+		Route::post('/{table_name}/reorder',								'RowController@reorder');
+		Route::post('/{table_name}',										'RowController@store');
+		Route::get('/{table_name}/{row_id}/{linked_field?}/{linked_row?}',	'RowController@edit');
+		Route::put('/{table_name}/{row_id}',								'RowController@update');
+		Route::delete('/{table_name}/{row_id}', 							'RowController@destroy');
 	
-		
 	});
 	
 });

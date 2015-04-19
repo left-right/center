@@ -69,11 +69,12 @@ class Table {
 
 				//process value if necessary
 				if ($column['type'] == 'draggy') {
-					$value = '<i class="glyphicon glyphicon-align-justify"></i>';
+					$value = config('center.icons.drag');
 				} elseif ($column['type'] == 'delete') {
-					$value = '<a href="' . $row->delete . '">' . (!$row->deleted_at ? '<i class="glyphicon glyphicon-ok-circle"></i>' : '<i class="glyphicon glyphicon-remove-circle"></i>') . '</a>';
+					$value = '<a href="' . $row->delete . '">' . ($row->deleted_at ? config('center.icons.deleted') : config('center.icons.undeleted')) . '</a>';
 				} elseif ($column['type'] == 'image') {
-					$value = '<a href="' . $row->link . '"><img src="' . $row->{$column['name'] . '_url'} . '" width="' . $column['width'] . '" height="' . $column['height'] . '"></a>';
+					$value = '<img src="' . $row->{$column['name'] . '_url'} . '" width="' . $column['width'] . '" height="' . $column['height'] . '">';
+					if (isset($row->link)) $value = '<a href="' . $row->link . '">' . $value . '</a>';						
 				} else {
 					$value = Str::limit(strip_tags($row->{$column['name']}));
 					if ($column['type'] == 'updated_at') {

@@ -6,21 +6,28 @@
 
 @section('main')
 
-	{!! \LeftRight\Center\Libraries\Breadcrumbs::leave([
-		URL::action('\LeftRight\Center\Controllers\TableController@index')=>trans('center::site.home'),
-		URL::action('\LeftRight\Center\Controllers\RowController@index', $table->name)=>$table->title,
-		trans('center::site.create'),
-		]) !!}
+	@if ($linked_field && $linked_row)
+		{!! \LeftRight\Center\Libraries\Breadcrumbs::leave([
+			URL::action('\LeftRight\Center\Controllers\TableController@index')=>trans('center::site.home'),
+			URL::action('\LeftRight\Center\Controllers\RowController@index', $table->fields->{$linked_field}->source)=>config('center.tables.' . $table->fields->{$linked_field}->source)->title,
+			URL::action('\LeftRight\Center\Controllers\RowController@edit', [$table->fields->{$linked_field}->source, $linked_row])=>trans('center::site.edit'),
+			trans('center::' . $table->name . '.create'),
+			]) !!}
+	@else
+		{!! \LeftRight\Center\Libraries\Breadcrumbs::leave([
+			URL::action('\LeftRight\Center\Controllers\TableController@index')=>trans('center::site.home'),
+			URL::action('\LeftRight\Center\Controllers\RowController@index', $table->name)=>$table->title,
+			trans('center::site.create'),
+			]) !!}
+	@endif
 
 	@include('center::notifications')
 
-	{!! Form::open(['class'=>'form-horizontal', 'url'=>URL::action('\LeftRight\Center\Controllers\RowController@store', [$table->name, $linked_id])]) !!}
+	{!! Form::open(['class'=>'form-horizontal', 'url'=>URL::action('\LeftRight\Center\Controllers\RowController@store', $table->name)]) !!}
 	
-	{!! Form::hidden('return_to', $return_to) !!}
-
 	@foreach ($table->fields as $field)
-		@if ($linked_id && $field->id == $table->group_by_field)
-			{!! Form::hidden($field->name, $linked_id) !!}
+		@if ($linked_row && ($field->name == $linked_field))
+			{!! Form::hidden($field->name, $linked_row) !!}
 		@elseif (!$field->hidden && $field->type != 'slug')
 			@include('center::fields.' . $field->type)
 		@endif
@@ -29,7 +36,7 @@
 	<div class="form-group">
 		<div class="col-sm-10 col-sm-offset-2">
 			{!! Form::submit(trans('center::site.save'), ['class'=>'btn btn-primary']) !!}
-			{!! HTML::link($return_to, trans('center::site.cancel'), ['class'=>'btn btn-default']) !!}
+			{!! HTML::link(\LeftRight\Center\Libraries\Trail::last(action('\LeftRight\Center\Controllers\RowController@index', $table->name)), trans('center::site.cancel'), ['class'=>'btn btn-default']) !!}
 		</div>
 	</div>
 

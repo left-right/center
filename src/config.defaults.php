@@ -1,22 +1,27 @@
 <?php
 	
 return [
-	'admins' => [ 1 ],
+	'admins'=> [ 1 ],
 	'css' => [
 		'/vendor/center/css/main.min.css',
 	],
 	'db' => [
-		'files' => 'files',
-		'permissions' => 'permissions',
-		'users' => 'users',
+		'files'			=> 'files',
+		'permissions'	=> 'permissions',
+		'users'			=> 'users',
 	],
 	'files' => [
-		'path' => '/vendor/center/files',
+		'path'			=> '/vendor/center/files',
 	],
 	'icons' => [
-		'home' => '<i class="glyphicon glyphicon-home"></i>',
-		'breadcrumb' => ' <i class="glyphicon glyphicon-chevron-right"></i> ',
-		'create' => '<i class="glyphicon glyphicon-hand-left"></i>',
+		'breadcrumb'	=> '<i class="glyphicon glyphicon-chevron-right"></i>',
+		'create'		=> '<i class="glyphicon glyphicon-plus"></i>',
+		'deleted'		=> '<i class="glyphicon glyphicon-remove-circle"></i>',
+		'drag'			=> '<i class="glyphicon glyphicon-align-justify"></i>',
+		'export'		=> '<i class="glyphicon glyphicon-circle-arrow-down"></i>',
+		'home'			=> '<i class="glyphicon glyphicon-home"></i>',
+		'permissions'	=> '<i class="glyphicon glyphicon-user"></i>',
+		'undeleted'		=> '<i class="glyphicon glyphicon-ok-circle"></i>',
 	],
 	'img' => [
 		'default' => [
