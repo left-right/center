@@ -1,7 +1,7 @@
 @extends('center::login.template')
 
 @section('title')
-	@lang('center::users.password_reset')
+	@lang('center::site.password_reset')
 @endsection
 
 @section('main')
@@ -13,18 +13,18 @@
 		<div class="modal-dialog">
 		    <div class="modal-content">
 				<div class="modal-header">
-					<h1 class="modal-title">@lang('center::users.password_change')</h1>
+					<h1 class="modal-title">@lang('center::site.password_change')</h1>
 				</div>
 				<div class="modal-body">
 					<div class="form-group">
-						<label class="col-md-3 control-label" for="email">@lang('center::users.password')</label>
+						<label class="col-md-3 control-label" for="email">@lang('center::site.password')</label>
 				    	<div class="col-md-9">
 				    		<input type="password" name="password" class="form-control required" autofocus>
 				    	</div>
 					</div>
 			    </div>
 			    <div class="modal-footer">
-			    	<input type="submit" class="btn btn-primary" value="@lang('center::users.password_change')">
+			    	<input type="submit" class="btn btn-primary" value="@lang('center::site.password_change')">
 			    </div>
 			</div>
 		</div>

@@ -18,6 +18,10 @@ return [
 			'type' => 'string',
 			'hidden',
 		],
+		'token' => [
+			'type' => 'string',
+			'hidden',
+		],
 		'last_login' => [
 			'type' => 'datetime',
 			'hidden',

@@ -1,7 +1,7 @@
 @extends('center::login.template')
 
 @section('title')
-	@lang('center::users.password_reset')
+	@lang('center::site.password_reset')
 @endsection
 
 @section('main')

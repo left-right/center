@@ -3,7 +3,7 @@
 Route::group(['prefix' => config('center.prefix'), 'namespace' => 'LeftRight\Center\Controllers'], function(){
 
 	# Will return login screen if not logged in
-	Route::get('/', ['as'=>'home', 'uses'=>'TableController@index']);
+	Route::get('/', 						'TableController@index');
 
 	# Unprotected login routes
 	Route::post('/login', 					'LoginController@postIndex');

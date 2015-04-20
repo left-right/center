@@ -4,7 +4,7 @@ return [
 	'keep_clean',
 	'hidden',
 	'fields' =>	[
-		'user' => [
+		'user_id' => [
 			'type' => 'integer',
 			'required',
 		],

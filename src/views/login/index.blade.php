@@ -27,16 +27,6 @@
 							{!! Form::password('password', ['class'=>'form-control required']) !!}
 						</div>
 					</div>
-					<div class="form-group">
-						<div class="col-md-9 col-md-offset-3">
-							<div class="checkbox">
-								<label>
-									{!! Form::checkbox('remember_me', null, true) !!}
-									@lang('center::site.remember_me')
-								</label>
-							</div>
-						</div>
-					</div>
 				</div>
 				<div class="modal-footer">
 					<a href="{{ URL::action('\LeftRight\Center\Controllers\LoginController@getReset') }}" class="btn btn-default">{{ trans('center::site.password_reset') }}</a>

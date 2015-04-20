@@ -10,9 +10,11 @@ use Maatwebsite\Excel\Facades\Excel;
 use Maatwebsite\Excel\ExcelServiceProvider;
 use DateTime;
 use DB;
+use Hash;
 use LeftRight\Center\Libraries\Slug;
 use LeftRight\Center\Libraries\Trail;
 use LeftRight\Center\Controllers\LoginController;
+use Mail;
 use Redirect;
 use Request;
 use Session;
@@ -38,9 +40,9 @@ class RowController extends \App\Http\Controllers\Controller {
 		
 		# Security
 		if (!isset($table->name)) {
-			return redirect()->route('home')->with('error', trans('center::site.table_does_not_exist'));
+			return redirect()->action('\LeftRight\Center\Controllers\TableController@index')->with('error', trans('center::site.table_does_not_exist'));
 		} elseif (!LoginController::checkPermission($table->name, 'view')) {
-			return redirect()->route('home')->with('error', trans('center::site.no_permissions_view'));
+			return redirect()->action('\LeftRight\Center\Controllers\TableController@index')->with('error', trans('center::site.no_permissions_view'));
 		}
 		
 		# Start query
@@ -194,9 +196,9 @@ class RowController extends \App\Http\Controllers\Controller {
 
 		# Security
 		if (!isset($table->name)) {
-			return redirect()->route('home')->with('error', trans('center::site.table_does_not_exist'));
+			return redirect()->action('\LeftRight\Center\Controllers\TableController@index')->with('error', trans('center::site.table_does_not_exist'));
 		} elseif (!LoginController::checkPermission($table->name, 'view')) {
-			return redirect()->route('home')->with('error', trans('center::site.no_permissions_view'));
+			return redirect()->action('\LeftRight\Center\Controllers\TableController@index')->with('error', trans('center::site.no_permissions_view'));
 		} elseif (!$table->create || !LoginController::checkPermission($table->name, 'create')) {
 			return redirect()->action('\LeftRight\Center\Controllers\RowController@index', $table->name)->with('error', trans('center::site.no_permissions_create'));
 		}
@@ -268,9 +270,9 @@ class RowController extends \App\Http\Controllers\Controller {
 
 		# Security
 		if (!isset($table->name)) {
-			return redirect()->route('home')->with('error', trans('center::site.table_does_not_exist'));
+			return redirect()->action('\LeftRight\Center\Controllers\TableController@index')->with('error', trans('center::site.table_does_not_exist'));
 		} elseif (!LoginController::checkPermission($table->name, 'view')) {
-			return redirect()->route('home')->with('error', trans('center::site.no_permissions_view'));
+			return redirect()->action('\LeftRight\Center\Controllers\TableController@index')->with('error', trans('center::site.no_permissions_view'));
 		} elseif (!$table->create || !LoginController::checkPermission($table->name, 'create')) {
 			return redirect()->action('\LeftRight\Center\Controllers\RowController@index', $table->name)->with('error', trans('center::site.no_permissions_create'));
 		}
@@ -285,6 +287,19 @@ class RowController extends \App\Http\Controllers\Controller {
 		if ($v->fails()) {
 		    return redirect()->back()->withInput()->withErrors($v->errors());
 		}*/
+		
+		//if users table, and if permissions, sent invitation
+		if ($table->name == config('center.db.users') && Request::has('permissions')) {
+			if (count(array_diff(array_values(Request::get('permissions')), ['']))) {
+				$password = Str::random(12);
+				$inserts['password'] = Hash::make($password);
+				$email = $inserts['email'];
+				$link = action('\LeftRight\Center\Controllers\TableController@index');
+				Mail::send('center::emails.welcome', ['email'=>$email, 'password'=>$password, 'link'=>$link], function($message) use ($email) {
+					$message->to($email)->subject(trans('center::site.welcome_email_subject'));
+				});
+			}
+		}
 
 		//run insert
 		$row_id = DB::table($table->name)->insertGetId($inserts);
@@ -294,7 +309,7 @@ class RowController extends \App\Http\Controllers\Controller {
 
 		//clean up any abandoned files
 		FileController::cleanup();
-
+		
 		//return to last line in stack or object index
 		return redirect(Trail::last(action('\LeftRight\Center\Controllers\RowController@index', $table->name)));
 	}
@@ -308,9 +323,9 @@ class RowController extends \App\Http\Controllers\Controller {
 
 		# Security
 		if (!isset($table->name)) {
-			return redirect()->route('home')->with('error', trans('center::site.table_does_not_exist'));
+			return redirect()->action('\LeftRight\Center\Controllers\TableController@index')->with('error', trans('center::site.table_does_not_exist'));
 		} elseif (!LoginController::checkPermission($table->name, 'view')) {
-			return redirect()->route('home')->with('error', trans('center::site.no_permissions_view'));
+			return redirect()->action('\LeftRight\Center\Controllers\TableController@index')->with('error', trans('center::site.no_permissions_view'));
 		} elseif (!LoginController::checkPermission($table->name, 'edit')) {
 			return redirect()->action('\LeftRight\Center\Controllers\RowController@index', $table->name)->with('error', trans('center::site.no_permissions_edit'));
 		}
@@ -429,9 +444,9 @@ class RowController extends \App\Http\Controllers\Controller {
 		
 		# Security
 		if (!isset($table->name)) {
-			return redirect()->route('home')->with('error', trans('center::site.table_does_not_exist'));
+			return redirect()->action('\LeftRight\Center\Controllers\TableController@index')->with('error', trans('center::site.table_does_not_exist'));
 		} elseif (!LoginController::checkPermission($table->name, 'view')) {
-			return redirect()->route('home')->with('error', trans('center::site.no_permissions_view'));
+			return redirect()->action('\LeftRight\Center\Controllers\TableController@index')->with('error', trans('center::site.no_permissions_view'));
 		} elseif (!LoginController::checkPermission($table->name, 'edit')) {
 			return redirect()->action('\LeftRight\Center\Controllers\RowController@index', $table->name)->with('error', trans('center::site.no_permissions_edit'));
 		}
@@ -458,16 +473,16 @@ class RowController extends \App\Http\Controllers\Controller {
 
 		# Security
 		if (!isset($table->name)) {
-			return redirect()->route('home')->with('error', trans('center::site.table_does_not_exist'));
+			return redirect()->action('\LeftRight\Center\Controllers\TableController@index')->with('error', trans('center::site.table_does_not_exist'));
 		} elseif (!LoginController::checkPermission($table->name, 'view')) {
-			return redirect()->route('home')->with('error', trans('center::site.no_permissions_view'));
+			return redirect()->action('\LeftRight\Center\Controllers\TableController@index')->with('error', trans('center::site.no_permissions_view'));
 		} elseif (!LoginController::checkPermission($table->name, 'edit')) {
 			return redirect()->action('\LeftRight\Center\Controllers\RowController@index', $table->name)->with('error', trans('center::site.no_permissions_edit'));
 		}
 
 		DB::table($table->name)->where('id', $row_id)->delete();
 
-		return Redirect::to(Trail::last());
+		return Redirect::to(Trail::last(action('\LeftRight\Center\Controllers\RowController@index', $table->name)));
 	}
 	
 	# Reorder fields by drag-and-drop
@@ -476,11 +491,11 @@ class RowController extends \App\Http\Controllers\Controller {
 
 		# Security
 		if (!isset($table->name)) {
-			return; // redirect()->route('home')->with('error', trans('center::site.table_does_not_exist'));
+			return;
 		} elseif (!LoginController::checkPermission($table->name, 'view')) {
-			return; // redirect()->route('home')->with('error', trans('center::site.no_permissions_view'));
+			return;
 		} elseif (!LoginController::checkPermission($table->name, 'edit')) {
-			return; // redirect()->action('\LeftRight\Center\Controllers\RowController@index', $table->name)->with('error', trans('center::site.no_permissions_edit'));
+			return;
 		}
 
 		//determine whether nested
@@ -526,9 +541,9 @@ class RowController extends \App\Http\Controllers\Controller {
 
 		# Security
 		if (!isset($table->name)) {
-			return redirect()->route('home')->with('error', trans('center::site.table_does_not_exist'));
+			return redirect()->action('\LeftRight\Center\Controllers\TableController@index')->with('error', trans('center::site.table_does_not_exist'));
 		} elseif (!LoginController::checkPermission($table->name, 'view')) {
-			return redirect()->route('home')->with('error', trans('center::site.no_permissions_view'));
+			return redirect()->action('\LeftRight\Center\Controllers\TableController@index')->with('error', trans('center::site.no_permissions_view'));
 		} elseif (!LoginController::checkPermission($table->name, 'edit')) {
 			return redirect()->action('\LeftRight\Center\Controllers\RowController@index', $table->name)->with('error', trans('center::site.no_permissions_edit'));
 		}
@@ -689,11 +704,11 @@ class RowController extends \App\Http\Controllers\Controller {
 			} elseif ($field->type == 'permissions') {
 
 				if ($table->name == config('center.db.users')) {
-					DB::table(config('center.db.permissions'))->where('user', $row_id)->delete();
+					DB::table(config('center.db.permissions'))->where('user_id', $row_id)->delete();
 					foreach (Request::input('permissions') as $table_name => $level) {
 						if (!empty($level)) {
 							DB::table(config('center.db.permissions'))->insert([
-								'user' => $row_id,
+								'user_id' => $row_id,
 								'table' => $table_name,
 								'level' => $level,
 							]);

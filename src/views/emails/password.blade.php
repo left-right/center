@@ -1,1 +1,1 @@
-@lang('center::users.password_reset_email', ['link'=>$link])
+@lang('center::site.password_reset_email', ['link'=>$link])
