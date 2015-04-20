@@ -69,8 +69,9 @@ class CenterServiceProvider extends ServiceProvider {
 			$table_properties['name'] = $table;
 			$table_properties['title'] = trans('center::' . $table . '.title');
 			if (!isset($table_properties['keep_clean'])) $table_properties['keep_clean'] = false;
-			if (!isset($table_properties['search'])) $table_properties['search'] = false;
 			if (!isset($table_properties['list'])) $table_properties['list'] = [];
+			if (!isset($table_properties['search'])) $table_properties['search'] = [];
+			if (!isset($table_properties['filters'])) $table_properties['filters'] = [];
 			
 			//temp, soon to look up from permissions table
 			$table_properties['dates'] = [];

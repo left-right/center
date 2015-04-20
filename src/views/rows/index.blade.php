@@ -56,19 +56,21 @@
 @endsection
 
 @section('side')
-	{!! Form::open(['method'=>'get', 'id'=>'search']) !!}
-	@if ($table->search)
-		<div class="form-group @if (\Request::has('search')) has_input @endif">
-		{!! Form::text('search', Request::input('search'), ['class'=>'form-control', 'placeholder'=>'Search']) !!}
-		<i class="glyphicon glyphicon-remove-circle"></i>
+	@if ($table->search || $table->filters)
+		{!! Form::open(['method'=>'get', 'id'=>'search']) !!}
+		@if ($table->search)
+			<div class="form-group @if (\Request::has('search')) has_input @endif">
+			{!! Form::text('search', Request::input('search'), ['class'=>'form-control', 'placeholder'=>'Search']) !!}
+			<i class="glyphicon glyphicon-remove-circle"></i>
+			</div>
+		@endif
+		@foreach ($filters as $name=>$options)
+		<div class="form-group">
+			{!! Form::select($name, $options, Request::input($name), ['class'=>'form-control']) !!}
 		</div>
-	@endif
-	@foreach ($filters as $name=>$options)
-	<div class="form-group">
-		{!! Form::select($name, $options, Request::input($name), ['class'=>'form-control']) !!}
-	</div>
-	@endforeach
+		@endforeach
 	{!! Form::close() !!}
+	@endif
 	@if (Lang::has('center::' . $table->name . '.help.index'))
 		<p>{!! nl2br(trans('center::' . $table->name . '.help.index')) !!}</p>
 	@endif

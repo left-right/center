@@ -48,8 +48,8 @@ class RowController extends \App\Http\Controllers\Controller {
 		# Start query
 		$rows = DB::table($table->name);
 
-		# Empty arrays mainly for search
-		$date_fields = $select_fields = $date_fields = $columns = [];
+		# Table columns
+		$columns = [];
 		
 		# Build select statement
 		$rows->select([$table->name . '.id']);
@@ -82,15 +82,6 @@ class RowController extends \App\Http\Controllers\Controller {
 			
 			//add to table columns
 			$columns[] = $field;
-
-			//search
-			if (in_array($field->type, ['string', 'text', 'html'])) {
-				$text_fields[] = $table->name . '.' . $field->name;
-			} elseif (in_array($field->type, ['select'])) {
-				$select_fields[] = $field;
-			} elseif (in_array($field->type, ['date', 'datetime'])) {
-				
-			}
 		}
 
 		# Handle group-by fields
@@ -131,16 +122,18 @@ class RowController extends \App\Http\Controllers\Controller {
 		# Text search?
 		if ($table->search && Request::has('search')) {
 			$searching = true;
-			foreach ($table->search as $field) {
-				$rows->orWhere($field, 'LIKE', '%' . Request::input('search') . '%');
-			}
+			$rows->where(function($query) use($table) {
+				foreach ($table->search as $field) {
+					$query->orWhere($table->name . '.' . $field, 'LIKE', '%' . Request::input('search') . '%');
+				}
+			});
 		}
 		
 		# Filter search?
-		foreach ($select_fields as $select) {
-			if (Request::has($select->name)) {
+		foreach ($table->filters as $filter) {
+			if (Request::has($filter)) {
 				$searching = true;
-				$rows->where($select->name, Request::input($select->name));
+				$rows->where($table->name . '.' . $filter, Request::input($filter));
 			}
 		}
 
@@ -173,12 +166,15 @@ class RowController extends \App\Http\Controllers\Controller {
 
 		# Search filters for the sidebar
 		$filters = [];
-		/*
-		foreach ($select_fields as $select) {
-			$related_object = self::getRelatedObject($select->related_object_id);
-			$options = DB::table($related_object->name)->orderBy($related_object->order_by, $related_object->direction)->lists($related_object->field->name, 'id');
-			$filters[$select->name] = [''=>$select->title] + $options;
-		}*/
+		foreach ($table->filters as $filter) {
+			$related_table = config('center.tables.' . $table->fields->{$filter}->source);
+			$options = DB::table($table->fields->{$filter}->source);
+			foreach ($related_table->order_by as $column => $direction) {
+				$options->orderBy($column, $direction);
+			}
+			$options = $options->lists(self::listColumn($related_table), 'id');
+			$filters[$filter] = ['' => $related_table->title] + $options;
+		}
 				
 		$return = compact('table', 'columns', 'rows', 'filters', 'searching', 'linked_field', 'linked_row');
 
@@ -737,7 +733,7 @@ class RowController extends \App\Http\Controllers\Controller {
 
 	//get the first text field column name
 	public static function listColumn($table) {
-		$table = config('center.tables.' . $table);
+		if (is_string($table)) $table = config('center.tables.' . $table);
 		$fields = !empty($table->list) ? $table->list : array_keys((array) $table->fields);
 		foreach ($fields as $field) {
 			if ($table->fields->{$field}->type == 'string') return $field;
