@@ -83,7 +83,18 @@ class CenterServiceProvider extends ServiceProvider {
 				
 				//resolve shorthand, eg 'updated_at'
 				if (is_int($field)) $field = $field_properties;
-				if (is_string($field_properties)) $field_properties = ['type'=>$field_properties];
+				if (is_string($field_properties)) {
+					if (strpos($field_properties, ' ') !== false) {
+						$parts = explode(' ', $field_properties);
+						$field_properties = [
+							'required' => in_array('required', $parts),
+							'hidden' => in_array('hidden', $parts),
+							'type' => implode(array_diff($parts, ['required', 'hidden'])),
+						];
+					} else {
+						$field_properties = ['type' => $field_properties];
+					}
+				}
 				$field_properties = self::associateNumericKeys($field_properties);
 
 				//set types on reserved system fields
@@ -180,7 +191,7 @@ class CenterServiceProvider extends ServiceProvider {
 	
 	//loop through and process the $fields into $objects for model methods below
 	private function models() {
-		$relationships = [];
+		$relationships = $dates = [];
 		$tables = config('center.tables');
 
 		//loop through once to create relationships between tables
@@ -188,7 +199,7 @@ class CenterServiceProvider extends ServiceProvider {
 
 			$softDeletes = isset($table->fields->deleted_at);
 			
-			$dates = [];
+			$dates[$table->name] = [];
 
 			if (!isset($relationships[$table->name])) $relationships[$table->name] = [];
 			
@@ -220,8 +231,8 @@ class CenterServiceProvider extends ServiceProvider {
 					';	
 
 				} elseif (in_array($field->type, ['date', 'datetime'])) {
-					
-					$dates[] = '\'' . $field->name . '\'';
+
+					$dates[$table->name][] = '\'' . $field->name . '\'';
 				
 				} elseif (($field->type == 'image') && ends_with($field->name, '_id')) {
 				
@@ -266,7 +277,7 @@ class CenterServiceProvider extends ServiceProvider {
 				public $table      = \'' . $table->name . '\'; //public intentionally
 				public $timestamps = false; //going to override if present
 				protected $guarded = [];
-				protected $dates   = [' . implode(',', $dates) . '];
+				protected $dates   = [' . implode(',', $dates[$table->name]) . '];
 
 				public static function boot() {
 					parent::boot();

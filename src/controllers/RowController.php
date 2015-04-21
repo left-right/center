@@ -10,6 +10,7 @@ use Maatwebsite\Excel\Facades\Excel;
 use Maatwebsite\Excel\ExcelServiceProvider;
 use DateTime;
 use DB;
+use Exception;
 use Hash;
 use LeftRight\Center\Libraries\Slug;
 use LeftRight\Center\Libraries\Trail;
@@ -298,7 +299,11 @@ class RowController extends \App\Http\Controllers\Controller {
 		}
 
 		//run insert
-		$row_id = DB::table($table->name)->insertGetId($inserts);
+		try {
+			$row_id = DB::table($table->name)->insertGetId($inserts);		
+		} catch (Exception $e) {
+			return redirect()->back()->withInput()->with('error', $e->getMessage());
+		}
 		
 		//handle any checkboxes, had to wait for row_id
 		self::processRelationsInput($table, $row_id);
@@ -451,7 +456,11 @@ class RowController extends \App\Http\Controllers\Controller {
 		$updates = self::processColumnsInput($table, $row_id);
 				
 		//run update
-		DB::table($table->name)->where('id', $row_id)->update($updates);
+		try {
+			DB::table($table->name)->where('id', $row_id)->update($updates);
+		} catch (Exception $e) {
+			return redirect()->back()->withInput()->with('error', $e->getMessage());
+		}
 
 		//relations
 		self::processRelationsInput($table, $row_id);
@@ -794,7 +803,11 @@ class RowController extends \App\Http\Controllers\Controller {
 						'E' => '0.00',
 					]);*/
 
-					$sheet->with($rows)->freezeFirstRow();
+					$sheet->with($rows)->freezeFirstRow()->row(1, function ($row) {
+			            $row->setFontWeight('bold');
+			            $row->setBackground('#FFFFEE');
+						$row->setBorder('none', 'none', 'bottom', 'none');
+			        })->setHeight(1, 30);
 					
 					/*
 					$sheet->cells('A1:F1', function($cells) {
