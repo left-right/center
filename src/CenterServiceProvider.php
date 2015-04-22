@@ -69,6 +69,7 @@ class CenterServiceProvider extends ServiceProvider {
 			$table_properties['name'] = $table;
 			$table_properties['title'] = trans('center::' . $table . '.title');
 			if (!isset($table_properties['keep_clean'])) $table_properties['keep_clean'] = false;
+			if (!isset($table_properties['billable'])) $table_properties['billable'] = false;
 			if (!isset($table_properties['list'])) $table_properties['list'] = [];
 			if (!isset($table_properties['search'])) $table_properties['search'] = [];
 			if (!isset($table_properties['filters'])) $table_properties['filters'] = [];
@@ -270,10 +271,12 @@ class CenterServiceProvider extends ServiceProvider {
 			use DateTime;
 			use DB;
 			use Eloquent;
+			use Laravel\Cashier\Billable;
+			use Laravel\Cashier\Contracts\Billable as BillableContract;
 
-			class ' . $table->model . ' extends Eloquent {
+			class ' . $table->model . ' extends Eloquent' . ($table->billable ? ' implements BillableContract' : '') . ' {
 			    ' . ($softDeletes ? 'use SoftDeletes;' : '') . '
-				
+			    ' . ($table->billable ? 'use Billable;' : '') . '
 				public $table      = \'' . $table->name . '\'; //public intentionally
 				public $timestamps = false; //going to override if present
 				protected $guarded = [];
