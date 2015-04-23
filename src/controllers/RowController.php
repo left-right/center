@@ -577,10 +577,10 @@ class RowController extends \App\Http\Controllers\Controller {
 	private static function processColumnsInput($table, $row_id=false) {
 
 		//metadata
-		$return = [
-			'updated_at'=>new DateTime,
-			'updated_by'=>Auth::user()->id,
-		];
+		$return = [];
+
+		if (property_exists($table->fields, 'updated_at')) $return['updated_at'] = new DateTime;
+		if (property_exists($table->fields, 'updated_by')) $return['updated_by'] = Auth::user()->id;
 
 		if ($row_id === false) {
 			if (property_exists($table->fields, 'created_at')) $return['created_at'] = new DateTime;
