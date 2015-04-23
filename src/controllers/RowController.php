@@ -39,12 +39,15 @@ class RowController extends \App\Http\Controllers\Controller {
 		# Trail
 		if (!$linked_field) Trail::clear();
 		
-		# Security
+		# Security -- todo hidden?
 		if (!isset($table->name)) {
 			return redirect()->action('\LeftRight\Center\Controllers\TableController@index')->with('error', trans('center::site.table_does_not_exist'));
 		} elseif (!LoginController::checkPermission($table->name, 'view')) {
 			return redirect()->action('\LeftRight\Center\Controllers\TableController@index')->with('error', trans('center::site.no_permissions_view'));
 		}
+
+		# Custom index?
+		//if ($table->index) return call_user_func($table->index);
 		
 		# Start query
 		$rows = DB::table($table->name);
@@ -88,18 +91,26 @@ class RowController extends \App\Http\Controllers\Controller {
 		# Handle group-by fields
 		$table->nested = false;
 		if (!empty($table->group_by)) {
-			$grouped_table = config('center.tables.' . $table->fields->{$table->group_by}->source);
-			$grouped_field = self::listColumn($grouped_table->name);
-			if ($grouped_table->name == $table->name) {
-				//nested object
-				$table->nested = true;
-			} else {
-				# Include group_by_field in resultset
-				foreach ($grouped_table->order_by as $order_by => $direction) {
-					$rows->orderBy($order_by, $direction);				
+			if (strpos($table->group_by, '::')) {
+				list($object, $method) = explode('::', $table->group_by);
+				if (class_exists($object)) {
+					//call arbitrary user function
+					$rows = call_user_func($table->group_by, $rows);
 				}
-				$rows->leftJoin($grouped_table->name, $table->name . '.' . $table->fields->{$table->group_by}->name, '=', $grouped_table->name . '.id');
-				$rows->addSelect($grouped_table->name . '.' . $grouped_field . ' as group');
+			} else {
+				$grouped_table = config('center.tables.' . $table->fields->{$table->group_by}->source);
+				$grouped_field = self::listColumn($grouped_table->name);
+				if ($grouped_table->name == $table->name) {
+					//nested object
+					$table->nested = true;
+				} else {
+					# Include group_by_field in resultset
+					foreach ($grouped_table->order_by as $order_by => $direction) {
+						$rows->orderBy($order_by, $direction);				
+					}
+					$rows->leftJoin($grouped_table->name, $table->name . '.' . $table->fields->{$table->group_by}->name, '=', $grouped_table->name . '.id');
+					$rows->addSelect($grouped_table->name . '.' . $grouped_field . ' as group');
+				}
 			}
 		}
 
@@ -194,9 +205,7 @@ class RowController extends \App\Http\Controllers\Controller {
 		# Security
 		if (!isset($table->name)) {
 			return redirect()->action('\LeftRight\Center\Controllers\TableController@index')->with('error', trans('center::site.table_does_not_exist'));
-		} elseif (!LoginController::checkPermission($table->name, 'view')) {
-			return redirect()->action('\LeftRight\Center\Controllers\TableController@index')->with('error', trans('center::site.no_permissions_view'));
-		} elseif (!$table->create || !LoginController::checkPermission($table->name, 'create')) {
+		} elseif (!LoginController::checkPermission($table->name, 'create') || !$table->creatable) {
 			return redirect()->action('\LeftRight\Center\Controllers\RowController@index', $table->name)->with('error', trans('center::site.no_permissions_create'));
 		}
 		
@@ -268,9 +277,7 @@ class RowController extends \App\Http\Controllers\Controller {
 		# Security
 		if (!isset($table->name)) {
 			return redirect()->action('\LeftRight\Center\Controllers\TableController@index')->with('error', trans('center::site.table_does_not_exist'));
-		} elseif (!LoginController::checkPermission($table->name, 'view')) {
-			return redirect()->action('\LeftRight\Center\Controllers\TableController@index')->with('error', trans('center::site.no_permissions_view'));
-		} elseif (!$table->create || !LoginController::checkPermission($table->name, 'create')) {
+		} elseif (!LoginController::checkPermission($table->name, 'create') || !$table->creatable) {
 			return redirect()->action('\LeftRight\Center\Controllers\RowController@index', $table->name)->with('error', trans('center::site.no_permissions_create'));
 		}
 
@@ -325,9 +332,7 @@ class RowController extends \App\Http\Controllers\Controller {
 		# Security
 		if (!isset($table->name)) {
 			return redirect()->action('\LeftRight\Center\Controllers\TableController@index')->with('error', trans('center::site.table_does_not_exist'));
-		} elseif (!LoginController::checkPermission($table->name, 'view')) {
-			return redirect()->action('\LeftRight\Center\Controllers\TableController@index')->with('error', trans('center::site.no_permissions_view'));
-		} elseif (!LoginController::checkPermission($table->name, 'edit')) {
+		} elseif (!LoginController::checkPermission($table->name, 'edit') || !$table->editable) {
 			return redirect()->action('\LeftRight\Center\Controllers\RowController@index', $table->name)->with('error', trans('center::site.no_permissions_edit'));
 		}
 		
@@ -446,9 +451,7 @@ class RowController extends \App\Http\Controllers\Controller {
 		# Security
 		if (!isset($table->name)) {
 			return redirect()->action('\LeftRight\Center\Controllers\TableController@index')->with('error', trans('center::site.table_does_not_exist'));
-		} elseif (!LoginController::checkPermission($table->name, 'view')) {
-			return redirect()->action('\LeftRight\Center\Controllers\TableController@index')->with('error', trans('center::site.no_permissions_view'));
-		} elseif (!LoginController::checkPermission($table->name, 'edit')) {
+		} elseif (!LoginController::checkPermission($table->name, 'edit') || !$table->editable) {
 			return redirect()->action('\LeftRight\Center\Controllers\RowController@index', $table->name)->with('error', trans('center::site.no_permissions_edit'));
 		}
 
@@ -472,16 +475,14 @@ class RowController extends \App\Http\Controllers\Controller {
 		return redirect(Trail::last(action('\LeftRight\Center\Controllers\RowController@index', $table->name)));
 	}
 	
-	# Remove object from db - todo check key/constraints
+	# Remove object from db - todo check for foreign key constraints
 	public function destroy($table, $row_id) {
 		$table = config('center.tables.' . $table);
 
 		# Security
 		if (!isset($table->name)) {
 			return redirect()->action('\LeftRight\Center\Controllers\TableController@index')->with('error', trans('center::site.table_does_not_exist'));
-		} elseif (!LoginController::checkPermission($table->name, 'view')) {
-			return redirect()->action('\LeftRight\Center\Controllers\TableController@index')->with('error', trans('center::site.no_permissions_view'));
-		} elseif (!LoginController::checkPermission($table->name, 'edit')) {
+		} elseif (!LoginController::checkPermission($table->name, 'edit') || !$table->deletable) {
 			return redirect()->action('\LeftRight\Center\Controllers\RowController@index', $table->name)->with('error', trans('center::site.no_permissions_edit'));
 		}
 
@@ -497,9 +498,7 @@ class RowController extends \App\Http\Controllers\Controller {
 		# Security
 		if (!isset($table->name)) {
 			return;
-		} elseif (!LoginController::checkPermission($table->name, 'view')) {
-			return;
-		} elseif (!LoginController::checkPermission($table->name, 'edit')) {
+		} elseif (!LoginController::checkPermission($table->name, 'edit') || !$table->editable) {
 			return;
 		}
 
@@ -540,16 +539,14 @@ class RowController extends \App\Http\Controllers\Controller {
 		}
 	}
 	
-	# Soft delete
+	# Soft delete (permissions-wise this is considered editing)
 	public function delete($table, $row_id) {
 		$table = config('center.tables.' . $table);
 
 		# Security
 		if (!isset($table->name)) {
 			return redirect()->action('\LeftRight\Center\Controllers\TableController@index')->with('error', trans('center::site.table_does_not_exist'));
-		} elseif (!LoginController::checkPermission($table->name, 'view')) {
-			return redirect()->action('\LeftRight\Center\Controllers\TableController@index')->with('error', trans('center::site.no_permissions_view'));
-		} elseif (!LoginController::checkPermission($table->name, 'edit')) {
+		} elseif (!LoginController::checkPermission($table->name, 'edit') || !$table->editable) {
 			return redirect()->action('\LeftRight\Center\Controllers\RowController@index', $table->name)->with('error', trans('center::site.no_permissions_edit'));
 		}
 		

@@ -149,7 +149,8 @@ class LoginController extends \App\Http\Controllers\Controller {
 	}
 	
 	//check permission level for active user
-	public static function checkPermission($table, $level) {
+	public static function checkPermission($table, $level='edit') {
+		if (Auth::guest()) return false;
 		$permissions = Session::get('center.permissions');
 		if (array_key_exists($table, $permissions)) {
 			if ($level == 'view') {

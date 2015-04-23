@@ -21,6 +21,8 @@
 			]) !!}
 	@endif
 
+	@include('center::notifications')
+
 	{!! Form::open(['class'=>'form-horizontal ' . $table->name, 'url'=>action('\LeftRight\Center\Controllers\RowController@update', [$table->name, $row->id]), 'method'=>'put']) !!}
 	
 	@foreach ($table->fields as $field)
@@ -58,13 +60,16 @@
 @endsection
 
 @section('side')
+
 	@if (Lang::has('center::' . $table->name . '.help.edit'))
 		<p>{!! nl2br(trans('center::' . $table->name . '.help.edit')) !!}</p>
 	@endif
 
+	@if ($table->deletable)
 	{!! Form::open(['method'=>'delete', 'action'=>['\LeftRight\Center\Controllers\RowController@destroy', $table->name, $row->id]]) !!}
 		{!! Form::submit(trans('center::site.destroy'), ['class'=>'btn btn-default btn-xs']) !!}
 	{!! Form::close() !!}
+	@endif
 
 @endsection
 

@@ -70,6 +70,9 @@ class CenterServiceProvider extends ServiceProvider {
 			$table_properties['title'] = trans('center::' . $table . '.title');
 			if (!isset($table_properties['keep_clean'])) $table_properties['keep_clean'] = false;
 			if (!isset($table_properties['billable'])) $table_properties['billable'] = false;
+			if (!isset($table_properties['creatable'])) $table_properties['creatable'] = true;
+			if (!isset($table_properties['editable'])) $table_properties['editable'] = true;
+			if (!isset($table_properties['deletable'])) $table_properties['deletable'] = true;
 			if (!isset($table_properties['list'])) $table_properties['list'] = [];
 			if (!isset($table_properties['search'])) $table_properties['search'] = [];
 			if (!isset($table_properties['filters'])) $table_properties['filters'] = [];
@@ -159,7 +162,6 @@ class CenterServiceProvider extends ServiceProvider {
 			//default table properties
 			if (!isset($table_properties['list_grouping'])) $table_properties['list_grouping'] = '';
 			if (!isset($table_properties['model'])) $table_properties['model'] = studly_case(str_singular($table));
-			if (!isset($table_properties['create'])) $table_properties['create'] = true;
 			if (!isset($table_properties['hidden'])) $table_properties['hidden'] = false;
 			if (!isset($table_properties['links'])) $table_properties['links'] = [];
 			if (!isset($table_properties['order_by'])) {
