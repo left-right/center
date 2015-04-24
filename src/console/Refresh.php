@@ -93,6 +93,8 @@ class Refresh extends Command {
 							case 'email':
 							case 'password':
 							case 'slug':
+							case 'stripe_charge':
+							case 'stripe_customer':
 							case 'string':
 							case 'url':
 							case 'us_state':

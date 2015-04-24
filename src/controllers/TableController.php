@@ -44,7 +44,7 @@ class TableController extends Controller {
 	# Edit table permissions page	
 	public function permissions($table) {
 		$table = config('center.tables.' . $table);
-		$permissions = DB::table(config('center.db.permissions'))->where('table', $table->name)->lists('level', 'user');
+		$permissions = DB::table(config('center.db.permissions'))->where('table', $table->name)->lists('level', 'user_id');
 		$users = DB::table(config('center.db.users'))->whereNull('deleted_at')->get();
 		foreach ($users as &$user) {
 			$user->level = (isset($permissions[$user->id])) ? $permissions[$user->id] : null;
@@ -60,7 +60,7 @@ class TableController extends Controller {
 			if (!empty($level)) {
 				DB::table(config('center.db.permissions'))->insert([
 					'table' => $table,
-					'user' => $user,
+					'user_id' => $user,
 					'level' => $level,
 				]);		
 			}

@@ -16,7 +16,8 @@ class CenterServiceProvider extends ServiceProvider {
 	private static $field_types = [
 		'checkboxes', 'checkbox', 'color', 'date', 'datetime', 'email', 'html', 
 		'image', 'images', 'integer', 'money', 'password', 'permissions', 'select', 
-		'slug', 'string', 'text', 'time', 'url', 'us_state', 'user', 'zip',
+		'slug', 'string', 'stripe_charge', 'stripe_customer', 'text', 'time', 'url', 
+		'us_state', 'user', 'zip',
 	];
 	
 	public function register() {
@@ -69,7 +70,6 @@ class CenterServiceProvider extends ServiceProvider {
 			$table_properties['name'] = $table;
 			$table_properties['title'] = trans('center::' . $table . '.title');
 			if (!isset($table_properties['keep_clean'])) $table_properties['keep_clean'] = false;
-			if (!isset($table_properties['billable'])) $table_properties['billable'] = false;
 			if (!isset($table_properties['creatable'])) $table_properties['creatable'] = true;
 			if (!isset($table_properties['editable'])) $table_properties['editable'] = true;
 			if (!isset($table_properties['deletable'])) $table_properties['deletable'] = true;
@@ -200,8 +200,6 @@ class CenterServiceProvider extends ServiceProvider {
 		//loop through once to create relationships between tables
 		foreach ($tables as $table) {
 
-			$softDeletes = isset($table->fields->deleted_at);
-			
 			$dates[$table->name] = [];
 
 			if (!isset($relationships[$table->name])) $relationships[$table->name] = [];
@@ -260,6 +258,21 @@ class CenterServiceProvider extends ServiceProvider {
 						return $this->hasMany("LeftRight\Center\Models\\' . $table->model . '", "' . $field->name . '");
 					}
 					';
+				} elseif ($field->type == 'user') {
+					
+					//out from this object
+					$relationships[$table->name][] = '
+					public function ' . $tables[config('center.db.users')]->name . '() {
+						return $this->belongsTo("LeftRight\Center\Models\\' . $tables[config('center.db.users')]->model . '", "' . $field->name . '");
+					}
+					';
+	
+					//back from the related object
+					$relationships[$tables[config('center.db.users')]->name][] = '
+					public function ' . $table->name . '() {
+						return $this->hasMany("LeftRight\Center\Models\\' . $table->model . '", "' . $field->name . '");
+					}
+					';
 				}
 			}
 		}
@@ -268,17 +281,14 @@ class CenterServiceProvider extends ServiceProvider {
 		foreach ($tables as $table) {
 			
 			eval('namespace LeftRight\Center\Models;
-			' . ($softDeletes ? 'use Illuminate\Database\Eloquent\SoftDeletes;' : '') . '
+			use Illuminate\Database\Eloquent\SoftDeletes;
 			use Auth;
 			use DateTime;
 			use DB;
 			use Eloquent;
-			use Laravel\Cashier\Billable;
-			use Laravel\Cashier\Contracts\Billable as BillableContract;
 
-			class ' . $table->model . ' extends Eloquent' . ($table->billable ? ' implements BillableContract' : '') . ' {
-			    ' . ($softDeletes ? 'use SoftDeletes;' : '') . '
-			    ' . ($table->billable ? 'use Billable;' : '') . '
+			class ' . $table->model . ' extends Eloquent {
+			    ' . (isset($table->fields->deleted_at) ? 'use SoftDeletes;' : '') . '
 				public $table      = \'' . $table->name . '\'; //public intentionally
 				public $timestamps = false; //going to override if present
 				protected $guarded = [];

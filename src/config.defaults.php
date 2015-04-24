@@ -20,6 +20,7 @@ return [
 		'drag'			=> '<i class="glyphicon glyphicon-align-justify"></i>',
 		'export'		=> '<i class="glyphicon glyphicon-circle-arrow-down"></i>',
 		'home'			=> '<i class="glyphicon glyphicon-home"></i>',
+		'new_window'	=> '<i class="glyphicon glyphicon-new-window"></i>',
 		'permissions'	=> '<i class="glyphicon glyphicon-user"></i>',
 		'undeleted'		=> '<i class="glyphicon glyphicon-ok-circle"></i>',
 	],

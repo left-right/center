@@ -75,6 +75,8 @@ class Table {
 				} elseif ($column['type'] == 'image') {
 					$value = '<img src="' . $row->{$column['name'] . '_url'} . '" width="' . $column['width'] . '" height="' . $column['height'] . '">';
 					if (isset($row->link)) $value = '<a href="' . $row->link . '">' . $value . '</a>';						
+				} elseif ($column['type'] == 'stripe_charge') {
+					$value = $row->{$column['name']} ? '<a href="https://dashboard.stripe.com/payments/' . $row->{$column['name']} . '" target="_blank">' . config('center.icons.new_window') . ' ' . trans('center::site.stripe_open') . '</a>' : '';
 				} else {
 					$value = Str::limit(strip_tags($row->{$column['name']}));
 					if ($column['type'] == 'updated_at') {
@@ -87,6 +89,8 @@ class Table {
 						$value = Dates::relative($value);
 					} elseif (in_array($column['type'], ['datetime', 'timestamp'])) {
 						$value = Dates::absolute($value);
+					} elseif ($column['type'] == 'money') {
+						$value = '$' . number_format($value, 2);
 					}
 
 					if (isset($row->link) && $link) {

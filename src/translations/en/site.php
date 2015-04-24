@@ -38,6 +38,7 @@ return [
 	'refresh_success'		=> 'Successfully refreshed the database schema.',
 	'save'					=> 'Save Changes',
 	'search_empty'			=> 'No :title matched those search critera.',	
+	'stripe_open'			=> 'Open in Stripe',
 	'table'					=> 'Table',
 	'table_does_not_exist'	=> 'That table does not exist.',
 	'updated_at'			=> 'Updated',

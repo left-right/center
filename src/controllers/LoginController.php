@@ -152,13 +152,14 @@ class LoginController extends \App\Http\Controllers\Controller {
 	public static function checkPermission($table, $level='edit') {
 		if (Auth::guest()) return false;
 		$permissions = Session::get('center.permissions');
-		if (array_key_exists($table, $permissions)) {
+		$table = config('center.tables.' . $table);
+		if (array_key_exists($table->name, $permissions)) {
 			if ($level == 'view') {
 				return true;
-			} elseif ($level == 'create') {
-				if (($permissions[$table] == 'create') || ($permissions[$table] == 'edit')) return true;
-			} elseif ($level == 'edit') {
-				if ($permissions[$table] == 'edit') return true;
+			} elseif ($table->creatable && $level == 'create') {
+				if (($permissions[$table->name] == 'create') || ($permissions[$table->name] == 'edit')) return true;
+			} elseif ($table->editable && $level == 'edit') {
+				if ($permissions[$table->name] == 'edit') return true;
 			}
 		}
 		return false;
