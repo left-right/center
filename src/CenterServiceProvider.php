@@ -74,6 +74,7 @@ class CenterServiceProvider extends ServiceProvider {
 			if (!isset($table_properties['editable'])) $table_properties['editable'] = true;
 			if (!isset($table_properties['deletable'])) $table_properties['deletable'] = true;
 			if (!isset($table_properties['list'])) $table_properties['list'] = [];
+			if (!isset($table_properties['export'])) $table_properties['export'] = [];
 			if (!isset($table_properties['search'])) $table_properties['search'] = [];
 			if (!isset($table_properties['filters'])) $table_properties['filters'] = [];
 			

@@ -6,8 +6,6 @@ use Aws\Common\Enum\Region;
 use Aws\Laravel\AwsServiceProvider;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Str;
-use Maatwebsite\Excel\Facades\Excel;
-use Maatwebsite\Excel\ExcelServiceProvider;
 use DateTime;
 use DB;
 use Exception;
@@ -777,48 +775,6 @@ class RowController extends \App\Http\Controllers\Controller {
 			if (!empty($table->group_by)) $return->groupBy('group');
 			return $return->draw($table->name);
 		}
-	}
-
-	//export instances
-	public function export($table) {
-
-		$table = config('center.tables.' . $table);
-
-		Excel::create($table->title, function($excel) use ($table) {
-
-		    $excel->setTitle($table->title)->sheet($table->title, function($sheet) use ($table) {
-		
-					$results = DB::table($table->name)->get();
-					$rows = [];
-					
-					foreach ($results as $result) {
-						$row = [];
-						foreach ($table->fields as $field) {
-							if (in_array($field->type, ['html', 'checkboxes', 'text'])) continue;
-							$row[$field->name] = $result->{$field->name};
-						}
-						$rows[] = $row;
-					}
-					
-					/*format columns
-					$sheet->setColumnFormat([
-						'E' => '0.00',
-					]);*/
-
-					$sheet->with($rows)->freezeFirstRow()->row(1, function ($row) {
-			            $row->setFontWeight('bold');
-			            $row->setBackground('#FFFFEE');
-						$row->setBorder('none', 'none', 'bottom', 'none');
-			        })->setHeight(1, 30);
-					
-					/*
-					$sheet->cells('A1:F1', function($cells) {
-						$cells->setFontWeight('bold');
-					});*/
-
-				});
-
-		})->download('xlsx');
 	}
 	
 	/*

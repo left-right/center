@@ -4,6 +4,8 @@ use Auth;
 use DB;
 use LeftRight\Center\Controllers\LoginController;
 use LeftRight\Center\Libraries\Trail;
+use Maatwebsite\Excel\Facades\Excel;
+use Maatwebsite\Excel\ExcelServiceProvider;
 use Request;
 use Schema;
 
@@ -34,7 +36,7 @@ class TableController extends Controller {
 				'link' => action('\LeftRight\Center\Controllers\RowController@index', $table->name),
 				'updated_name' => isset($latest->updated_name) ? $latest->updated_name : '',
 				'updated_at' => isset($latest->updated_at) ? $latest->updated_at : '',
-				'count' => DB::table($table->name)->count(),
+				'count' => number_format(DB::table($table->name)->count()),
 			];
 		}
 		foreach ($groups as $group) $objects = array_merge($objects, $group);
@@ -68,6 +70,56 @@ class TableController extends Controller {
 		LoginController::updateUserPermissions();
 		return redirect(action('\LeftRight\Center\Controllers\RowController@index', $table))->with('message', trans('center::site.permissions_update_success'));
 	}
+	
+	//export instances
+	public function export($table) {
+
+		$table = config('center.tables.' . $table);
+		if (empty($table->export)) return false; //throw new exception?
+
+		Excel::create($table->title, function($excel) use ($table) {
+
+		    $excel->setTitle($table->title)->sheet($table->title, function($sheet) use ($table) {
+		
+					//fetch data
+					$results = DB::table($table->name);
+					foreach ($table->order_by as $column=>$direction) {
+						$results->orderBy($column, $direction);
+					}
+					$results = $results->get();
+
+					//output array
+					$rows = [];
+					
+					foreach ($results as $result) {
+						$row = [];
+						foreach ($table->export as $field) {
+							$row[trans('center::' . $table->name . '.fields.' . $field)] = $result->{$field};
+						}
+						$rows[] = $row;
+					}
+					
+					/*format columns
+					$sheet->setColumnFormat([
+						'E' => '0.00',
+					]);*/
+
+					$sheet->with($rows)->freezeFirstRow()->row(1, function ($row) {
+			            $row->setFontWeight('bold');
+			            $row->setBackground('#FFFFEE');
+						$row->setBorder('none', 'none', 'bottom', 'none');
+			        })->setHeight(1, 30);
+					
+					/*
+					$sheet->cells('A1:F1', function($cells) {
+						$cells->setFontWeight('bold');
+					});*/
+
+				});
+
+		})->download('xlsx');
+	}
+	
 }
 
 

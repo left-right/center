@@ -18,10 +18,12 @@
 			@lang('center::site.permissions')
 		</a>
 		@endif
-		<a class="btn btn-default" href="{{ action('\LeftRight\Center\Controllers\RowController@export', $table->name) }}">
+		@if ($table->export)
+		<a class="btn btn-default" href="{{ action('\LeftRight\Center\Controllers\TableController@export', $table->name) }}">
 			{!! config('center.icons.export') !!}
 			@lang('center::site.export')
 		</a>
+		@endif
 		@if ($table->creatable && \LeftRight\Center\Controllers\LoginController::checkPermission($table->name, 'create'))
 			<a class="btn btn-default" href="{{ action('\LeftRight\Center\Controllers\RowController@create', $table->name) }}">
 				{!! config('center.icons.create') !!}

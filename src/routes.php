@@ -46,7 +46,7 @@ Route::group(['prefix' => config('center.prefix'), 'namespace' => 'LeftRight\Cen
 		# Instance routing, optionally with linked_id for related objects
 		Route::get('/{table_name}/delete/{row_id}',							'RowController@delete');
 		Route::get('/{table_name}',											'RowController@index');
-		Route::get('/{table_name}/export',									'RowController@export');
+		Route::get('/{table_name}/export',									'TableController@export');
 		Route::get('/{table_name}/permissions',								'TableController@permissions');
 		Route::put('/{table_name}/permissions',								'TableController@savePermissions');
 		Route::get('/{table_name}/create/{linked_field?}/{linked_row?}',	'RowController@create');
