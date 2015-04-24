@@ -179,12 +179,17 @@ class RowController extends \App\Http\Controllers\Controller {
 		# Search filters for the sidebar
 		$filters = [];
 		foreach ($table->filters as $filter) {
+			if ($table->fields->{$filter}->type == 'user') {
+				$table->fields->{$filter}->source = config('center.db.users');
+			}
 			$related_table = config('center.tables.' . $table->fields->{$filter}->source);
-			$options = DB::table($table->fields->{$filter}->source);
+			$options = DB::table($related_table->name);
 			foreach ($related_table->order_by as $column => $direction) {
 				$options->orderBy($column, $direction);
 			}
+			$options->whereIn('id', DB::table($table->name)->distinct()->lists($filter));
 			$options = $options->lists(self::listColumn($related_table), 'id');
+			
 			$filters[$filter] = ['' => $related_table->title] + $options;
 		}
 				

@@ -142,7 +142,7 @@ $(function() {
             return $.trim(this.value).length > 0
         }).serialize();
         if (text.length) text = '?' + text;
-        window.location.href = window.location.href.split('?')[0] + text;
+        window.location.href = window.location.href.replace('#', '').split('?')[0] + text;
         return false;
     }).on('click', 'i.glyphicon', function(){
 	    $('form#search input').val('');
