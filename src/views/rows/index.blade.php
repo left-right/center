@@ -45,6 +45,9 @@
 			</div>
 		@else
 			{!! \LeftRight\Center\Controllers\RowController::table($table, $columns, $rows) !!}
+			<div class="text-center">
+				{!! $rows->appends(Input::all())->render() !!}
+			</div>
 		@endif
 	@else
 	<div class="alert alert-warning">

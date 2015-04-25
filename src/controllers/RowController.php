@@ -148,7 +148,7 @@ class RowController extends \App\Http\Controllers\Controller {
 		}
 
 		# Run query and save it to a variable
-		$rows = $rows->get();
+		$rows = $rows->paginate(50);
 
 		# Set URLs on each instance
 		if (LoginController::checkPermission($table->name, 'edit')) {
