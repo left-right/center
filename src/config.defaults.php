@@ -35,5 +35,8 @@ return [
 			'area'		=> 168240, //701 * 240 = 168240
 		],
 	],
+	'js' => [
+		'/vendor/center/js/main.min.js',	
+	],
 	'prefix' => 'center',
 ];

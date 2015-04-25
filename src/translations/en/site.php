@@ -23,6 +23,7 @@ return [
 	'login'					=> 'Log In',
 	'login_invalid'			=> 'That email / password combination was not found.',
 	'logout'				=> 'Log Out',
+	'no'					=> 'No',
 	'no_permissions_view'	=> 'You don\'t have permission to view that object.',
 	'no_permissions_create'	=> 'You don\'t have permission to create new instances of this object.',
 	'no_permissions_edit'	=> 'You don\'t have permission to edit instances of this object.',
@@ -99,5 +100,6 @@ return [
 	'welcome'				=> 'Center Login',
 	'welcome_email_subject' => 'CMS Login Information',
 	'welcome_email_message' => 'Welcome to the CMS. You may <a href=":link">log in here</a>.',
+	'yes'					=> 'Yes',
 	'your_name'				=> 'Your Name',
 ];

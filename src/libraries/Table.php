@@ -89,6 +89,8 @@ class Table {
 						$value = Dates::relative($value);
 					} elseif (in_array($column['type'], ['datetime', 'timestamp'])) {
 						$value = Dates::absolute($value);
+					} elseif ($column['type'] == 'checkbox') {
+						$value = $value ? trans('center::site.yes') : trans('center::site.no');
 					} elseif ($column['type'] == 'money') {
 						$value = '$' . number_format($value, 2);
 					}

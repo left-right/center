@@ -5,8 +5,11 @@
 		<title>@yield('title')</title>
 		<meta charset="UTF-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-		@foreach (config('center.css') as $stylesheet)
-			{!! HTML::style($stylesheet) !!}
+		@foreach (config('center.js') as $script)
+			{!! HTML::script($script) !!}
+		@endforeach
+		@foreach (config('center.css') as $style)
+			{!! HTML::style($style) !!}
 		@endforeach
 	</head>
 	<body>
@@ -27,7 +30,6 @@
 				</div>
 			</div>
 		</div>
-		{!! HTML::script('/vendor/center/js/main.min.js') !!}
 		@yield('script')
 	</body>
 </html>
