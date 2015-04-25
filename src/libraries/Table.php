@@ -5,63 +5,63 @@ use Session;
 
 class Table {
 
-	private static $rows		= [];
-	private static $columns		= [];
-	private static $deletable	= false;
-	private static $draggable	= false;
-	private static $grouped		= false;
+	private $rows;
+	private $columns;
+	private $deletable;
+	private $draggable;
+	private $grouped;
+	
+	function __construct() {
+		$this->rows			= [];
+		$this->columns		= [];
+		$this->deletable	= false;
+		$this->draggable	= false;
+		$this->grouped		= false;
+	}
 
 	//add a column.  $trans is translation file key
 	public function column($name, $type, $label=false, $width=false, $height=false) {
 		if ($label === false) $label = $name;
-		self::$columns[] = compact('name', 'type', 'label', 'width', 'height');
-		return $this;
+		$this->columns[] = compact('name', 'type', 'label', 'width', 'height');
 	}
-
 
 	//set table to be deletable
 	public function deletable() {
-		self::$deletable = true;
-		return $this;
+		$this->deletable = true;
 	}
-
 
 	//set table to be draggable
 	public function draggable($url) {
-		self::$draggable = $url;
-		return $this;
+		$this->draggable = $url;
 	}
-
 
 	//draw the table
 	public function draw($id='untitled') {
 		
 		//start up
-		if (self::$draggable) array_unshift(self::$columns, ['label'=>'', 'type'=>'draggy', 'name'=>'draggy']);
-		if (self::$deletable) self::column('delete', 'delete', '');
-		if (self::$grouped) $last_group = '';
-		$colspan = count(self::$columns);
-		$rowspan = count(self::$rows);
+		if ($this->draggable) array_unshift($this->columns, ['label'=>'', 'type'=>'draggy', 'name'=>'draggy']);
+		if ($this->deletable) self::column('delete', 'delete', '');
+		if ($this->grouped) $last_group = '';
+		$colspan = count($this->columns);
+		$rowspan = count($this->rows);
 
 		//build <thead>
-		$columns = self::$columns;
-		foreach ($columns as &$column) {
-			if ($column['type'] == 'color') $column['label'] = '&nbsp;';
-			$column = '<th class="type-' . $column['type'] . ' ' . $column['name'] . '">' . $column['label'] . '</th>';
+		$columns = [];
+		foreach ($this->columns as $column) {
+			$columns[] = '<th class="type-' . $column['type'] . ' ' . $column['name'] . '">' . $column['label'] . '</th>';
 		}
-		$columns = implode($columns);
-		$head = '<thead><tr>' . $columns . '</tr></thead>';
+		$head = '<thead><tr>' . implode($columns) . '</tr></thead>';
 
 		//build rows
 		$bodies = $rows = [];
-		foreach (self::$rows as $row) {
+		foreach ($this->rows as $row) {
 			$columns = [];
 			$link = true;
-			foreach (self::$columns as $column) {
+			foreach ($this->columns as $column) {
 
 				//handle groupings
-				if (self::$grouped && ($last_group != $row->{self::$grouped})) {
-					$last_group = $row->{self::$grouped};
+				if ($this->grouped && ($last_group != $row->{$this->grouped})) {
+					$last_group = $row->{$this->grouped};
 					if (count($rows)) $bodies[] = '<tbody>' . implode($rows) . '</tbody>';
 					$bodies[] = '<tr class="group"><td colspan=' . $colspan . '">' . $last_group . '</td></tr>';
 					$rows = [];
@@ -109,28 +109,25 @@ class Table {
 			}
 
 			//create row
-			$rows[] = '<tr' . (empty($row->id) ? '' : ' id="' . $row->id . '"') . (self::$deletable && $row->deleted_at ? ' class="inactive"' : '') . '>' . implode($columns) . '</tr>';
+			$rows[] = '<tr' . (empty($row->id) ? '' : ' id="' . $row->id . '"') . ($this->deletable && $row->deleted_at ? ' class="inactive"' : '') . '>' . implode($columns) . '</tr>';
 		}
 
 		$bodies[] = '<tbody>' . implode($rows) . '</tbody>';
 
 		//output
-		return '<table id="' . $id . '" class="table table-condensed' . (self::$draggable ? ' draggable" data-draggable-url="' . self::$draggable : '') . '" data-csrf-token="' . Session::token() . '">' .
+		return '<table id="' . $id . '" class="table table-condensed' . ($this->draggable ? ' draggable" data-draggable-url="' . $this->draggable : '') . '" data-csrf-token="' . Session::token() . '">' .
 					$head . 
 					implode($bodies) . 
 				'</table>';
-
 	}
 
 	//set a key to group by
 	public function groupBy($key) {
-		self::$grouped = $key;
-		return $this;
+		$this->grouped = $key;
 	}
 
-	//always comes first.  $rows must be an object, eg a Laravel Query Builder resultset
-	public static function rows($rows) {
-		self::$rows = $rows;
-		return new static;
+	//rows expects a resultset
+	public function rows($rows) {
+		$this->rows = $rows;
 	}
 }

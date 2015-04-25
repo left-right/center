@@ -125,12 +125,15 @@ class CenterServiceProvider extends ServiceProvider {
 					}
 				}
 
-				//in general, the name of a checkbox field should be the name of its joining table
-				//however your are allowed to name the source, and let center set the joining table for you
+				//in general, the name of a checkboxes field should be the name of its joining table
+				//however your are allowed to name the source, and let the system set the joining table for you
 				if (($field_properties['type'] == 'checkboxes') && empty($field_properties['source'])) {
 					$field_properties['source'] = $field;
 					$field = $field_properties['name'] = RowController::formatJoiningTable($table, $field);
 				}
+				
+				if ($field_properties['type'] == 'user') $field_properties['source'] = config('center.db.users');
+				
 				if (!isset($field_properties['hidden'])) $field_properties['hidden'] = in_array($field, ['id', 'created_at', 'updated_at', 'deleted_at', 'created_by', 'updated_by', 'deleted_by', 'password', 'precedence']);
 				if (in_array($field_properties['type'], ['image' ,'images'])) {
 					if (empty($field_properties['width'])) $field_properties['width'] = null;
@@ -144,17 +147,6 @@ class CenterServiceProvider extends ServiceProvider {
 				//save
 				$expanded_fields[$field] = (object) $field_properties;
 				
-			}
-			
-			//forced overrides
-			if (($table == config('center.db.users')) && !isset($table_properties['fields']['deleted_at'])) {
-				//users are not deletable, could throw off relationships
-				$table_properties['fields']['deleted_at'] = [
-					'name' => 'deleted_at',
-					'type' => 'datetime',
-					'hidden' => true,
-					'required' => false,
-				];
 			}
 			
 			//save fields to table as an object
@@ -244,7 +236,7 @@ class CenterServiceProvider extends ServiceProvider {
 						return $this->hasOne("LeftRight\Center\Models\File", "id", "' . $field->name . '");
 					}';
 				
-				} elseif ($field->type == 'select') {
+				} elseif (in_array($field->type, ['select', 'user'])) {
 					
 					//out from this object
 					$relationships[$table->name][] = '
@@ -255,21 +247,6 @@ class CenterServiceProvider extends ServiceProvider {
 	
 					//back from the related object
 					$relationships[$tables[$field->source]->name][] = '
-					public function ' . $table->name . '() {
-						return $this->hasMany("LeftRight\Center\Models\\' . $table->model . '", "' . $field->name . '");
-					}
-					';
-				} elseif ($field->type == 'user') {
-					
-					//out from this object
-					$relationships[$table->name][] = '
-					public function ' . $tables[config('center.db.users')]->name . '() {
-						return $this->belongsTo("LeftRight\Center\Models\\' . $tables[config('center.db.users')]->model . '", "' . $field->name . '");
-					}
-					';
-	
-					//back from the related object
-					$relationships[$tables[config('center.db.users')]->name][] = '
 					public function ' . $table->name . '() {
 						return $this->hasMany("LeftRight\Center\Models\\' . $table->model . '", "' . $field->name . '");
 					}

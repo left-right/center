@@ -11,6 +11,7 @@ use DB;
 use Exception;
 use Hash;
 use LeftRight\Center\Libraries\Slug;
+use LeftRight\Center\Libraries\Table;
 use LeftRight\Center\Libraries\Trail;
 use LeftRight\Center\Controllers\LoginController;
 use Mail;
@@ -56,6 +57,7 @@ class RowController extends \App\Http\Controllers\Controller {
 		# Build select statement
 		$rows->select([$table->name . '.id']);
 		foreach ($table->list as $field) {
+			if ($field == $linked_field) continue;
 			$field = $table->fields->{$field};
 			if ($field->type == 'checkboxes') {
 				$rows->addSelect(DB::raw('(SELECT GROUP_CONCAT(' . $field->source . '.' . self::listColumn($field->source) . ' SEPARATOR ", ") 
@@ -67,16 +69,11 @@ class RowController extends \App\Http\Controllers\Controller {
 				$rows
 					->leftJoin(config('center.db.files'), $table->name . '.' . $field->name, '=', config('center.db.files') . '.id')
 					->addSelect(config('center.db.files') . '.url AS ' . $field->name . '_url');
-			} elseif ($field->type == 'select') {
+			} elseif (in_array($field->type, ['select', 'users'])) {
 				$related_field = $field->source . '.' . self::listColumn($field->source);
 				$rows
 					->leftJoin($field->source, $field->name, '=', $field->source . '.id')
 					->addSelect(self::listColumn($field->source) . ' AS ' . $field->name);
-				$text_fields[] = $related_field;
-			} elseif ($field->type == 'user') {
-				$rows
-					->leftJoin(config('center.db.users'), $table->name . '.' . $field->name, '=', config('center.db.users') . '.id')
-					->addSelect(config('center.db.users') . '.name AS ' . $field->name);
 			} else {
 				//normal, selectable field
 				$rows->addSelect($table->name . '.' . $field->name);
@@ -177,9 +174,6 @@ class RowController extends \App\Http\Controllers\Controller {
 		# Search filters for the sidebar
 		$filters = [];
 		foreach ($table->filters as $filter) {
-			if ($table->fields->{$filter}->type == 'user') {
-				$table->fields->{$filter}->source = config('center.db.users');
-			}
 			$related_table = config('center.tables.' . $table->fields->{$filter}->source);
 			$options = DB::table($related_table->name);
 			foreach ($related_table->order_by as $column => $direction) {
@@ -763,7 +757,7 @@ class RowController extends \App\Http\Controllers\Controller {
 	# Draw an instance table, used both by index and by edit > linked
 	public static function table($table, $columns, $rows) {
 		if (count($rows)) {
-			$return = new \LeftRight\Center\Libraries\Table;
+			$return = new Table;
 			$return->rows($rows);
 			foreach ($columns as $column) {
 				$return->column($column->name, $column->type, $column->title);
