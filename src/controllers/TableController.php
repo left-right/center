@@ -3,6 +3,7 @@
 use Auth;
 use DB;
 use LeftRight\Center\Controllers\LoginController;
+use LeftRight\Center\Libraries\Table;
 use LeftRight\Center\Libraries\Trail;
 use Maatwebsite\Excel\Facades\Excel;
 use Maatwebsite\Excel\ExcelServiceProvider;
@@ -40,7 +41,18 @@ class TableController extends Controller {
 			];
 		}
 		foreach ($groups as $group) $objects = array_merge($objects, $group);
-		return view('center::tables.index', compact('objects'));
+		
+		$table = new Table;
+		$table->rows($objects);
+		$table->column('title', 'string', trans('center::site.table'));
+		$table->column('count', 'integer', trans('center::site.count'));
+		$table->column('updated_name', 'updated_name', trans('center::site.updated_name'));
+		$table->column('updated_at', 'updated_at', trans('center::site.updated_at'));
+		$table->groupBy('list_grouping');
+		$table = $table->draw('tables');
+		
+		
+		return view('center::tables.index', compact('table'));
 	}
 	
 	# Edit table permissions page	

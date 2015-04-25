@@ -69,11 +69,10 @@ class RowController extends \App\Http\Controllers\Controller {
 				$rows
 					->leftJoin(config('center.db.files'), $table->name . '.' . $field->name, '=', config('center.db.files') . '.id')
 					->addSelect(config('center.db.files') . '.url AS ' . $field->name . '_url');
-			} elseif (in_array($field->type, ['select', 'users'])) {
-				$related_field = $field->source . '.' . self::listColumn($field->source);
+			} elseif (in_array($field->type, ['select', 'user'])) {
 				$rows
 					->leftJoin($field->source, $field->name, '=', $field->source . '.id')
-					->addSelect(self::listColumn($field->source) . ' AS ' . $field->name);
+					->addSelect($field->source . '.' . self::listColumn($field->source) . ' AS ' . $field->name);
 			} else {
 				//normal, selectable field
 				$rows->addSelect($table->name . '.' . $field->name);

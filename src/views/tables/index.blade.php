@@ -12,14 +12,7 @@
 
 	@include('center::notifications')
 
-	{!! \LeftRight\Center\Libraries\Table::rows($objects)
-		->column('title', 'string', trans('center::site.table'))
-		->column('count', 'integer', trans('center::site.count'))
-		->column('updated_name', 'updated_name', trans('center::site.updated_name'))
-		->column('updated_at', 'updated_at', trans('center::site.updated_at'))
-		->groupBy('list_grouping')
-		->draw('tables')
-		!!}
+	{!! $table !!}
 	
 @endsection
 
