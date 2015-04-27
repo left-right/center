@@ -15,8 +15,8 @@ class CenterServiceProvider extends ServiceProvider {
 
 	private static $field_types = [
 		'checkboxes', 'checkbox', 'color', 'date', 'datetime', 'email', 'html', 
-		'image', 'images', 'integer', 'money', 'password', 'permissions', 'select', 
-		'slug', 'string', 'stripe_charge', 'stripe_customer', 'text', 'time', 'url', 
+		'image', 'images', 'integer', 'money', 'password', 'permissions', 'phone',
+		'select', 'slug', 'string', 'stripe_charge', 'stripe_customer', 'text', 'time', 'url', 
 		'us_state', 'user', 'zip',
 	];
 	
@@ -107,7 +107,7 @@ class CenterServiceProvider extends ServiceProvider {
 				if (in_array($field, ['created_at', 'updated_at', 'deleted_at'])) $field_properties['type'] = 'datetime';
 				if (in_array($field, ['id', 'created_by', 'updated_by', 'deleted_by', 'precedence'])) $field_properties['type'] = 'integer';
 				
-				//check
+				//check field type is supported
 				if (!in_array($field_properties['type'], self::$field_types)) {
 					trigger_error('field ' . $table . '.' . $field . ' is of type ' . $field_properties['type'] . ' which is not supported.');
 				}
@@ -133,6 +133,10 @@ class CenterServiceProvider extends ServiceProvider {
 				}
 				
 				if ($field_properties['type'] == 'user') $field_properties['source'] = config('center.db.users');
+
+				//field max lengths
+				if ($field_properties['type'] == 'phone') $field_properties['maxlength'] = 10;
+				if ($field_properties['type'] == 'zip') $field_properties['maxlength'] = 5;
 				
 				if (!isset($field_properties['hidden'])) $field_properties['hidden'] = in_array($field, ['id', 'created_at', 'updated_at', 'deleted_at', 'created_by', 'updated_by', 'deleted_by', 'password', 'precedence']);
 				if (in_array($field_properties['type'], ['image' ,'images'])) {
@@ -335,5 +339,5 @@ class CenterServiceProvider extends ServiceProvider {
 	public static function saveImage($table_name, $field_name, $file_name, $row_id=null) {
 		return FileController::saveImage($table_name, $field_name, $file_name, $row_id);
 	}
-	
+		
 }

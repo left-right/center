@@ -9,6 +9,7 @@
 //= include ../bower_components/bootstrap3-typeahead/bootstrap3-typeahead.js
 //= include ../bower_components/JSColor/jscolor.js
 //= include ../bower_components/jquery-file-upload/js/jquery.fileupload.js
+//= include ../bower_components/jquery-maskedinput/dist/jquery.maskedinput.js
 //= include redactor1009/redactor/redactor.js
 
 $(function() {
@@ -34,6 +35,12 @@ $(function() {
 	$('.input-group.datetime').datetimepicker();
 	$('.input-group.date').datetimepicker({pickTime: false});
 	$('.input-group.time').datetimepicker({pickDate: false});
+
+	$('input.phone').mask('(999) 999-9999');
+	//$("#date").mask("99/99/9999",{placeholder:"mm/dd/yyyy"});
+	//$("#tin").mask("99-9999999");
+	//$("#ssn").mask("999-99-9999");
+
 
 	//draggable tables
 	$('table.draggable').tableDnD({

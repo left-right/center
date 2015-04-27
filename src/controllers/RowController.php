@@ -626,8 +626,13 @@ class RowController extends \App\Http\Controllers\Controller {
 					DB::table(config('center.db.files'))
 						->where('id', Request::input($field->name))
 						->update(['row_id'=>$row_id]);
-	
+
+				} elseif ($field->type == 'phone') {
+					
+					$return[$field->name] = preg_replace('/[^0-9]/', '', $return[$field->name]);
+
 				} elseif ($field->type == 'slug') {
+
 					//determine where slug is coming from
 					if (Request::input($field->name) !== null) { //Request::has() will return false on empty string
 						$value = Request::input($field->name);

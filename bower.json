@@ -22,6 +22,7 @@
     "TableDnD": "*",
     "JSColor": "~1.4.2",
     "bootstrap3-typeahead": "~3.0.3",
-    "jquery-file-upload": "~9.7.0"
+    "jquery-file-upload": "~9.7.0",
+    "jquery-maskedinput": "~1.4.1"
   }
 }

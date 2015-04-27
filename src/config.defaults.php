@@ -16,12 +16,15 @@ return [
 	'icons' => [
 		'breadcrumb'	=> '<i class="glyphicon glyphicon-chevron-right"></i>',
 		'create'		=> '<i class="glyphicon glyphicon-plus"></i>',
+		'date'			=> '<i class="glyphicon glyphicon-calendar"></i>',
 		'deleted'		=> '<i class="glyphicon glyphicon-remove-circle"></i>',
 		'drag'			=> '<i class="glyphicon glyphicon-align-justify"></i>',
 		'export'		=> '<i class="glyphicon glyphicon-circle-arrow-down"></i>',
 		'home'			=> '<i class="glyphicon glyphicon-home"></i>',
 		'new_window'	=> '<i class="glyphicon glyphicon-new-window"></i>',
 		'permissions'	=> '<i class="glyphicon glyphicon-user"></i>',
+		'phone'			=> '<i class="glyphicon glyphicon-phone"></i>',
+		'time'			=> '<i class="glyphicon glyphicon-time"></i>',
 		'undeleted'		=> '<i class="glyphicon glyphicon-ok-circle"></i>',
 	],
 	'img' => [
