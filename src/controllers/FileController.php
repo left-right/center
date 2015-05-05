@@ -55,7 +55,7 @@ class FileController extends Controller {
 
 		//make path
 		$path = implode('/', [
-			config('files.path'),
+			config('center.files.path'),
 			$table_name,
 			$unique,
 		]);
