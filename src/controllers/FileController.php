@@ -47,7 +47,7 @@ class FileController extends Controller {
 	 * genericized function to handle upload, available externally via service provider
 	 * destroys file after complete
 	 */
-	public static function saveImage($table_name, $field_name, $file_name, $row_id=null) {
+	public static function saveImage($table_name, $field_name, $file, $file_name, $row_id=null) {
 		//get field info
 		$table 	= config('center.tables.' . $table_name);
 		$field = $table->fields->{$field_name};
@@ -65,7 +65,6 @@ class FileController extends Controller {
 
 		//get name and extension
 		$parts		= pathinfo($file_name);
-		$file 		= file_get_contents($file_name);
 		$name		= $field->name;
 		$extension 	= strtolower($parts['extension']);
 		$url		= $path . '/' . $name . '.' . $extension;
@@ -124,8 +123,6 @@ class FileController extends Controller {
 		*/
 
 		list($screenwidth, $screenheight) = self::getImageDimensions($width, $height);
-
-		unlink($file_name);
 		
 		return [
 			'file_id' =>		$file_id, 
