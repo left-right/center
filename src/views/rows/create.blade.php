@@ -23,12 +23,12 @@
 
 	@include('center::notifications')
 
-	{!! Form::open(['class'=>'form-horizontal', 'url'=>URL::action('\LeftRight\Center\Controllers\RowController@store', $table->name)]) !!}
+	{!! Form::open(['class'=>'form-horizontal create ' . $table->name, 'url'=>URL::action('\LeftRight\Center\Controllers\RowController@store', $table->name)]) !!}
 	
 	@foreach ($table->fields as $field)
 		@if ($linked_row && ($field->name == $linked_field))
 			{!! Form::hidden($field->name, $linked_row) !!}
-		@elseif (!$field->hidden && $field->type != 'slug')
+		@elseif (!$field->hidden)
 			@include('center::fields.' . $field->type)
 		@endif
 	@endforeach

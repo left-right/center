@@ -23,7 +23,7 @@
 
 	@include('center::notifications')
 
-	{!! Form::open(['class'=>'form-horizontal ' . $table->name, 'url'=>action('\LeftRight\Center\Controllers\RowController@update', [$table->name, $row->id]), 'method'=>'put']) !!}
+	{!! Form::open(['class'=>'form-horizontal edit ' . $table->name, 'url'=>action('\LeftRight\Center\Controllers\RowController@update', [$table->name, $row->id]), 'method'=>'put']) !!}
 	
 	@foreach ($table->fields as $field)
 		@if (!$field->hidden)

@@ -197,15 +197,37 @@ $(function() {
     	}
 		//, plugins: ['advanced']
 	});
+	
+	//slug fields
+	function slugify(val) {
+		return val.toLowerCase().replace(/-+/g, ' ').replace(/ +/g, ' ').replace(/[^a-z0-9\ ]/g, '').replace(/ /g, '-');		
+	}
 
+	function slugifyAndTrim(val) {
+		return val.toLowerCase().replace(/-+/g, ' ').replace(/ +/g, ' ').replace(/[^a-z0-9\ ]/g, '').trim().replace(/ /g, '-');		
+	}
 
-	//slug fields -- todo improve
+	//add to textarea, select and any other form elements?
+	$('body').on('change', 'input', function(){
+		$(this).addClass('modified');
+	});
+
 	$("input.slug").each(function() {
+		//keyup handler for slug field
 		$(this).on('keyup', function() {
-			var val = $(this).val();
-			val = val.toLowerCase().replace(/ /g, '-').replace(/\-\-/g, '-').replace(/[^a-z0-9\-]/g, '');
+			var val = slugify($(this).val());
 			if ($(this).val() != val) $(this).val(val);
-		});	
+		}).on('blur', function() {
+			$(this).val(slugifyAndTrim($(this).val()));
+		});
+		
+		//keyup handler for source field
+		if ($(this).attr('data-source')) {
+			var $slug = $(this);
+			$('form.create input[name=' + $slug.attr('data-source') + ']').on('keyup', function(){
+				if (!$slug.hasClass('modified')) $slug.val(slugifyAndTrim($(this).val()));
+			});
+		}
 	});
 
 	//typeaheads	
@@ -230,8 +252,8 @@ $(function() {
 			$(this).checkUploadForm();
 		});
 
-	})
-
+	});
+	
 	//jquery function to cover a input element, used on page load and when cloning
 	jQuery.fn.extend({
 		setUploadedIds : function(table_name, field_name) {

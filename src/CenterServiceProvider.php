@@ -261,7 +261,6 @@ class CenterServiceProvider extends ServiceProvider {
 
 		//now we must loop through again; the first loop set relationships on other tables
 		foreach ($tables as $table) {
-			
 			eval('namespace LeftRight\Center\Models;
 			use Illuminate\Database\Eloquent\SoftDeletes;
 			use Auth;
