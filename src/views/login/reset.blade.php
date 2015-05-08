@@ -23,7 +23,7 @@
 					</div>
 			    </div>
 			    <div class="modal-footer">
-			    	<a href="{{ URL::route('home') }}" class="btn btn-default">@lang('center::site.cancel')</a>
+			    	<a href="{{ URL::action('\LeftRight\Center\Controllers\TableController@index') }}" class="btn btn-default">@lang('center::site.cancel')</a>
 			    	<input type="submit" class="btn btn-primary" value="@lang('center::site.password_reset')">
 			    </div>
 			</div>
