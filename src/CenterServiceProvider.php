@@ -335,8 +335,8 @@ class CenterServiceProvider extends ServiceProvider {
 	}
 	
 	//save image interface (todo move to facade)
-	public static function saveImage($table_name, $field_name, $file_name, $row_id=null) {
-		return FileController::saveImage($table_name, $field_name, $file_name, $row_id);
+	public static function saveImage($table_name, $field_name, $file_name, $row_id=null, $extension=null) {
+		return FileController::saveImage($table_name, $field_name, $file_name, $row_id, $extension);
 	}
 		
 }

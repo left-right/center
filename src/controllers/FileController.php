@@ -30,10 +30,10 @@ class FileController extends Controller {
 			return json_encode(self::saveImage(
 				Request::input('table_name'), 
 				Request::input('field_name'), 
-				file_get_contents(Request::file('image')),
-				Request::file('image')->getClientOriginalName()
+				Request::file('image'),
+				null,
+				Request::file('image')->getClientOriginalExtension()
 			));
-
 		} elseif (!Request::hasFile('image')) {
 			return 'no image';
 		} elseif (!Request::hasFile('table_name')) {
@@ -47,7 +47,7 @@ class FileController extends Controller {
 	 * genericized function to handle upload, available externally via service provider
 	 * destroys file after complete
 	 */
-	public static function saveImage($table_name, $field_name, $file, $file_name, $row_id=null) {
+	public static function saveImage($table_name, $field_name, $file_name, $row_id=null, $extension=null) {
 		//get field info
 		$table 	= config('center.tables.' . $table_name);
 		$field = $table->fields->{$field_name};
@@ -56,7 +56,7 @@ class FileController extends Controller {
 		//make path
 		$path = implode('/', [
 			config('center.files.path'),
-			$table_name,
+			$table->name,
 			$unique,
 		]);
 
@@ -64,9 +64,9 @@ class FileController extends Controller {
 		mkdir(public_path() . $path, 0777, true);
 
 		//get name and extension
-		$parts		= pathinfo($file_name);
 		$name		= $field->name;
-		$extension 	= strtolower($parts['extension']);
+		$file		= file_get_contents($file_name);
+		if (!$extension) $extension = pathinfo($file_name, PATHINFO_EXTENSION);
 		$url		= $path . '/' . $name . '.' . $extension;
 
 		//process and save image
@@ -85,6 +85,20 @@ class FileController extends Controller {
 		} else {
 			Image::make($file)
 				->save(public_path() . $url);
+		}
+
+		//try to delete file
+		@unlink($file_name);
+		
+		//try to delete previous value(s)
+		if ($row_id) {
+			$previous_images = DB::table(config('center.db.files'))
+				->where('table', $table->name)
+				->where('field', $field->name)
+				->where('row_id', $row_id);
+			foreach ($previous_images as $previous_image) {
+				@unlink($previous_image->url);
+			}
 		}
 
 		//get dimensions
@@ -110,20 +124,10 @@ class FileController extends Controller {
 				->max('precedence') + 1,
 		]);
 
-		/*push it over to s3
-		$target = Str::random() . '/' . Request::file('image')->getClientOriginalName();
-		$bucket = 'josh-reisner-dot-com';
-		AWS::get('s3')->putObject(array(
-		    'Bucket' => 		$bucket,
-		    'Key' => 			$target,
-		    'SourceFile' => 	$temp,
-		));
-		unlink($file);
-		return 'https://s3.amazonaws.com/' . $bucket . '/' . $target;
-		*/
-
+		//come up with adjusted display size based on user-defined maxima
 		list($screenwidth, $screenheight) = self::getImageDimensions($width, $height);
 		
+		//return array
 		return [
 			'file_id' =>		$file_id, 
 			'url' =>			$url,
@@ -166,86 +170,10 @@ class FileController extends Controller {
 
 		return array($width, $height);
 	}
-
-	public static function findOrphans() {
-		
-		//trim down file list -- not working
-		return;
-		
-		//delete files from non-existent fields
-		DB::table(config('center.db.files'))
-			->leftJoin(config('center.db.fields'), config('center.db.files') . '.field_id', '=', config('center.db.fields') . '.id')
-			->whereNull(config('center.db.fields') . '.id')
-			->delete(); 
-			
-		//delete files from non-existent instances
-		$file_ids = [];
-		$fields = DB::table(config('center.db.files'))
-			->join(config('center.db.fields'), config('center.db.files') . '.field_id', '=', config('center.db.fields') . '.id')
-			->join(config('center.db.objects'), config('center.db.fields') . '.object_id', '=', config('center.db.objects') . '.id')
-			->select(
-				config('center.db.fields') . '.id',
-				config('center.db.objects') . '.name as table',
-				config('center.db.fields') . '.name as column'
-			)
-			->distinct()
-			->get();
-		foreach ($fields as $field) {
-			$file_ids = array_merge($file_ids, DB::table($field->table)->lists($field->column));
-		}
-		if (count($file_ids)) {
-			DB::table(config('center.db.files'))->whereNotIn('id', $file_ids)->delete();			
-		}
-		
-		//trim down filesystem to just what's in file list
-		$files = DB::table(config('center.db.files'))->lists('url');
-		$public_path_length = strlen(public_path());
-		$folder = public_path() . '/packages/joshreisner/avalon/files';
-		$di = new RecursiveDirectoryIterator($folder);
-		foreach (new RecursiveIteratorIterator($di) as $name => $file) {
-			if (!ends_with($name, ['/.', '/..'])) {
-				if (!in_array(substr($name, $public_path_length), $files)) {
-					unlink($name);
-				}
-			}
-		}
-		
-		//remove empty folders
-		self::removeEmptyFolders($folder);
-
-	}
 	
-	private static function removeEmptyFolders($path) {
-		$empty = true;
-		foreach (glob($path.DIRECTORY_SEPARATOR . '*') as $file) {
-			$empty &= is_dir($file) && self::removeEmptyFolders($file);
-		}
-		return $empty && rmdir($path);
+	public static function cleanup() {
+		$files = DB::table(config('center.db.files'))->lists('url');
+		//config('center.files.path')
 	}
 
-	//todo amazon?
-	public static function cleanup($files=false) {
-
-		//by default, remove all non-instanced files
-		if (!$files) $files = DB::table(config('center.db.files'))->whereNull('row_id')->get();
-		
-		//try to physically remove
-		$ids = array();
-		foreach ($files as $file) {
-			$ids[] = $file->id;
-			@unlink(public_path() . $file->url);
-			@rmdir(public_path() . dirname($file->url));
-		}
-
-		//remove records
-		if (!empty($ids)) {
-			DB::table(config('center.db.files'))->whereIn('id', $ids)->delete();
-		}
-	}
-
-	private static function formatBytes($size, $precision=2) {
-		$base = log($size, 1024);
-		$suffixes = array('', 'k', 'M', 'G', 'T');
-		return round(pow(1024, $base - floor($base)), $precision) . $suffixes[floor($base)];
-	}
 }
