@@ -42,6 +42,7 @@ class RowController extends \App\Http\Controllers\Controller {
 		if (!isset($table->name)) {
 			return redirect()->action('\LeftRight\Center\Controllers\TableController@index')->with('error', trans('center::site.table_does_not_exist'));
 		} elseif (!LoginController::checkPermission($table->name, 'view')) {
+			if ($linked_field && $linked_row) return false;
 			return redirect()->action('\LeftRight\Center\Controllers\TableController@index')->with('error', trans('center::site.no_permissions_view'));
 		}
 
@@ -434,7 +435,7 @@ class RowController extends \App\Http\Controllers\Controller {
 		// Get linked objects
 		$links = [];
 		foreach ($table->links as $table_name => $field_name) {
-			$links[] = self::index($table_name, $field_name, $row_id);
+			if ($linked_array = self::index($table_name, $field_name, $row_id)) $links[] = $linked_array;
 		}
 
 		return view('center::rows.edit', compact('table', 'row', 'links', 'linked_field', 'linked_row'));
