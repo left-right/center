@@ -250,7 +250,7 @@ class RowController extends \App\Http\Controllers\Controller {
 				}
 			} elseif ($field->type == 'permissions') {
 				$field->tables = array_where(config('center.tables'), function($key, $value) {
-					return !$value->hidden;
+					return !in_array($value->name, [config('center.db.files'), config('center.db.permissions')]);					
 				});
 				$field->options = LoginController::getPermissionLevels();
 			} elseif ($field->type == 'user') {
@@ -404,7 +404,7 @@ class RowController extends \App\Http\Controllers\Controller {
 				list($field->screen_width, $field->screen_height) = FileController::getImageDimensions($field->width, $field->height);
 			} elseif ($field->type == 'permissions') {
 				$field->tables = array_where(config('center.tables'), function($key, $value) {
-					return !$value->hidden;
+					return !in_array($value->name, [config('center.db.files'), config('center.db.permissions')]);
 				});
 				
 				$permissions = LoginController::permissions($row_id);
