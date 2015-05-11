@@ -409,8 +409,8 @@ class RowController extends \App\Http\Controllers\Controller {
 				
 				$permissions = LoginController::permissions($row_id);
 				
-				foreach ($field->tables as $table) {
-					$table->value = isset($permissions[$table->name]) ? $permissions[$table->name] : '';
+				foreach ($field->tables as $permissions_table) {
+					$permissions_table->value = isset($permissions[$permissions_table->name]) ? $permissions[$permissions_table->name] : '';
 				}
 
 				$field->options = LoginController::getPermissionLevels();
