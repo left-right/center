@@ -14,7 +14,7 @@ use Session;
 class CenterServiceProvider extends ServiceProvider {
 
 	private static $field_types = [
-		'checkboxes', 'checkbox', 'color', 'date', 'datetime', 'email', 'html', 
+		'checkboxes', 'checkbox', 'color', 'date', 'datetime', 'email', 'geographic_coordinate', 'html', 
 		'image', 'images', 'integer', 'money', 'password', 'permissions', 'phone',
 		'select', 'slug', 'string', 'stripe_charge', 'stripe_customer', 'text', 'time', 'url', 
 		'us_state', 'user', 'zip',
@@ -46,8 +46,8 @@ class CenterServiceProvider extends ServiceProvider {
 			__DIR__ . '/config' => config_path('center'),
 		], 'config');
 		$this->publishes([
-			__DIR__ . '/translations/en/site.php' => app_path('../resources/lang/packages/en/center/site.php'),
-			__DIR__ . '/translations/en/users.php' => app_path('../resources/lang/packages/en/center/users.php'),
+			__DIR__ . '/translations/en/site.php' => app_path('../resources/lang/vendor/center/en/site.php'),
+			__DIR__ . '/translations/en/users.php' => app_path('../resources/lang/vendor/center/en/users.php'),
 		], 'lang');
 		include __DIR__ . '/macros.php';
 		include __DIR__ . '/routes.php';

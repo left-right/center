@@ -82,13 +82,16 @@ class Refresh extends Command {
 						
 						//set type
 						switch ($field->type) {
+
+							//boolean
 							case 'checkbox':
 								eval('$t->boolean($field->name)' . 
 									($field->required ? '' : '->nullable()') .
 									(!Schema::hasColumn($table->name, $field->name) ? '' : '->change()') .
 									'; ');
 								break;
-								
+							
+							//strings
 							case 'color':
 							case 'email':
 							case 'password':
@@ -106,21 +109,32 @@ class Refresh extends Command {
 									(!Schema::hasColumn($table->name, $field->name) ? '' : '->change()') .
 									'; ');
 								break;
-								
+							
+							//date
 							case 'date':
 								eval('$t->date($field->name)' . 
 									($field->required ? '' : '->nullable()') .
 									(!Schema::hasColumn($table->name, $field->name) ? '' : '->change()') .
 									'; ');
 								break;
-								
+							
+							//datetime
 							case 'datetime':
 								eval('$t->datetime($field->name)' . 
 									($field->required ? '' : '->nullable()') .
 									(!Schema::hasColumn($table->name, $field->name) ? '' : '->change()') .
 									'; ');
 								break;
-								
+							
+							//time
+							case 'time':
+								eval('$t->time($field->name)' . 
+									($field->required ? '' : '->nullable()') .
+									(!Schema::hasColumn($table->name, $field->name) ? '' : '->change()') .
+									'; ');
+								break;
+							
+							//text
 							case 'html':
 							case 'text':
 								eval('$t->text($field->name)' . 
@@ -128,7 +142,8 @@ class Refresh extends Command {
 									(!Schema::hasColumn($table->name, $field->name) ? '' : '->change()') .
 									'; ');
 								break;
-								
+							
+							//foreign key
 							case 'image':
 							case 'integer':
 							case 'select':
@@ -138,14 +153,24 @@ class Refresh extends Command {
 									(!Schema::hasColumn($table->name, $field->name) ? '' : '->change()') .
 									'; ');
 								break;
-								
+							
+							//decimal
 							case 'money':
 								eval('$t->decimal($field->name, 5, 2)' . 
 									($field->required ? '' : '->nullable()') .
 									(!Schema::hasColumn($table->name, $field->name) ? '' : '->change()') .
 									'; ');
 								break;
-								
+							
+							//latitude
+							case 'geographic_coordinate':
+								eval('$t->decimal($field->name, 11, 8)' . 
+									($field->required ? '' : '->nullable()') .
+									(!Schema::hasColumn($table->name, $field->name) ? '' : '->change()') .
+									'; ');
+								break;
+							
+							//special: permissions
 							case 'permissions':
 								break;
 

@@ -2,7 +2,7 @@
 	<label class="control-label col-sm-2">{{ $field->title }}</label>
 	<div class="col-sm-10">
 		<div class="input-group time" data-date-format="hh:mm A">
-			<span class="input-group-addon">{!! config('center.icons.calendar') !!}</span>
+			<span class="input-group-addon">{!! config('center.icons.time') !!}</span>
 			{!! Form::text($field->name, @$row->{$field->name}, ['class'=>'form-control ' . $field->type . ($field->required ? ' required' : '')]) !!}
 		</div>
 	</div>

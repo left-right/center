@@ -40,3 +40,9 @@ An innovative CMS for Laravel 5.
 				"vendor/left-right/center/src/console/Refresh.php"
 			],
 
+9. run the following commands
+			php artisan vendor:publish
+			php artisan center:refresh
+
+10. browse to your project's /center directory to log in
+
