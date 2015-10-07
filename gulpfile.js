@@ -9,43 +9,39 @@ var include		= require('gulp-include');
 var uglify		= require('gulp-uglify');
 var shell		= require('gulp-shell');
 
-var assetsDir	= 'assets';
-var outputDir	= 'assets/public';
-
 gulp.task('main-css', function(){
-	return gulp.src(assetsDir + '/main.sass')
-		.pipe(sass())
+	return sass('./assets/main.sass')
 		.on('error', handleSassError)
 		.pipe(autoprefix('last 3 version'))
 		.pipe(minifyCSS({keepSpecialComments:0}))
         .pipe(rename({suffix: '.min'}))
-		.pipe(gulp.dest(outputDir + '/css'))
+		.pipe(gulp.dest('./assets/public/css'))
 	    .pipe(notify('compiled'));
 });
 
 gulp.task('main-js', function(){
-	return gulp.src(assetsDir + '/main.js')
+	return gulp.src('./assets/main.js')
 		.pipe(include())
 		.pipe(uglify())
 		.on('error', handleJsError)		
         .pipe(rename({suffix: '.min'}))
-		.pipe(gulp.dest(outputDir + '/js'))
+		.pipe(gulp.dest('./assets/public/js'))
 	    .pipe(notify('compiled'));
 });
 
 gulp.task('watch', function(){
-	gulp.watch(assetsDir + '/**/*.sass', ['main-css']);
-	gulp.watch(assetsDir + '/**/*.js', ['main-js']);
+	gulp.watch('./assets/main.sass', ['main-css']);
+	gulp.watch('./assets/main.js', ['main-js']);
 });
 
 gulp.task('default', ['main-css', 'main-js', 'watch']);
 
 function handleJsError(err, line) {
-	gulp.src(assetsDir + '/main.js').pipe(notify(err + ' ' + line));
+	gulp.src('./assets/main.js').pipe(notify(err + ' ' + line));
 	this.emit('end');
 }
 
 function handleSassError(err) {
-	gulp.src(assetsDir + '/main.sass').pipe(notify(err));
+	gulp.src('./assets/main.sass').pipe(notify(err));
 	this.emit('end');
 }

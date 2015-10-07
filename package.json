@@ -1,14 +1,32 @@
 {
+  "name": "center",
+  "version": "1.0.0",
+  "description": "An innovative CMS for Laravel 5.",
+  "main": "gulpfile.js",
+  "dependencies": {},
   "devDependencies": {
-    "gulp": "~3.8.1",
-    "gulp-autoprefixer": "0.0.7",
-    "gulp-ruby-sass": "~0.5.0",
-    "gulp-util": "~2.2.17",
-    "gulp-notify": "~1.3.1",
-    "gulp-minify-css": "~0.3.7",
-    "gulp-rename": "~1.2.0",
-    "gulp-include": "~0.2.3",
-    "gulp-uglify": "~0.3.1",
-    "gulp-shell": "~0.2.9"
-  }
+    "gulp": "^3.9.0",
+    "gulp-autoprefixer": "^3.0.2",
+    "gulp-include": "^2.0.2",
+    "gulp-minify-css": "^1.2.1",
+    "gulp-notify": "^2.2.0",
+    "gulp-rename": "^1.2.2",
+    "gulp-ruby-sass": "^2.0.4",
+    "gulp-shell": "^0.5.0",
+    "gulp-uglify": "^1.4.1",
+    "gulp-util": "^3.0.6"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/left-right/center.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/left-right/center/issues"
+  },
+  "homepage": "https://github.com/left-right/center#readme"
 }

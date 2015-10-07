@@ -14,10 +14,10 @@ use Session;
 class CenterServiceProvider extends ServiceProvider {
 
 	private static $field_types = [
-		'checkboxes', 'checkbox', 'color', 'date', 'datetime', 'email', 'geographic_coordinate', 'html', 
-		'image', 'images', 'integer', 'money', 'password', 'permissions', 'phone',
-		'select', 'slug', 'string', 'stripe_charge', 'stripe_customer', 'text', 'time', 'url', 
-		'us_state', 'user', 'zip',
+		'address', 'checkboxes', 'checkbox', 'color', 'date', 'datetime', 'email', 'html', 
+		'image', 'images', 'integer', 'latitude', 'longitude', 'money', 'password', 'permissions', 
+		'phone', 'select', 'slug', 'string', 'stripe_charge', 'stripe_customer', 'text', 'time', 
+		'url', 'us_state', 'user', 'zip',
 	];
 	
 	public function register() {
@@ -142,6 +142,11 @@ class CenterServiceProvider extends ServiceProvider {
 				if (in_array($field_properties['type'], ['image' ,'images'])) {
 					if (empty($field_properties['width'])) $field_properties['width'] = null;
 					if (empty($field_properties['height'])) $field_properties['height'] = null;
+				}
+
+				//empty source on 
+				if (in_array($field_properties['type'], ['latitude', 'longitude', 'slug'])) {
+					if (empty($field_properties['source'])) $field_properties['source'] = null;
 				}
 				
 				//forced overrides

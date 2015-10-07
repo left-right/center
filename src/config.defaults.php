@@ -14,11 +14,13 @@ return [
 		'path'			=> '/vendor/center/files',
 	],
 	'icons' => [
+		'address'		=> '<i class="glyphicon glyphicon-map-marker"></i>',
 		'breadcrumb'	=> '<i class="glyphicon glyphicon-chevron-right"></i>',
 		'create'		=> '<i class="glyphicon glyphicon-plus"></i>',
 		'date'			=> '<i class="glyphicon glyphicon-calendar"></i>',
 		'deleted'		=> '<i class="glyphicon glyphicon-remove-circle"></i>',
 		'drag'			=> '<i class="glyphicon glyphicon-align-justify"></i>',
+		'email'			=> '<i class="glyphicon glyphicon-envelope"></i>',
 		'export'		=> '<i class="glyphicon glyphicon-circle-arrow-down"></i>',
 		'home'			=> '<i class="glyphicon glyphicon-home"></i>',
 		'new_window'	=> '<i class="glyphicon glyphicon-new-window"></i>',
@@ -26,6 +28,7 @@ return [
 		'phone'			=> '<i class="glyphicon glyphicon-phone"></i>',
 		'time'			=> '<i class="glyphicon glyphicon-time"></i>',
 		'undeleted'		=> '<i class="glyphicon glyphicon-ok-circle"></i>',
+		'url'			=> '<i class="glyphicon glyphicon-link"></i>',
 	],
 	'img' => [
 		'default' => [

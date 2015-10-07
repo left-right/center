@@ -92,6 +92,7 @@ class Refresh extends Command {
 								break;
 							
 							//strings
+							case 'address':
 							case 'color':
 							case 'email':
 							case 'password':
@@ -163,7 +164,15 @@ class Refresh extends Command {
 								break;
 							
 							//latitude
-							case 'geographic_coordinate':
+							case 'latitude':
+								eval('$t->decimal($field->name, 11, 8)' . 
+									($field->required ? '' : '->nullable()') .
+									(!Schema::hasColumn($table->name, $field->name) ? '' : '->change()') .
+									'; ');
+								break;
+							
+							//latitude
+							case 'longitude':
 								eval('$t->decimal($field->name, 11, 8)' . 
 									($field->required ? '' : '->nullable()') .
 									(!Schema::hasColumn($table->name, $field->name) ? '' : '->change()') .

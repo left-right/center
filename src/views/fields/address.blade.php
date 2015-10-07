@@ -2,8 +2,8 @@
 	<label class="control-label col-sm-2">{{ $field->title }}</label>
 	<div class="col-sm-10">
 		<div class="input-group">
-			<span class="input-group-addon">{!! config('center.icons.url') !!}</span>
-			{!! Form::url($field->name, @$row->{$field->name}, ['class'=>'form-control ' . $field->type . ($field->required ? ' required' : '')]) !!}
+			<span class="input-group-addon">{!! config('center.icons.address') !!}</span>
+			{!! Form::text($field->name, @$row->{$field->name}, ['class'=>'form-control ' . $field->type . ($field->required ? ' required' : '')]) !!}
 		</div>
 	</div>
 </div>

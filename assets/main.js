@@ -16,15 +16,15 @@ $(function() {
 
 	//generic form validator
 	$('form').validate({
-		errorElement:"span",
-		errorClass:"help-inline",
+		errorElement:'span',
+		errorClass:'help-inline',
 		onfocusout:false,
     	onkeyup: function(element) { },
 		highlight: function(element, errorClass, validClass) {
-			$(element).closest("div.form-group").addClass("has-error");
+			$(element).closest('div.form-group').addClass('has-error');
 		},
 		unhighlight: function(element, errorClass, validClass) {
-			$(element).closest("div.form-group").removeClass("has-error");
+			$(element).closest('div.form-group').removeClass('has-error');
 		}
 	});
 
@@ -37,10 +37,38 @@ $(function() {
 	$('.input-group.time').datetimepicker({pickDate: false});
 
 	$('input.phone').mask('(999) 999-9999');
-	//$("#date").mask("99/99/9999",{placeholder:"mm/dd/yyyy"});
-	//$("#tin").mask("99-9999999");
-	//$("#ssn").mask("999-99-9999");
+	//$('#date').mask('99/99/9999',{placeholder:'mm/dd/yyyy'});
+	//$('#tin').mask('99-9999999');
+	//$('#ssn').mask('999-99-9999');
 
+	$('input.address').blur(function(){
+		var $this = $(this);
+		if (!$this.val().length) return;
+		$.getJSON('https://maps.googleapis.com/maps/api/geocode/json', { address: $this.val(), sensor: false }, function(data){
+			//console.log(data);
+			$this.val(data.results[0].formatted_address);
+			var name = $this.attr('name');
+			$('input.latitude[data-source=' + name + ']').each(function(){
+				$(this).val(data.results[0].geometry.location.lat);
+			});
+			$('input.longitude[data-source=' + name + ']').each(function(){
+				$(this).val(data.results[0].geometry.location.lng);
+			});
+
+			var state = false;			
+			for (var i = 0; i < data.results[0].address_components.length; i++) {
+				if (data.results[0].address_components[i].types[0] == 'administrative_area_level_1') {
+					state = data.results[0].address_components[i].short_name;
+				}
+			}
+			if (state) {
+				$('select.us_state[data-source=' + name + ']').each(function(){
+					$('select.us_state[data-source=' + name + '] option:selected').attr('selected', false);
+					$('select.us_state[data-source=' + name + '] option[value=' + state + ']').attr('selected', true);
+				});
+			}
+		});
+	});
 
 	//draggable tables
 	$('table.draggable').tableDnD({
@@ -83,7 +111,7 @@ $(function() {
 				if (arrayed[i].item_id == id) parent_id = arrayed[i].parent_id;
 			}
 
-			$.post($("div.nested").first().attr('data-draggable-url'), { 
+			$.post($('div.nested').first().attr('data-draggable-url'), { 
 					id : id,
 					parent_id : parent_id, 
 					list : list.join(',')
@@ -111,7 +139,7 @@ $(function() {
 		//send ajax update
 		$.get($(this).attr('href'), { active: active }, function(data){
 			//window.console.log('sent post and data was ' + data);
-			parent.find("td.updated_at").html(data);
+			parent.find('td.updated_at').html(data);
 		}).fail(function() { 
 			//window.console.log('error');
 		});
@@ -135,7 +163,7 @@ $(function() {
 		//send ajax update
 		$.get($(this).attr('href'), { active: active }, function(data){
 			//window.console.log('sent post and data was ' + data);
-			parent.find("div.updated_at").html(data);
+			parent.find('div.updated_at').html(data);
 		}).fail(function() { 
 			//window.console.log('error');
 		});
@@ -145,7 +173,7 @@ $(function() {
 	$('form#search').on('change', 'select', function(){
 		$('form#search').submit();
 	}).on('submit', function(){
-        var text = $(this).find(":input").filter(function(){
+        var text = $(this).find(':input').filter(function(){
             return $.trim(this.value).length > 0
         }).serialize();
         if (text.length) text = '?' + text;
@@ -212,7 +240,7 @@ $(function() {
 		$(this).addClass('modified');
 	});
 
-	$("input.slug").each(function() {
+	$('input.slug').each(function() {
 		//keyup handler for slug field
 		$(this).on('keyup', function() {
 			var val = slugify($(this).val());
@@ -231,20 +259,20 @@ $(function() {
 	});
 
 	//typeaheads	
-	$("input.typeahead").each(function(){
+	$('input.typeahead').each(function(){
 		var $this = $(this);
-		$.getJSON($this.attr("data-typeahead"), function(data){
+		$.getJSON($this.attr('data-typeahead'), function(data){
 		    $this.typeahead({ source:data });
 		});
 	});
 
 	//handle remove event
-	$("body").on("click", "form.upload a.remove", function(){
-		var $form = $(this).parent("form");
-		var $div = $("div[data-form-id=" + $form.attr("id") + "]");
-		var $sibs = $div.siblings("div.image");
-		var field_id = $div.attr("data-field-id");
-		var $hidden = $div.closest(".form-group").find("input[type=hidden]");
+	$('body').on('click', 'form.upload a.remove', function(){
+		var $form = $(this).parent('form');
+		var $div = $('div[data-form-id=' + $form.attr('id') + ']');
+		var $sibs = $div.siblings('div.image');
+		var field_id = $div.attr('data-field-id');
+		var $hidden = $div.closest('.form-group').find('input[type=hidden]');
 		$form.remove();
 		$div.remove(); //todo animate
 		$hidden.setUploadedIds(field_id);
@@ -258,16 +286,16 @@ $(function() {
 	jQuery.fn.extend({
 		setUploadedIds : function(table_name, field_name) {
 			var ids = new Array();
-			$(".image[data-table-name=" + table_name + "][data-field-name=" + field_name + "]:not(.new)").each(function(){
+			$('.image[data-table-name=' + table_name + '][data-field-name=' + field_name + ']:not(.new)').each(function(){
 				ids[ids.length] = $(this).attr('data-file-id')
 			});
-			$(this).val(ids.join(","));
+			$(this).val(ids.join(','));
 		},
 		checkUploadForm : function() {
 			var offset   = $(this).offset();
 			var width    = $(this).width();
 			var height   = $(this).height();
-			$("form#" + $(this).attr("data-form-id")).css({
+			$('form#' + $(this).attr('data-form-id')).css({
 				top: offset.top, 
 				left: offset.left,
 				width: width,
@@ -287,7 +315,7 @@ $(function() {
 			var token	 = $(this).closest('form').find('input[name=_token]').val();
 
 			//set form attr
-			$(this).attr("data-form-id", random);
+			$(this).attr('data-form-id', random);
 
 			//create form
 			if (multiple) {				
@@ -298,7 +326,7 @@ $(function() {
 					'<input type="file" name="image" multiple>' +
 					'<a class="remove"><i class="glyphicon glyphicon-remove-circle"></i></a>' +
 					'</form>')
-					.appendTo("body");
+					.appendTo('body');
 			} else {
 				$('<form id="' + random + '" class="upload upload_image">' + 
 					'<input type="hidden" name="_token" value="' + token + '">' + 
@@ -306,17 +334,17 @@ $(function() {
 					'<input type="hidden" name="field_name" value="' + field_name + '">' + 
 					'<input type="file" name="image">' +
 					'</form>')
-					.appendTo("body");
+					.appendTo('body');
 			}
 
 			//position form
 			$(this).checkUploadForm();		
 				
 			//set upload event on form input
-			$("form#" + random + " input[type=file]").fileupload({
+			$('form#' + random + ' input[type=file]').fileupload({
 				url: 				action,
-				type: 				"POST",
-				dataType: 			"json", 
+				type: 				'POST',
+				dataType: 			'json', 
 				acceptFileTypes : 	/(\.|\/)(jpg|gif|png)$/i,
 				autoUpload: 		true,
 				add: function(e, data) {
@@ -330,25 +358,25 @@ $(function() {
 					//window.console.log(data);
 
 					//get some vars
-					var multiple = $(this).prop("multiple");
+					var multiple = $(this).prop('multiple');
 					var $form = $(this).parent();
-					var table_name = $form.find("input[name=table_name]").val();
-					var field_name = $form.find("input[name=field_name]").val();
-					var $div = $("div.image[data-form-id=" + $form.attr("id") + "]");
-					var $hidden = $div.closest(".form-group").find("input[type=hidden]");
+					var table_name = $form.find('input[name=table_name]').val();
+					var field_name = $form.find('input[name=field_name]').val();
+					var $div = $('div.image[data-form-id=' + $form.attr('id') + ']');
+					var $hidden = $div.closest('.form-group').find('input[type=hidden]');
 
 					//if multiple, make sure to keep a new one around
-					if (multiple && $div.hasClass("new")) {
-						$div.clone().addClass("new").removeAttr("id").appendTo($div.parent()).setupUploadForm();
+					if (multiple && $div.hasClass('new')) {
+						$div.clone().addClass('new').removeAttr('id').appendTo($div.parent()).setupUploadForm();
 					}
 
 					//adjust dimensions for the parent <form>
-					$form.removeClass("new").width(data.result.screenwidth).height(data.result.screenheight);
+					$form.removeClass('new').width(data.result.screenwidth).height(data.result.screenheight);
 
 					//set the image as background on the underlying <div> and resize
 					$div.css('backgroundImage', 'url(' + data.result.url + ')')
-						.removeClass("new")
-						.attr("data-file-id", data.result.file_id)
+						.removeClass('new')
+						.attr('data-file-id', data.result.file_id)
 						.css('lineHeight', data.result.screenheight + 'px')
 						.width(data.result.screenwidth)
 						.height(data.result.screenheight);
@@ -362,11 +390,11 @@ $(function() {
 	});
 
 	//set up image upload <form>s on load
-	$("div.form-group.field-image div.image").each(function(){
+	$('div.form-group.field-image div.image').each(function(){
 		$(this).setupUploadForm();
 	});
 
-	$("div.form-group.field-images div.image").each(function(){
+	$('div.form-group.field-images div.image').each(function(){
 		$(this).setupUploadForm();
 	});
 
