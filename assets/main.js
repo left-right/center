@@ -41,6 +41,7 @@ $(function() {
 	//$('#tin').mask('99-9999999');
 	//$('#ssn').mask('999-99-9999');
 
+	//verify addresses with google maps, update dependent fields
 	$('input.address').blur(function(){
 		var $this = $(this);
 		if (!$this.val().length) return;
@@ -68,6 +69,17 @@ $(function() {
 				});
 			}
 		});
+	});
+	
+	//fix annoying url issue on blur
+	$('input.url').blur(function(){
+		var val = $(this).val();
+		if (!val.length) return;
+		if (val.substr(0, 4) != 'http') {
+			val = 'http://' + val;
+		}
+		if (val.split('/').length == 3) val = val + '/';
+		$(this).val(val);
 	});
 
 	//draggable tables
@@ -172,6 +184,9 @@ $(function() {
 	//instance index search
 	$('form#search').on('change', 'select', function(){
 		$('form#search').submit();
+	}).on('click', 'i.glyphicon', function(){
+	    $('form#search input').val('');
+		$('form#search').submit();
 	}).on('submit', function(){
         var text = $(this).find(':input').filter(function(){
             return $.trim(this.value).length > 0
@@ -179,10 +194,7 @@ $(function() {
         if (text.length) text = '?' + text;
         window.location.href = window.location.href.replace('#', '').split('?')[0] + text;
         return false;
-    }).on('click', 'i.glyphicon', function(){
-	    $('form#search input').val('');
-		$('form#search').submit();
-	});
+    });
 	
 	
 	/* redactor fields

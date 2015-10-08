@@ -174,15 +174,19 @@ class RowController extends \App\Http\Controllers\Controller {
 		# Search filters for the sidebar
 		$filters = [];
 		foreach ($table->filters as $filter) {
-			$related_table = config('center.tables.' . $table->fields->{$filter}->source);
-			$options = DB::table($related_table->name);
-			foreach ($related_table->order_by as $column => $direction) {
-				$options->orderBy($column, $direction);
+			if ($table->fields->{$filter}->type == 'us_state') {
+				$filters[$filter] = ['' => $table->fields->{$filter}->title] + trans('center::site.us_states');;
+			} else {
+				$related_table = config('center.tables.' . $table->fields->{$filter}->source);
+				$options = DB::table($related_table->name);
+				foreach ($related_table->order_by as $column => $direction) {
+					$options->orderBy($column, $direction);
+				}
+				$options->whereIn('id', DB::table($table->name)->distinct()->lists($filter));
+				$options = $options->lists(self::listColumn($related_table), 'id');
+				
+				$filters[$filter] = ['' => $related_table->title] + $options;				
 			}
-			$options->whereIn('id', DB::table($table->name)->distinct()->lists($filter));
-			$options = $options->lists(self::listColumn($related_table), 'id');
-			
-			$filters[$filter] = ['' => $related_table->title] + $options;
 		}
 				
 		$return = compact('table', 'columns', 'rows', 'filters', 'searching', 'linked_field', 'linked_row');
