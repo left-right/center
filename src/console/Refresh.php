@@ -94,6 +94,7 @@ class Refresh extends Command {
 							//strings
 							case 'address':
 							case 'color':
+							case 'country':
 							case 'email':
 							case 'password':
 							case 'phone':

@@ -176,6 +176,8 @@ class RowController extends \App\Http\Controllers\Controller {
 		foreach ($table->filters as $filter) {
 			if ($table->fields->{$filter}->type == 'us_state') {
 				$filters[$filter] = ['' => $table->fields->{$filter}->title] + trans('center::site.us_states');;
+			} elseif ($table->fields->{$filter}->type == 'country') {
+				$filters[$filter] = ['' => $table->fields->{$filter}->title] + trans('center::site.countries');;
 			} else {
 				$related_table = config('center.tables.' . $table->fields->{$filter}->source);
 				$options = DB::table($related_table->name);
@@ -262,6 +264,9 @@ class RowController extends \App\Http\Controllers\Controller {
 				if (!$field->required) $field->options = [''=>''] + $field->options;
 			} elseif ($field->type == 'us_state') {
 				$field->options = trans('center::site.us_states');
+				if (!$field->required) $field->options = [''=>''] + $field->options;
+			} elseif ($field->type == 'country') {
+				$field->options = trans('center::site.countries');
 				if (!$field->required) $field->options = [''=>''] + $field->options;
 			} elseif (in_array($field->type, array('image', 'images'))) {
 				list($field->screen_width, $field->screen_height) = FileController::getImageDimensions($field->width, $field->height);
@@ -432,6 +437,9 @@ class RowController extends \App\Http\Controllers\Controller {
 				if (!$field->required) $field->options = [''=>''] + $field->options;
 			} elseif ($field->type == 'us_state') {
 				$field->options = trans('center::site.us_states');
+				if (!$field->required) $field->options = [''=>''] + $field->options;
+			} elseif ($field->type == 'country') {
+				$field->options = trans('center::site.countries');
 				if (!$field->required) $field->options = [''=>''] + $field->options;
 			}
 		}

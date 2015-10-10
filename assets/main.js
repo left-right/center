@@ -68,6 +68,18 @@ $(function() {
 					$('select.us_state[data-source=' + name + '] option[value=' + state + ']').attr('selected', true);
 				});
 			}
+			var country = false;			
+			for (var i = 0; i < data.results[0].address_components.length; i++) {
+				if (data.results[0].address_components[i].types[0] == 'country') {
+					country = data.results[0].address_components[i].short_name;
+				}
+			}
+			if (country) {
+				$('select.country[data-source=' + name + ']').each(function(){
+					$('select.country[data-source=' + name + '] option:selected').attr('selected', false);
+					$('select.country[data-source=' + name + '] option[value=' + country + ']').attr('selected', true);
+				});
+			}
 		});
 	});
 	

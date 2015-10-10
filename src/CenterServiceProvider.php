@@ -14,7 +14,7 @@ use Session;
 class CenterServiceProvider extends ServiceProvider {
 
 	private static $field_types = [
-		'address', 'checkboxes', 'checkbox', 'color', 'date', 'datetime', 'email', 'html', 
+		'address', 'checkboxes', 'checkbox', 'color', 'country', 'date', 'datetime', 'email', 'html', 
 		'image', 'images', 'integer', 'latitude', 'longitude', 'money', 'password', 'permissions', 
 		'phone', 'select', 'slug', 'string', 'stripe_charge', 'stripe_customer', 'text', 'time', 
 		'url', 'us_state', 'user', 'zip',
@@ -137,6 +137,8 @@ class CenterServiceProvider extends ServiceProvider {
 				//field max lengths
 				if ($field_properties['type'] == 'phone') $field_properties['maxlength'] = 10;
 				if ($field_properties['type'] == 'zip') $field_properties['maxlength'] = 5;
+				if ($field_properties['type'] == 'us_state') $field_properties['maxlength'] = 2;
+				if ($field_properties['type'] == 'country') $field_properties['maxlength'] = 2;
 				
 				if (!isset($field_properties['hidden'])) $field_properties['hidden'] = in_array($field, ['id', 'created_at', 'updated_at', 'deleted_at', 'created_by', 'updated_by', 'deleted_by', 'password', 'precedence']);
 				if (in_array($field_properties['type'], ['image' ,'images'])) {
