@@ -1,5 +1,5 @@
 <div class="form-group field-{{ $field->type }}">
-	<label class="control-label col-sm-2">{{ $field->title }}</label>
+	<label class="control-label col-sm-2" for="{{ $field->name }}">{{ $field->title }}</label>
 	<div class="col-sm-10">
 		@foreach ($field->options as $option_id => $option_value)
 		<label class="checkbox-inline">

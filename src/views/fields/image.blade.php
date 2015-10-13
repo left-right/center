@@ -1,5 +1,5 @@
 <div class="form-group field-{{ $field->type }} @if ($errors->has($field->name)) has-error @endif">
-	<label class="control-label col-sm-2">{{ $field->title }}</label>
+	<label class="control-label col-sm-2" for="{{ $field->name }}">{{ $field->title }}</label>
 	<div class="col-sm-10">
 		@if (isset($row->{$field->name}->id))
 		<div class="image" data-table-name="{{ $table->name }}" data-field-name="{{ $field->name }}" data-action="{{ action('\LeftRight\Center\Controllers\FileController@image') }}" style="width:{{ $field->screen_width }}px; height:{{ $field->screen_height }}px; background-image: url({{ $row->{$field->name}->url }});">
