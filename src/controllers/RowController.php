@@ -665,6 +665,10 @@ class RowController extends \App\Http\Controllers\Controller {
 					//add unique, formatted slug to the insert batch
 					$return[$field->name] = Slug::make($value, $uniques);
 					
+				} elseif ($field->type == 'time') {
+					
+					$return[$field->name] = date('H:i:s', strtotime($return[$field->name]));
+
 				}
 
 			}
