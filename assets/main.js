@@ -14,8 +14,17 @@
 
 $(function() {
 
+	//add time and datetime rules to validator
+	$.validator.addMethod('time', function(value, element) {  
+		return this.optional(element) || /^(0?[1-9]|1[012])(:[0-5]\d) [APap][mM]$/i.test(value);  
+	}, 'Please enter a valid time.');
+
+	$.validator.addMethod('datetime', function(value, element) {  
+		return this.optional(element) || /^[0,1]?\d\/(([0-2]?\d)|([3][01]))\/((199\d)|([2-9]\d{3}))\s(0?[1-9]|1[012])(:[0-5]\d) [APap][mM]$/i.test(value);  
+	}, 'Please enter a valid date and time.');
+
 	//generic form validator
-	$('form').validate({
+	$('form.create, form.edit').validate({
 		errorElement:'span',
 		errorClass:'help-inline',
 		onfocusout:false,
