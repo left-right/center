@@ -77,6 +77,7 @@ class CenterServiceProvider extends ServiceProvider {
 			if (!isset($table_properties['export'])) $table_properties['export'] = [];
 			if (!isset($table_properties['search'])) $table_properties['search'] = [];
 			if (!isset($table_properties['filters'])) $table_properties['filters'] = [];
+			if (!isset($table_properties['timestamps'])) $table_properties['timestamps'] = true;
 			
 			//temp, soon to look up from permissions table
 			$table_properties['dates'] = [];
@@ -291,13 +292,13 @@ class CenterServiceProvider extends ServiceProvider {
 				        (isset($table->fields->created_by) ? '
 						$object->created_by = Auth::id();
 						' : '') .
-				        (isset($table->fields->created_at) ? '
+				        ($table->timestamps && isset($table->fields->created_at) ? '
 						$object->created_at = new DateTime();
 						' : '') .
 				        (isset($table->fields->updated_by) ? '
 						$object->updated_by = Auth::id();
 						' : '') .
-				        (isset($table->fields->updated_at) ? '
+				        ($table->timestamps && isset($table->fields->updated_at) ? '
 						$object->updated_at = new DateTime();
 						' : '') . 
 					'});
@@ -305,7 +306,7 @@ class CenterServiceProvider extends ServiceProvider {
 			        	(isset($table->fields->updated_by) ? '
 						$object->updated_by = Auth::id();
 						' : '') .
-				        (isset($table->fields->updated_at) ? '
+				        ($table->timestamps && isset($table->fields->updated_at) ? '
 						$object->updated_at = new DateTime();
 						' : '') . 
 			        '});
