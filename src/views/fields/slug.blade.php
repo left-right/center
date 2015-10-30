@@ -8,7 +8,7 @@
 				<span class="input-group-addon"><a href="{{ $table->url }}/{{ @$row->slug }}" target="_blank"><i class="glyphicon glyphicon-new-window"></i></a></span>
 			</div>
 		@else
-			{!! Form::text($field->name, @$row->{$field->name}, ['class'=>'form-control ' . $field->type . ($field->required ? ' required' : ''), 'data-source'=>$field->source]) !!}
+			{!! Form::text($field->name, @$row->{$field->name}, ['class'=>'form-control ' . $field->type . ($field->required ? ' required' : ''), 'id'=>$field->name, 'data-source'=>$field->source]) !!}
 		@endif
 	</div>
 </div>

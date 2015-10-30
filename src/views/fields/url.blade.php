@@ -2,7 +2,11 @@
 	<label class="control-label col-sm-2" for="{{ $field->name }}">{{ $field->title }}</label>
 	<div class="col-sm-10">
 		<div class="input-group">
-			<span class="input-group-addon">{!! config('center.icons.url') !!}</span>
+			@if ($row->{$field->name})
+				<a class="input-group-addon" href="{{ $row->{$field->name} }}" target="_blank">{!! config('center.icons.url') !!}</a>
+			@else
+				<span class="input-group-addon">{!! config('center.icons.url') !!}</span>
+			@endif
 			{!! Form::url($field->name, @$row->{$field->name}, ['id'=>$field->name, 'class'=>'form-control ' . $field->type . ($field->required ? ' required' : '')]) !!}
 		</div>
 	</div>
