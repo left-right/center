@@ -117,7 +117,7 @@ class FileController extends Controller {
 			'height' =>			$height,
 			'size' =>			$size,
 			'created_at' =>		new DateTime,
-			'created_by' =>		Auth::user()->id,
+			'created_by' =>		Auth::guest() ? null : Auth::user()->id,
 			'precedence' =>		DB::table(config('center.db.files'))
 				->where('table', $table->name)
 				->where('field', $field->name)
