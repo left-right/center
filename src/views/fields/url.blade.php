@@ -2,7 +2,7 @@
 	<label class="control-label col-sm-2" for="{{ $field->name }}">{{ $field->title }}</label>
 	<div class="col-sm-10">
 		<div class="input-group">
-			@if ($row->{$field->name})
+			@if (!empty($row->{$field->name}))
 				<a class="input-group-addon" href="{{ $row->{$field->name} }}" target="_blank">{!! config('center.icons.url') !!}</a>
 			@else
 				<span class="input-group-addon">{!! config('center.icons.url') !!}</span>
