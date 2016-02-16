@@ -74,9 +74,9 @@ $(function() {
 				}
 			}
 			if (state) {
-				$('select.us_state[data-source=' + name + ']').each(function(){
-					$('select.us_state[data-source=' + name + '] option:selected').attr('selected', false);
-					$('select.us_state[data-source=' + name + '] option[value=' + state + ']').attr('selected', true);
+				$('select.us_state[data-source="' + name + '"]').each(function(){
+					$('select.us_state[data-source="' + name + '"] option:selected').attr('selected', false);
+					$('select.us_state[data-source="' + name + '"] option[value="' + state + '"]').attr('selected', true);
 				});
 			}
 			var country = false;			
@@ -86,9 +86,9 @@ $(function() {
 				}
 			}
 			if (country) {
-				$('select.country[data-source=' + name + ']').each(function(){
-					$('select.country[data-source=' + name + '] option:selected').attr('selected', false);
-					$('select.country[data-source=' + name + '] option[value=' + country + ']').attr('selected', true);
+				$('select.country[data-source="' + name + '"]').each(function(){
+					$('select.country[data-source="' + name + '"] option:selected').attr('selected', false);
+					$('select.country[data-source="' + name + '"] option[value="' + country + '"]').attr('selected', true);
 				});
 			}
 		});
