@@ -46,7 +46,8 @@ $(function() {
 	$('.input-group.date').datetimepicker({pickTime: false});
 	$('.input-group.time').datetimepicker({pickDate: false});
 
-	$('input.phone').mask('(999) 999-9999');
+	//phone doesn't work internationally
+	//$('input.phone').mask('(999) 999-9999');
 	//$('#date').mask('99/99/9999',{placeholder:'mm/dd/yyyy'});
 	//$('#tin').mask('99-9999999');
 	//$('#ssn').mask('999-99-9999');
