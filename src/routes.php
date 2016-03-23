@@ -17,10 +17,7 @@ Route::group(['prefix' => config('center.prefix'), 'namespace' => 'LeftRight\Cen
 		# Special routes
 		Route::get('/logout', 'LoginController@logout');
 		Route::post('/upload/image', 'FileController@image');
-		Route::get('cleanup', function(){
-			FileController::findOrphans();
-			FileController::cleanup();
-		});		
+		Route::get('/cleanup', 'FileController@cleanup');
 		
 		# Test routes
 		Route::group(['prefix' => 'test'], function(){ 

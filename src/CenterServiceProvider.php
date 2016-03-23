@@ -241,7 +241,7 @@ class CenterServiceProvider extends ServiceProvider {
 					$dates[$table->name][] = '\'' . $field->name . '\'';
 				
 				} elseif (($field->type == 'image') && ends_with($field->name, '_id')) {
-				
+
 					//cannot overwrite property
 					$relationships[$table->name][] = '
 					public function ' . substr($field->name, 0, -3) . '() {

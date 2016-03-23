@@ -172,8 +172,32 @@ class FileController extends Controller {
 	}
 	
 	public static function cleanup() {
-		$files = DB::table(config('center.db.files'))->lists('url');
-		//config('center.files.path')
+		
+		//get obsolete files
+		$files = DB::table(config('center.db.files'))
+			->whereNull('row_id')
+			->orWhere('row_id', 0)
+			->orWhereNotIn('table', array_keys(config('center.tables')))
+			->lists('url');
+
+		foreach ($files as $id=>$url) {
+			
+			//try to delete file
+			if (file_exists(public_path() . $url)) {
+				unlink(public_path() . $url);
+			}
+
+			//try to remove the containing directory
+			if ($pos = strrpos($url, '/')) {
+				$dirname = public_path() . substr($url, 0, $pos);
+				if (is_dir($dirname)) rmdir($dirname);
+			}
+		}
+		
+		//delete from table
+		DB::table(config('center.db.files'))->whereIn('id', array_keys($files))->delete();
+		
+		//todo: loop through config('center.files.path') and delete any extra files or directories
 	}
 
 }
