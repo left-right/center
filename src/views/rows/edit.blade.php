@@ -27,7 +27,11 @@
 	
 	@foreach ($table->fields as $field)
 		@if (!$field->hidden)
-			@include('center::fields.' . $field->type)
+			@if (view()->exists('center.' . $table->name . '.' . $field->name))
+				@include('center.' . $table->name . '.' . $field->name)
+			@else
+				@include('center::fields.' . $field->type)
+			@endif
 		@endif
 	@endforeach
 	
