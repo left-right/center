@@ -19,7 +19,8 @@
         "laravelcollective/html": "5.2.*",
         "intervention/image": "2.*",
         "doctrine/dbal": "2.*",
-		"maatwebsite/excel": "2.*"
+		"maatwebsite/excel": "2.*",
+		"barryvdh/laravel-dompdf": "^0.6.1"		
     },
     "autoload": {
         "psr-4": {

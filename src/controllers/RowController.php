@@ -15,6 +15,7 @@ use LeftRight\Center\Libraries\Table;
 use LeftRight\Center\Libraries\Trail;
 use LeftRight\Center\Controllers\LoginController;
 use Mail;
+use Barryvdh\DomPDF\Facade as PDF;
 use Redirect;
 use Request;
 use Session;
@@ -790,6 +791,25 @@ class RowController extends \App\Http\Controllers\Controller {
 			if (!empty($table->group_by)) $return->groupBy('group');
 			return $return->draw($table->name);
 		}
+	}
+	
+	# Display a PDF for an instance
+	public static function pdf($table, $row_id) {
+
+		# Get object / field / whatever infoz
+		$table = config('center.tables.' . $table);
+
+		# Security
+		if (!isset($table->name)) {
+			return redirect()->action('\LeftRight\Center\Controllers\TableController@index')->with('error', trans('center::site.table_does_not_exist'));
+		} elseif (!LoginController::checkPermission($table->name, 'edit') || !$table->editable) {
+			return redirect()->action('\LeftRight\Center\Controllers\RowController@index', $table->name)->with('error', trans('center::site.no_permissions_edit'));
+		}
+		
+		# Retrieve instance/row values
+		$row = DB::table($table->name)->where('id', $row_id)->first();
+
+		return PDF::loadView('rows.pdf', compact('table', 'row'))->stream();
 	}
 	
 	/*

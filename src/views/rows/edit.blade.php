@@ -68,6 +68,8 @@
 	@if (Lang::has('center::' . $table->name . '.help.edit'))
 		<p>{!! nl2br(trans('center::' . $table->name . '.help.edit')) !!}</p>
 	@endif
+	
+	<p><a href="{{ action('\LeftRight\Center\Controllers\RowController@pdf', [$table->name, $row->id]) }}" class="btn btn-default"><i class="glyphicon glyphicon-file"></i> View PDF</a></p>
 
 	@if ($table->deletable)
 	{!! Form::open(['method'=>'delete', 'action'=>['\LeftRight\Center\Controllers\RowController@destroy', $table->name, $row->id]]) !!}

@@ -49,6 +49,7 @@ Route::group(['prefix' => config('center.prefix'), 'namespace' => 'LeftRight\Cen
 		Route::get('/{table_name}/create/{linked_field?}/{linked_row?}',	'RowController@create');
 		Route::post('/{table_name}/reorder',								'RowController@reorder');
 		Route::post('/{table_name}',										'RowController@store');
+		Route::get('/{table_name}/pdf/{row_id}',							'RowController@pdf');
 		Route::get('/{table_name}/{row_id}/{linked_field?}/{linked_row?}',	'RowController@edit');
 		Route::put('/{table_name}/{row_id}',								'RowController@update');
 		Route::delete('/{table_name}/{row_id}', 							'RowController@destroy');
