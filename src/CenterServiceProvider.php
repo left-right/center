@@ -21,7 +21,14 @@ class CenterServiceProvider extends ServiceProvider {
 	];
 	
 	public function register() {
+		define('DOMPDF_ENABLE_PHP', true);
 		$this->mergeConfigFrom(__DIR__ . '/config.defaults.php', 'center');
+	    $this->app->register('Collective\Html\HtmlServiceProvider');
+	    $this->app->register('Maatwebsite\Excel\ExcelServiceProvider');
+	    $this->app->register('Barryvdh\DomPDF\ServiceProvider');
+	    $loader = \Illuminate\Foundation\AliasLoader::getInstance();
+	    $loader->alias('Form', 'Collective\Html\FormFacade');
+	    $loader->alias('HTML', 'Collective\Html\HtmlFacade');
 	}
 
 	public function boot() {

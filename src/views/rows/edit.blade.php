@@ -8,9 +8,9 @@
 
 	@if ($linked_field)
 		{!! \LeftRight\Center\Libraries\Breadcrumbs::leave([
-			URL::action('\LeftRight\Center\Controllers\TableController@index')=>trans('center::site.home'),
-			URL::action('\LeftRight\Center\Controllers\RowController@index', $table->fields->{$linked_field}->source)=>config('center.tables.' . $table->fields->{$linked_field}->source)->title,
-			URL::action('\LeftRight\Center\Controllers\RowController@edit', [$table->fields->{$linked_field}->source, $linked_row])=>trans('center::site.edit'),
+			action('\LeftRight\Center\Controllers\TableController@index')=>trans('center::site.home'),
+			action('\LeftRight\Center\Controllers\RowController@index', $table->fields->{$linked_field}->source)=>config('center.tables.' . $table->fields->{$linked_field}->source)->title,
+			action('\LeftRight\Center\Controllers\RowController@edit', [$table->fields->{$linked_field}->source, $linked_row])=>trans('center::site.edit'),
 			trans('center::' . $table->name . '.edit'),
 			]) !!}
 	@else

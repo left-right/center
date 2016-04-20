@@ -808,8 +808,10 @@ class RowController extends \App\Http\Controllers\Controller {
 		
 		# Retrieve instance/row values
 		$row = DB::table($table->name)->where('id', $row_id)->first();
-
-		return PDF::loadView('rows.pdf', compact('table', 'row'))->stream();
+		
+		return PDF::loadView('center::rows.pdf', compact('table', 'row'))
+			->setPaper('letter', 'portrait')
+			->stream();
 	}
 	
 	/*

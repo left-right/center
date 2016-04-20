@@ -6,7 +6,6 @@ use LeftRight\Center\Controllers\LoginController;
 use LeftRight\Center\Libraries\Table;
 use LeftRight\Center\Libraries\Trail;
 use Maatwebsite\Excel\Facades\Excel;
-use Maatwebsite\Excel\ExcelServiceProvider;
 use Request;
 use Schema;
 
