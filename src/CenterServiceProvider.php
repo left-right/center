@@ -56,7 +56,7 @@ class CenterServiceProvider extends ServiceProvider {
 			__DIR__ . '/translations/en/site.php' => app_path('../resources/lang/vendor/center/en/site.php'),
 			__DIR__ . '/translations/en/users.php' => app_path('../resources/lang/vendor/center/en/users.php'),
 		], 'lang');
-		include __DIR__ . '/macros.php';
+		//include __DIR__ . '/macros.php';
 		include __DIR__ . '/routes.php';
 	}
 	
