@@ -154,6 +154,10 @@ class RowController extends \App\Http\Controllers\Controller {
 				$row->link = action('\LeftRight\Center\Controllers\RowController@edit', [$table->name, $row->id, $linked_field, $linked_row]);
 				$row->delete = action('\LeftRight\Center\Controllers\RowController@delete', [$table->name, $row->id]);
 			}
+		} else {
+			foreach ($rows as &$row) {
+				$row->link = action('\LeftRight\Center\Controllers\RowController@pdf', [$table->name, $row->id]);
+			}
 		}
 
 		# If it's a nested object, nest-ify the resultset
@@ -802,16 +806,17 @@ class RowController extends \App\Http\Controllers\Controller {
 		# Security
 		if (!isset($table->name)) {
 			return redirect()->action('\LeftRight\Center\Controllers\TableController@index')->with('error', trans('center::site.table_does_not_exist'));
-		} elseif (!LoginController::checkPermission($table->name, 'edit') || !$table->editable) {
+		} elseif (!LoginController::checkPermission($table->name, 'view') || !$table->editable) {
 			return redirect()->action('\LeftRight\Center\Controllers\RowController@index', $table->name)->with('error', trans('center::site.no_permissions_edit'));
 		}
 		
 		# Retrieve instance/row values
 		$row = DB::table($table->name)->where('id', $row_id)->first();
 		
+		# Output PDF to the browser
 		return PDF::loadView('center::rows.pdf', compact('table', 'row'))
 			->setPaper('letter', 'portrait')
-			->stream();
+			->stream($table->name . '-' . $row->id . '.pdf');
 	}
 	
 	/*

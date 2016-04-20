@@ -1,6 +1,7 @@
 <html>
 	<head>
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>{{ $table->title }} #{{ $row->id }}</title>
 		<style type="text/css">
 			body { margin: 0; padding: 60pt 0 0; font-family: 'Helvetica'; color: #444; }
 			#header { 
@@ -47,8 +48,8 @@
 
 		@foreach ($table->fields as $field)
 			@if (!empty($row->{$field->name}) && 
-				!in_array($field->type, ['files']) &&
-				!in_array($field->name, ['updated_at', 'created_by', 'updated_by'])
+				!in_array($field->type, ['image', 'images', 'file', 'files']) &&
+				!in_array($field->name, ['updated_at', 'created_by', 'updated_by', 'precedence'])
 				)
 				<div class="field {{ $field->type }}">
 					<div class="title">{{ $field->title }}</div>
@@ -60,6 +61,10 @@
 
 					case 'url':
 					echo '<p><a href="' . $row->{$field->name} . '">' . $row->{$field->name} . '</a></p>';
+					break;
+
+					case 'date':
+					echo '<p>' . date('M d, Y', strtotime($row->{$field->name})) . '</p>';
 					break;
 
 					case 'datetime':
