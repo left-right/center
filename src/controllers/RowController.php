@@ -596,7 +596,7 @@ class RowController extends \App\Http\Controllers\Controller {
 		if (property_exists($table->fields, 'updated_at')) $return['updated_at'] = new DateTime;
 		if (property_exists($table->fields, 'updated_by')) $return['updated_by'] = Auth::user()->id;
 
-		if ($row_id === false) {
+		if (!$row_id) {
 			if (property_exists($table->fields, 'created_at')) $return['created_at'] = new DateTime;
 			if (property_exists($table->fields, 'created_by')) $return['created_by'] = Auth::user()->id;
 			if (property_exists($table->fields, 'precedence')) $return['precedence'] = DB::table($table->name)->max('precedence') + 1;
@@ -606,7 +606,7 @@ class RowController extends \App\Http\Controllers\Controller {
 		foreach ($table->fields as $field) {
 			if ($field->hidden || in_array($field->type, self::$relation_field_types)) continue;
 
-			//trim whitespace
+			//always trim whitespace
 			$return[$field->name] = trim(Request::input($field->name));
 
 			//first decide whether value is null
@@ -713,7 +713,7 @@ class RowController extends \App\Http\Controllers\Controller {
 					->where('table', $table->name)
 					->where('field', $field->name)
 					->where('row_id', $row_id)
-					->update(['instance_id' => null]);
+					->update(['row_id' => null]);
 
 				# Create new associations
 				$file_ids = explode(',', Request::input($field->name));
