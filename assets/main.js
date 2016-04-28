@@ -386,8 +386,7 @@ $(function() {
 					data.submit();
 				},
 				fail: function(e, data) {
-					//window.console.log(data.jqXHR.responseJSON.error);
-					//window.console.log(data.jqXHR.responseText);
+					window.console.log(data.jqXHR.responseText);
 				},
 				done: function(e, data) {
 					//window.console.log(data);

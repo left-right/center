@@ -64,7 +64,7 @@ class FileController extends Controller {
 		mkdir(public_path() . $path, 0777, true);
 
 		//get name and extension
-		$name		= $field->name;
+		$name		= substr($field->name, 0, -3);
 		$file		= file_get_contents($file_name);
 		if (!$extension) $extension = pathinfo($file_name, PATHINFO_EXTENSION);
 		$url		= $path . '/' . $name . '.' . $extension;

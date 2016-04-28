@@ -119,6 +119,12 @@ class CenterServiceProvider extends ServiceProvider {
 				if (!in_array($field_properties['type'], self::$field_types)) {
 					trigger_error('field ' . $table . '.' . $field . ' is of type ' . $field_properties['type'] . ' which is not supported.');
 				}
+				
+				//relationship columns always end in _id, eg image_id
+				//this is so that $model->image_id and $model->image->src can work
+				if (in_array($field_properties['type'], ['image', 'select', 'user'])) {
+					if (!ends_with($field, '_id')) $field .= '_id';
+				}
 
 				//set other field attributes
 				$field_properties['name'] = $field;
@@ -247,19 +253,22 @@ class CenterServiceProvider extends ServiceProvider {
 
 					$dates[$table->name][] = '\'' . $field->name . '\'';
 				
-				} elseif (($field->type == 'image') && ends_with($field->name, '_id')) {
+				} elseif ($field->type == 'image') {
 
 					//cannot overwrite property
 					$relationships[$table->name][] = '
 					public function ' . substr($field->name, 0, -3) . '() {
 						return $this->hasOne("LeftRight\Center\Models\File", "id", "' . $field->name . '");
-					}';
+					}
+					';
 				
 				} elseif (in_array($field->type, ['select', 'user'])) {
 					
+					//public function ' . $tables[$field->source]->name . '() {
+
 					//out from this object
 					$relationships[$table->name][] = '
-					public function ' . $tables[$field->source]->name . '() {
+					public function ' . substr($field->name, 0, -3) . '() {
 						return $this->belongsTo("LeftRight\Center\Models\\' . $tables[$field->source]->model . '", "' . $field->name . '");
 					}
 					';
@@ -273,6 +282,9 @@ class CenterServiceProvider extends ServiceProvider {
 				}
 			}
 		}
+		
+		//debug
+		//dd($relationships);
 
 		//now we must loop through again; the first loop set relationships on other tables
 		foreach ($tables as $table) {

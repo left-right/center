@@ -639,12 +639,6 @@ class RowController extends \App\Http\Controllers\Controller {
 							->update(['row_id'=>null]);
 					}
 	
-	
-					# Capture the uploaded file by setting the reverse-lookup
-					DB::table(config('center.db.files'))
-						->where('id', Request::input($field->name))
-						->update(['row_id'=>$row_id]);
-
 				} elseif ($field->type == 'phone') {
 					
 					$return[$field->name] = preg_replace('/[^0-9]/', '', $return[$field->name]);
@@ -704,6 +698,13 @@ class RowController extends \App\Http\Controllers\Controller {
 						]);
 					}
 				}
+				
+			} elseif ($field->type == 'image') {
+				
+				# Capture the uploaded file by setting the reverse-lookup
+				DB::table(config('center.db.files'))
+					->where('id', Request::input($field->name))
+					->update(['row_id'=>$row_id]);
 
 			} elseif ($field->type == 'images') {
 
