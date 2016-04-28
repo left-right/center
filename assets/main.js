@@ -382,11 +382,12 @@ $(function() {
 				dataType: 			'json', 
 				acceptFileTypes : 	/(\.|\/)(jpg|gif|png)$/i,
 				autoUpload: 		true,
+				pasteZone:			null,
 				add: function(e, data) {
 					data.submit();
 				},
 				fail: function(e, data) {
-					window.console.log(data.jqXHR.responseText);
+					//window.console.log(data.jqXHR.responseText);
 				},
 				done: function(e, data) {
 					//window.console.log(data);
