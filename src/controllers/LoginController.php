@@ -4,9 +4,9 @@ use Auth;
 use DateTime;
 use DB;
 use Hash;
+use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Mail;
-use Request;
 use Redirect;
 use Session;
 use URL;
@@ -29,10 +29,11 @@ class LoginController extends \App\Http\Controllers\Controller {
 	}
 
 	//handle a post to the login or install form
-	public function postIndex() {
+	public function postIndex(Request $request) {
 		//regular login
 		if (DB::table(config('center.db.users'))->count()) {
 			//attempt auth
+			die($request->input('password'));
 			if (Auth::attempt(['email'=>Request::input('email'), 'password'=>Request::input('password')], true)) {
 
 				DB::table(config('center.db.users'))->where('id', Auth::user()->id)->update([

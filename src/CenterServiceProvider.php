@@ -29,6 +29,9 @@ class CenterServiceProvider extends ServiceProvider {
 	    $loader = \Illuminate\Foundation\AliasLoader::getInstance();
 	    $loader->alias('Form', 'Collective\Html\FormFacade');
 	    $loader->alias('HTML', 'Collective\Html\HtmlFacade');
+		$this->commands([
+				Console\Refresh::class
+		]);
 	}
 
 	public function boot() {
