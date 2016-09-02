@@ -4,7 +4,7 @@ use Auth;
 use DateTime;
 use DB;
 use Hash;
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Request;
 use Illuminate\Support\Str;
 use Mail;
 use Redirect;
@@ -33,7 +33,6 @@ class LoginController extends \App\Http\Controllers\Controller {
 		//regular login
 		if (DB::table(config('center.db.users'))->count()) {
 			//attempt auth
-			die($request->input('password'));
 			if (Auth::attempt(['email'=>Request::input('email'), 'password'=>Request::input('password')], true)) {
 
 				DB::table(config('center.db.users'))->where('id', Auth::user()->id)->update([

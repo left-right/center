@@ -5,7 +5,7 @@ use DateTime;
 use DB;
 use Illuminate\Support\Str;
 use Intervention\Image\ImageManagerStatic as Image;
-use Request;
+use Illuminate\Support\Facades\Request;
 use Session;
 
 class FileController extends Controller {

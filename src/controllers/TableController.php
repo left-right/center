@@ -6,7 +6,7 @@ use LeftRight\Center\Controllers\LoginController;
 use LeftRight\Center\Libraries\Table;
 use LeftRight\Center\Libraries\Trail;
 use Maatwebsite\Excel\Facades\Excel;
-use Request;
+use Illuminate\Support\Facades\Request;
 use Schema;
 
 class TableController extends Controller {

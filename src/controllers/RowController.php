@@ -17,7 +17,7 @@ use LeftRight\Center\Controllers\LoginController;
 use Mail;
 use Barryvdh\DomPDF\Facade as PDF;
 use Redirect;
-use Request;
+use Illuminate\Support\Facades\Request;
 use Session;
 use URL;
 use Validator;
@@ -582,7 +582,7 @@ class RowController extends \App\Http\Controllers\Controller {
 			'updated_by'=>Auth::user()->id,
 		));*/
 
-		$updated = DB::table($table->name)->where('id', $row_id)->pluck('updated_at');
+		$updated = DB::table($table->name)->where('id', $row_id)->value('updated_at');
 
 		return \LeftRight\Center\Libraries\Dates::relative($updated);
 	}
