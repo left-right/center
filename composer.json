@@ -22,9 +22,9 @@
 		"barryvdh/laravel-dompdf": "^0.6.1"		
     },
     "autoload": {
-	    "classmap": {
+	    "classmap": [
 		    "src/LeftRight/Center"
-	    }
+	    ],
         "psr-0": {
             "LeftRight\\Center\\": "src/"
         }
