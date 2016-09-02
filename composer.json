@@ -8,14 +8,13 @@
     "authors": [
         {
             "name": "Josh Reisner",
-            "email": "josh@left-right.co",
+            "email": "josh@joshreisner.com",
             "role": "Developer",
-            "homepage": "http://left-right.co"
+            "homepage": "https://joshreisner.com"
         }
     ],
     "require": {
-        "php": ">=5.4.0",
-        "illuminate/support": "5.2.*",
+        "php": ">=5.5.9",
         "laravelcollective/html": "5.2.*",
         "intervention/image": "2.*",
         "doctrine/dbal": "2.*",
@@ -23,11 +22,13 @@
 		"barryvdh/laravel-dompdf": "^0.6.1"		
     },
     "autoload": {
-        "psr-4": {
+	    "classmap": {
+		    "src/LeftRight/Center"
+	    }
+        "psr-0": {
             "LeftRight\\Center\\": "src/"
         }
-    },
-    "minimum-stability": "dev"
+    }
 }
 
 

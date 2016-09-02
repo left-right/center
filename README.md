@@ -23,8 +23,9 @@ An innovative CMS for Laravel 5.
 		'user' => \LeftRight\Center\Middleware\User::class,
 
 7. run the following commands
-			php artisan vendor:publish
-			php artisan center:refresh
+		
+		php artisan vendor:publish
+		php artisan center:refresh
 
 8. browse to your project's /center route to log in
 
