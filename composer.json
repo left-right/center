@@ -23,7 +23,7 @@
     },
     "autoload": {
 	    "classmap": [
-		    "src/LeftRight/Center"
+		    "src"
 	    ],
         "psr-0": {
             "LeftRight\\Center\\": "src/"
