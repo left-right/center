@@ -14,12 +14,11 @@
         }
     ],
     "require": {
-        "php": ">=5.5.9",
-        "laravelcollective/html": "5.2.*",
-        "intervention/image": "2.*",
-        "doctrine/dbal": "2.*",
-		"maatwebsite/excel": "2.*",
-		"barryvdh/laravel-dompdf": "^0.6.1"		
+        "laravelcollective/html": "*",
+        "intervention/image": "*",
+        "doctrine/dbal": "*",
+		"maatwebsite/excel": "*",
+		"barryvdh/laravel-dompdf": "*"
     },
     "autoload": {
 	    "classmap": [
