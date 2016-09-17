@@ -1,6 +1,6 @@
 <?php namespace LeftRight\Center\Controllers;
 
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use DB;
 use LeftRight\Center\Controllers\LoginController;
 use LeftRight\Center\Libraries\Table;
@@ -13,6 +13,7 @@ class TableController extends Controller {
 
 	# Display list for home page
 	public function index() {
+		
 		if (!Auth::check()) return LoginController::getIndex();
 		LoginController::updateUserPermissions(); //why not
 

@@ -1,6 +1,6 @@
 <?php namespace LeftRight\Center\Controllers;
 
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use App;
 use Aws\Common\Enum\Region;
 use Aws\Laravel\AwsServiceProvider;
@@ -18,7 +18,6 @@ use Mail;
 use Barryvdh\DomPDF\Facade as PDF;
 use Redirect;
 use Illuminate\Support\Facades\Request;
-use Session;
 use URL;
 use Validator;
 

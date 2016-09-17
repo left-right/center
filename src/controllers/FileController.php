@@ -1,6 +1,6 @@
 <?php namespace LeftRight\Center\Controllers;
 
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use DateTime;
 use DB;
 use Illuminate\Support\Str;

@@ -1,14 +1,13 @@
 <?php namespace LeftRight\Center\Controllers;
 	
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use DateTime;
 use DB;
 use Hash;
-use Illuminate\Support\Facades\Request;
+use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Mail;
 use Redirect;
-use Session;
 use URL;
 
 class LoginController extends \App\Http\Controllers\Controller {
@@ -27,50 +26,48 @@ class LoginController extends \App\Http\Controllers\Controller {
 
 		return view('center::login.index');
 	}
-
+	
 	//handle a post to the login or install form
 	public function postIndex(Request $request) {
 		//regular login
 		if (DB::table(config('center.db.users'))->count()) {
 			//attempt auth
-			if (Auth::attempt(['email'=>Request::input('email'), 'password'=>Request::input('password')], true)) {
+			if (Auth::attempt(['email'=>$request->input('email'), 'password'=>$request->input('password')], true)) {
 
 				DB::table(config('center.db.users'))->where('id', Auth::user()->id)->update([
 					'last_login'=>new DateTime
 				]);
 				
 				self::updateUserPermissions();
+								
+				return redirect()->intended(action('\LeftRight\Center\Controllers\TableController@index'));
 				
-				return Redirect::intended(action('\LeftRight\Center\Controllers\TableController@index'));
 			}
-			return Redirect::action('\LeftRight\Center\Controllers\TableController@index')->with('error', trans('center::site.login_invalid'));
+			return redirect()->action('\LeftRight\Center\Controllers\TableController@index')->with('error', trans('center::site.login_invalid'));
 		} 
 		
 		//installing, make user
 		$user_id = DB::table(config('center.db.users'))->insertGetId([
-			'name'			=> Request::input('name'),
-			'email'			=> Request::input('email'),
-			'password'		=> Hash::make(Request::input('password')),
+			'name'			=> $request->input('name'),
+			'email'			=> $request->input('email'),
+			'password'		=> Hash::make($request->input('password')),
 			'last_login'	=> new DateTime,
 			'updated_at'	=> new DateTime,
 			'updated_by'	=> 1,
 		]);
-
-		//don't need to insert permissions; they were already inserted by refresh
-		//self::setDefaultTablePermissions(config('center.db.users'));
 				
 		Auth::loginUsingId($user_id, true);
 
 		self::updateUserPermissions();
 		
-		return Redirect::action('\LeftRight\Center\Controllers\TableController@index');
+		return redirect()->action('\LeftRight\Center\Controllers\TableController@index');
 	}
 	
 	//logout
-	public function logout() {
+	public function logout(Request $request) {
 		Auth::logout();
-	    Session::forget('center.permissions');
-		return Redirect::action('\LeftRight\Center\Controllers\TableController@index');
+	    $request->session()->forget('center.permissions');
+		return redirect()->action('\LeftRight\Center\Controllers\TableController@index');
 	}
 
 	//reset password form
@@ -79,15 +76,15 @@ class LoginController extends \App\Http\Controllers\Controller {
 	}
 
 	//send reset email
-	public function postReset() {
+	public function postReset(Request $request) {
 
 		//get user
 		if (!$user = DB::table(config('center.db.users'))->whereExists(function($query){
                 $query->select(DB::raw(1))
                       ->from(config('center.db.permissions'))
                       ->whereRaw(config('center.db.permissions') . '.user_id = ' . config('center.db.users') . '.id');
-            })->whereNull('deleted_at')->where('email', Request::input('email'))->first()) {
-			return Redirect::action('\LeftRight\Center\Controllers\LoginController@getReset')->with([
+            })->whereNull('deleted_at')->where('email', $request->input('email'))->first()) {
+			return redirect()->action('\LeftRight\Center\Controllers\LoginController@getReset')->with([
 				'error'=>trans('center::site.password_reset_error')
 			]);
 		}
@@ -105,14 +102,14 @@ class LoginController extends \App\Http\Controllers\Controller {
 			$message->to($user->email)->subject(trans('center::site.password_reset'));
 		});
 
-		return Redirect::action('\LeftRight\Center\Controllers\LoginController@getReset')->with(['message'=>trans('center::site.password_reset_sent')]);
+		return redirect()->action('\LeftRight\Center\Controllers\LoginController@getReset')->with(['message'=>trans('center::site.password_reset_sent')]);
 	}
 
 	//reset password form
 	public function getChange($email, $token) {
 		//todo check email / token combo
 		if (!$user = DB::table(config('center.db.users'))->whereNull('deleted_at')->where('email', $email)->where('token', $token)->first()) {
-			return Redirect::action('\LeftRight\Center\Controllers\LoginController@getReset')->with([
+			return redirect()->action('\LeftRight\Center\Controllers\LoginController@getReset')->with([
 				'error'=>trans('center::site.password_change_error')
 			]);
 		}
@@ -124,9 +121,9 @@ class LoginController extends \App\Http\Controllers\Controller {
 	}
 
 	//send reset email
-	public function postChange() {
-		if (!$user = DB::table(config('center.db.users'))->whereNull('deleted_at')->where('email', Request::input('email'))->where('token', Request::input('token'))->first()) {
-			return Redirect::action('\LeftRight\Center\Controllers\LoginController@getReset')->with([
+	public function postChange(Request $request) {
+		if (!$user = DB::table(config('center.db.users'))->whereNull('deleted_at')->where('email', $request->input('email'))->where('token', $request->input('token'))->first()) {
+			return redirect()->action('\LeftRight\Center\Controllers\LoginController@getReset')->with([
 				'error'=>trans('center::site.password_change_error')
 			]);
 		}
@@ -134,24 +131,24 @@ class LoginController extends \App\Http\Controllers\Controller {
 		//successfully used reset token, time for it to die
 		DB::table(config('center.db.users'))->where('id', $user->id)->update([
 			'token'=>null,
-			'password'=>Hash::make(Request::input('password')),
+			'password'=>Hash::make($request->input('password')),
 			'last_login'=>new DateTime,
 		]);
 
 		//log you in
 		Auth::loginUsingId($user->id, true);
-		return Redirect::action('\LeftRight\Center\Controllers\TableController@index')->with('message', trans('center::site.password_change_success'));
+		return redirect()->action('\LeftRight\Center\Controllers\TableController@index')->with('message', trans('center::site.password_change_success'));
 	}
 	
 	//permissions, used by center controller 
 	public static function permissions($user_id) {
-		return DB::table(config('center.db.permissions'))->where('user_id', $user_id)->lists('level', 'table');
+		return DB::table(config('center.db.permissions'))->where('user_id', $user_id)->pluck('level', 'table');
 	}
 	
 	//check permission level for active user
 	public static function checkPermission($table, $level='edit') {
 		if (Auth::guest()) return false;
-		$permissions = Session::get('center.permissions');
+		$permissions = session('center.permissions');
 		$table = config('center.tables.' . $table);
 		if (array_key_exists($table->name, $permissions)) {
 			if ($level == 'view') {
@@ -190,7 +187,7 @@ class LoginController extends \App\Http\Controllers\Controller {
 
 	//update user permissions
 	public static function updateUserPermissions() {
-	    Session::set('center.permissions', LoginController::permissions(Auth::id()));
+	    session('center.permissions', self::permissions(Auth::id()));
 	}
 
 }
