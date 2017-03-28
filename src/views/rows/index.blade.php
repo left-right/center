@@ -12,19 +12,13 @@
 		]) !!}
 
 	<div class="btn-group">
-		@if (\LeftRight\Center\Controllers\LoginController::checkPermission(config('center.db.users'), 'edit'))
-		<a class="btn btn-default" href="{{ action('\LeftRight\Center\Controllers\TableController@permissions', $table->name) }}">
-			{!! config('center.icons.permissions') !!}
-			@lang('center::site.permissions')
-		</a>
-		@endif
 		@if ($table->export)
 		<a class="btn btn-default" href="{{ action('\LeftRight\Center\Controllers\TableController@export', $table->name) }}">
 			{!! config('center.icons.export') !!}
 			@lang('center::site.export')
 		</a>
 		@endif
-		@if ($table->creatable && \LeftRight\Center\Controllers\LoginController::checkPermission($table->name, 'create'))
+		@if ($table->creatable)
 			<a class="btn btn-default" href="{{ action('\LeftRight\Center\Controllers\RowController@create', $table->name) }}">
 				{!! config('center.icons.create') !!}
 				@lang('center::site.create')

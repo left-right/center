@@ -24,7 +24,7 @@ use Validator;
 class RowController extends \App\Http\Controllers\Controller {
 
 	# Need these for processing input
-	private static $relation_field_types = ['checkboxes', 'images', 'permissions'];
+	private static $relation_field_types = ['checkboxes', 'images'];
 
 
 	# Show list of instances for an object
@@ -41,9 +41,6 @@ class RowController extends \App\Http\Controllers\Controller {
 		# Security -- todo hidden?
 		if (!isset($table->name)) {
 			return redirect()->action('\LeftRight\Center\Controllers\TableController@index')->with('error', trans('center::site.table_does_not_exist'));
-		} elseif (!LoginController::checkPermission($table->name, 'view')) {
-			if ($linked_field && $linked_row) return false;
-			return redirect()->action('\LeftRight\Center\Controllers\TableController@index')->with('error', trans('center::site.no_permissions_view'));
 		}
 
 		# Custom index?
@@ -148,15 +145,9 @@ class RowController extends \App\Http\Controllers\Controller {
 		$rows = $rows->paginate(50);
 
 		# Set URLs on each instance
-		if (LoginController::checkPermission($table->name, 'edit')) {
-			foreach ($rows as &$row) {
-				$row->link = action('\LeftRight\Center\Controllers\RowController@edit', [$table->name, $row->id, $linked_field, $linked_row]);
-				$row->delete = action('\LeftRight\Center\Controllers\RowController@delete', [$table->name, $row->id]);
-			}
-		} else {
-			foreach ($rows as &$row) {
-				$row->link = action('\LeftRight\Center\Controllers\RowController@pdf', [$table->name, $row->id]);
-			}
+		foreach ($rows as &$row) {
+			$row->link = action('\LeftRight\Center\Controllers\RowController@edit', [$table->name, $row->id, $linked_field, $linked_row]);
+			$row->delete = action('\LeftRight\Center\Controllers\RowController@delete', [$table->name, $row->id]);
 		}
 
 		# If it's a nested object, nest-ify the resultset
@@ -212,8 +203,6 @@ class RowController extends \App\Http\Controllers\Controller {
 		# Security
 		if (!isset($table->name)) {
 			return redirect()->action('\LeftRight\Center\Controllers\TableController@index')->with('error', trans('center::site.table_does_not_exist'));
-		} elseif (!LoginController::checkPermission($table->name, 'create') || !$table->creatable) {
-			return redirect()->action('\LeftRight\Center\Controllers\RowController@index', $table->name)->with('error', trans('center::site.no_permissions_create'));
 		}
 		
 		$options = [];
@@ -258,11 +247,6 @@ class RowController extends \App\Http\Controllers\Controller {
 				if ($field->type == 'select' && !$field->required) {
 					$field->options = [''=>''] + $field->options;
 				}
-			} elseif ($field->type == 'permissions') {
-				$field->tables = array_where(config('center.tables'), function($key, $value) {
-					return !in_array($value->name, [config('center.db.files'), config('center.db.permissions')]);					
-				});
-				$field->options = LoginController::getPermissionLevels();
 			} elseif ($field->type == 'user') {
 				$field->options = DB::table(config('center.db.users'))->orderBy('name')->lists('name', 'id');
 				if (!$field->required) $field->options = [''=>''] + $field->options;
@@ -287,8 +271,6 @@ class RowController extends \App\Http\Controllers\Controller {
 		# Security
 		if (!isset($table->name)) {
 			return redirect()->action('\LeftRight\Center\Controllers\TableController@index')->with('error', trans('center::site.table_does_not_exist'));
-		} elseif (!LoginController::checkPermission($table->name, 'create') || !$table->creatable) {
-			return redirect()->action('\LeftRight\Center\Controllers\RowController@index', $table->name)->with('error', trans('center::site.no_permissions_create'));
 		}
 
 		$inserts = self::processColumnsInput($table);
@@ -302,17 +284,15 @@ class RowController extends \App\Http\Controllers\Controller {
 		    return redirect()->back()->withInput()->withErrors($v->errors());
 		}*/
 		
-		//if users table, and if permissions, sent invitation
-		if ($table->name == config('center.db.users') && Request::has('permissions')) {
-			if (count(array_diff(array_values(Request::get('permissions')), ['']))) {
-				$password = Str::random(12);
-				$inserts['password'] = Hash::make($password);
-				$email = $inserts['email'];
-				$link = action('\LeftRight\Center\Controllers\TableController@index');
-				Mail::send('center::emails.welcome', ['email'=>$email, 'password'=>$password, 'link'=>$link], function($message) use ($email) {
-					$message->to($email)->subject(trans('center::site.welcome_email_subject'));
-				});
-			}
+		//if users table, sent invitation
+		if ($table->name == config('center.db.users')) {
+			$password = Str::random(12);
+			$inserts['password'] = Hash::make($password);
+			$email = $inserts['email'];
+			$link = action('\LeftRight\Center\Controllers\TableController@index');
+			Mail::send('center::emails.welcome', ['email'=>$email, 'password'=>$password, 'link'=>$link], function($message) use ($email) {
+				$message->to($email)->subject(trans('center::site.welcome_email_subject'));
+			});
 		}
 
 		//run insert
@@ -342,8 +322,6 @@ class RowController extends \App\Http\Controllers\Controller {
 		# Security
 		if (!isset($table->name)) {
 			return redirect()->action('\LeftRight\Center\Controllers\TableController@index')->with('error', trans('center::site.table_does_not_exist'));
-		} elseif (!LoginController::checkPermission($table->name, 'edit') || !$table->editable) {
-			return redirect()->action('\LeftRight\Center\Controllers\RowController@index', $table->name)->with('error', trans('center::site.no_permissions_edit'));
 		}
 		
 		# Retrieve instance/row values
@@ -415,18 +393,6 @@ class RowController extends \App\Http\Controllers\Controller {
 					}
 				}
 				list($field->screen_width, $field->screen_height) = FileController::getImageDimensions($field->width, $field->height);
-			} elseif ($field->type == 'permissions') {
-				$field->tables = array_where(config('center.tables'), function($key, $value) {
-					return !in_array($value->name, [config('center.db.files'), config('center.db.permissions')]);
-				});
-				
-				$permissions = LoginController::permissions($row_id);
-				
-				foreach ($field->tables as $permissions_table) {
-					$permissions_table->value = isset($permissions[$permissions_table->name]) ? $permissions[$permissions_table->name] : '';
-				}
-
-				$field->options = LoginController::getPermissionLevels();
 			} elseif ($field->type == 'slug') {
 				if ($field->required && empty($row->{$field->name}) && $field->related_field_id) {
 					//slugify related field to populate this one
@@ -464,8 +430,6 @@ class RowController extends \App\Http\Controllers\Controller {
 		# Security
 		if (!isset($table->name)) {
 			return redirect()->action('\LeftRight\Center\Controllers\TableController@index')->with('error', trans('center::site.table_does_not_exist'));
-		} elseif (!LoginController::checkPermission($table->name, 'edit') || !$table->editable) {
-			return redirect()->action('\LeftRight\Center\Controllers\RowController@index', $table->name)->with('error', trans('center::site.no_permissions_edit'));
 		}
 
 		//sanitize and convert input to array
@@ -495,8 +459,6 @@ class RowController extends \App\Http\Controllers\Controller {
 		# Security
 		if (!isset($table->name)) {
 			return redirect()->action('\LeftRight\Center\Controllers\TableController@index')->with('error', trans('center::site.table_does_not_exist'));
-		} elseif (!LoginController::checkPermission($table->name, 'edit') || !$table->deletable) {
-			return redirect()->action('\LeftRight\Center\Controllers\RowController@index', $table->name)->with('error', trans('center::site.no_permissions_edit'));
 		}
 
 		DB::table($table->name)->where('id', $row_id)->delete();
@@ -510,8 +472,6 @@ class RowController extends \App\Http\Controllers\Controller {
 
 		# Security
 		if (!isset($table->name)) {
-			return;
-		} elseif (!LoginController::checkPermission($table->name, 'edit') || !$table->editable) {
 			return;
 		}
 
@@ -552,15 +512,13 @@ class RowController extends \App\Http\Controllers\Controller {
 		}
 	}
 	
-	# Soft delete (permissions-wise this is considered editing)
+	# Soft delete
 	public function delete($table, $row_id) {
 		$table = config('center.tables.' . $table);
 
 		# Security
 		if (!isset($table->name)) {
 			return redirect()->action('\LeftRight\Center\Controllers\TableController@index')->with('error', trans('center::site.table_does_not_exist'));
-		} elseif (!LoginController::checkPermission($table->name, 'edit') || !$table->editable) {
-			return redirect()->action('\LeftRight\Center\Controllers\RowController@index', $table->name)->with('error', trans('center::site.no_permissions_edit'));
 		}
 		
 		//toggle instance with active or inactive
@@ -726,23 +684,6 @@ class RowController extends \App\Http\Controllers\Controller {
 						]);
 				}
 
-			} elseif ($field->type == 'permissions') {
-
-				if ($table->name == config('center.db.users')) {
-					DB::table(config('center.db.permissions'))->where('user_id', $row_id)->delete();
-					foreach (Request::input('permissions') as $table_name => $level) {
-						if (!empty($level)) {
-							DB::table(config('center.db.permissions'))->insert([
-								'user_id' => $row_id,
-								'table' => $table_name,
-								'level' => $level,
-							]);
-						}
-					}
-					
-					//update permissions if you're updating yourself
-					if ($row_id == Auth::id()) LoginController::updateUserPermissions();
-				}
 			}
 		}
 	}
@@ -788,10 +729,8 @@ class RowController extends \App\Http\Controllers\Controller {
 			foreach ($columns as $column) {
 				$return->column($column->name, $column->type, $column->title);
 			}
-			if (LoginController::checkPermission($table->name, 'edit')) {
-				if (isset($table->fields->deleted_at)) $return->deletable();
-				if (array_keys($table->order_by)[0] == $table->name . '.precedence') $return->draggable(action('\LeftRight\Center\Controllers\RowController@reorder', $table->name));
-			}
+			if (isset($table->fields->deleted_at)) $return->deletable();
+			if (array_keys($table->order_by)[0] == $table->name . '.precedence') $return->draggable(action('\LeftRight\Center\Controllers\RowController@reorder', $table->name));
 			if (!empty($table->group_by)) $return->groupBy('group');
 			return $return->draw($table->name);
 		}
@@ -806,8 +745,6 @@ class RowController extends \App\Http\Controllers\Controller {
 		# Security
 		if (!isset($table->name)) {
 			return redirect()->action('\LeftRight\Center\Controllers\TableController@index')->with('error', trans('center::site.table_does_not_exist'));
-		} elseif (!LoginController::checkPermission($table->name, 'view') || !$table->editable) {
-			return redirect()->action('\LeftRight\Center\Controllers\RowController@index', $table->name)->with('error', trans('center::site.no_permissions_edit'));
 		}
 		
 		# Retrieve instance/row values

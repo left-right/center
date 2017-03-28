@@ -37,6 +37,7 @@ Form::macro('decimal', function($name, $value = null, $options = array()) {
     return $input;
 });
 
+/* getting a not a function error
 Form::macro('integer', function($name, $value = null, $options = array()) {
     $input =  '<input type="number" step="1" name="' . $name . '" value="' . $value . '"';
 
@@ -48,6 +49,7 @@ Form::macro('integer', function($name, $value = null, $options = array()) {
 
     return $input;
 });
+*/
 
 # Currently not using; interferes with Chrome implementation of datetimepicker
 /*Form::macro('time', function($name, $value = null, $options = array()) {

@@ -37,9 +37,7 @@ class LoginController extends \App\Http\Controllers\Controller {
 				DB::table(config('center.db.users'))->where('id', Auth::user()->id)->update([
 					'last_login'=>new DateTime
 				]);
-				
-				self::updateUserPermissions();
-								
+												
 				return redirect()->intended(action('\LeftRight\Center\Controllers\TableController@index'));
 				
 			}
@@ -58,15 +56,12 @@ class LoginController extends \App\Http\Controllers\Controller {
 				
 		Auth::loginUsingId($user_id, true);
 
-		self::updateUserPermissions();
-		
 		return redirect()->action('\LeftRight\Center\Controllers\TableController@index');
 	}
 	
 	//logout
 	public function logout(Request $request) {
 		Auth::logout();
-	    $request->session()->forget('center.permissions');
 		return redirect()->action('\LeftRight\Center\Controllers\TableController@index');
 	}
 
@@ -79,11 +74,7 @@ class LoginController extends \App\Http\Controllers\Controller {
 	public function postReset(Request $request) {
 
 		//get user
-		if (!$user = DB::table(config('center.db.users'))->whereExists(function($query){
-                $query->select(DB::raw(1))
-                      ->from(config('center.db.permissions'))
-                      ->whereRaw(config('center.db.permissions') . '.user_id = ' . config('center.db.users') . '.id');
-            })->whereNull('deleted_at')->where('email', $request->input('email'))->first()) {
+		if (!$user = DB::table(config('center.db.users'))->whereNull('deleted_at')->where('email', $request->input('email'))->first()) {
 			return redirect()->action('\LeftRight\Center\Controllers\LoginController@getReset')->with([
 				'error'=>trans('center::site.password_reset_error')
 			]);
@@ -140,54 +131,4 @@ class LoginController extends \App\Http\Controllers\Controller {
 		return redirect()->action('\LeftRight\Center\Controllers\TableController@index')->with('message', trans('center::site.password_change_success'));
 	}
 	
-	//permissions, used by center controller 
-	public static function permissions($user_id) {
-		return DB::table(config('center.db.permissions'))->where('user_id', $user_id)->pluck('level', 'table');
-	}
-	
-	//check permission level for active user
-	public static function checkPermission($table, $level='edit') {
-		if (Auth::guest()) return false;
-		$permissions = session('center.permissions');
-		$table = config('center.tables.' . $table);
-		if (array_key_exists($table->name, $permissions)) {
-			if ($level == 'view') {
-				return true;
-			} elseif ($table->creatable && $level == 'create') {
-				if (($permissions[$table->name] == 'create') || ($permissions[$table->name] == 'edit')) return true;
-			} elseif ($table->editable && $level == 'edit') {
-				if ($permissions[$table->name] == 'edit') return true;
-			}
-		}
-		return false;
-	}
-	
-	//for dropdowns
-	public static function getPermissionLevels() {
-		return [
-			'' => trans('center::site.permission_levels.none'),
-			'view' => trans('center::site.permission_levels.view'),
-			'create' => trans('center::site.permission_levels.create'),
-			'edit' => trans('center::site.permission_levels.edit'),
-		];
-	}
-	
-	//set default permissions on a table (install and refresh)
-	public static function setDefaultTablePermissions($table) {
-		$admins = config('center.admins');
-		foreach ($admins as $admin) {
-			DB::table(config('center.db.permissions'))->where('user_id', $admin)->where('table', $table)->delete();
-			DB::table(config('center.db.permissions'))->insert([
-				'user_id' => $admin,
-				'table' => $table,
-				'level' => 'edit',
-			]);
-		}
-	}
-
-	//update user permissions
-	public static function updateUserPermissions() {
-	    session('center.permissions', self::permissions(Auth::id()));
-	}
-
 }

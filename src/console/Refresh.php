@@ -180,10 +180,6 @@ class Refresh extends Command {
 									'; ');
 								break;
 							
-							//special: permissions
-							case 'permissions':
-								break;
-
 						    default:
 								trigger_error($field->type . ' not supported yet!');
 						}
@@ -199,14 +195,6 @@ class Refresh extends Command {
 					});
 				}
 
-			}
-		}
-
-		//now can set permissions, had to wait for permissions table potentially to be created
-		foreach ($tables as $table) {
-			//set default permissions
-			if (!$table->hidden) {
-				LoginController::setDefaultTablePermissions($table->name);
 			}
 		}
 
